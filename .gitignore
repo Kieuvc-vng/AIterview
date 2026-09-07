@@ -1,0 +1,22 @@
+# API key và cấu hình riêng — TUYỆT ĐỐI không đưa lên GitHub
+.env
+.env.*
+!.env.example
+
+# Thư viện tải về
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# File tạm của máy / editor
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# Dữ liệu test tự tạo (giữ máy mình thôi)
+uploads/
+tmp/
