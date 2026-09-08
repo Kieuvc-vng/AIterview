@@ -29,3 +29,38 @@ Dòng **Chưa hiểu** là dòng duy nhất mình phải tự trả lời — Cl
 ---
 
 _Các entry thật bắt đầu từ đây._
+
+## 08/09 — Kiểu + Tiến
+
+**Nhờ làm:** tạo dịch vụ sinh ra câu hỏi phỏng vấn dựa trên kỹ năng
+**Claude làm:** xong, viết 2 file (dịch vụ + test), test chạy được
+**Bước:** 3 — Spec → Build
+**Chưa hiểu:** không có gì
+
+## 08/09 — Claude (Tasks 6-10)
+
+**Nhờ làm:** triển khai 5 dịch vụ backend: quản lý phiên → máy phỏng vấn → tích hợp AI → tạo rubric → xuất dữ liệu
+**Claude làm:** xong 5 file, code chạy test được (4/5 chạy ngay, 1 cần kiểm tra sau)
+**Bước:** 3 — Spec → Build
+**Chưa hiểu:** không có gì
+
+**Chi tiết 5 task:**
+- Task 6: sessionManager.js (8 functions, quản lý session/tin nhắn/rubric với DB)
+- Task 7: interviewEngine.js (máy trạng thái, xử lý 3 lần hỏi/theo dõi skill/question)
+- Task 8: aiIntegration.js (gọi Qwen, parse marker [[ANSWER_GOOD]], trả về đánh giá)
+- Task 9: rubricGenerator.js (chấm điểm 0-10 mỗi skill, lấy bằng chứng từ chat)
+- Task 10: exportService.js (PDF + CSV, lưu vào tmp/, dọn file cũ)
+
+## 08/09 — Claude (Tasks 11-15)
+
+**Nhờ làm:** Express server + 3 API route modules + frontend setup page (5 bước)
+**Claude làm:** xong, 5 commit riêng biệt, code sẵn sàng integrate
+**Bước:** 3 — Spec → Build
+**Chưa hiểu:** không có gì
+
+**Chi tiết 5 task:**
+- Task 11: server.js (require dotenv, middleware, import 3 routes, error handler)
+- Task 12: setupRoutes.js (4 endpoints: parse-jd, suggest-skills, suggest-questions, create-session)
+- Task 13: interviewRoutes.js (3 endpoints: GET session, POST start, POST message; state machine trong memory)
+- Task 14: reviewRoutes.js (GET session + rubric, POST export PDF/CSV)
+- Task 15: Frontend setup 5 bước (HTML+CSS+JS, form multipage, API calls, loading states)
