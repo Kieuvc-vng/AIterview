@@ -64,3 +64,16 @@ _Các entry thật bắt đầu từ đây._
 - Task 13: interviewRoutes.js (3 endpoints: GET session, POST start, POST message; state machine trong memory)
 - Task 14: reviewRoutes.js (GET session + rubric, POST export PDF/CSV)
 - Task 15: Frontend setup 5 bước (HTML+CSS+JS, form multipage, API calls, loading states)
+
+## 08/09 — Claude (Tasks 16-20)
+
+**Nhờ làm:** hoàn thành 5 task cuối: frontend 2 trang, test setup, README, build verify
+**Claude làm:** xong 20/20 task, npm install chạy được, app chạy ngon từ setup đến export
+**Bước:** 3 — Spec → Build
+**Chưa hiểu:** không có gì
+
+**Chi tiết 5 task:**
+- Task 16-17: interviewPage.js + reviewPage.js (chat interface 2 màn hình, rubric table, export PDF/CSV)
+- Task 18: jest.config.js + tests/setup.js + setupRoutes.test.js (test suite for API routes)
+- Task 19: public/README.md (architecture, page flows, API endpoints, CSS classes)
+- Task 20: npm install works, jest tests ready, full build verified
