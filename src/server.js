@@ -1,11 +1,12 @@
+// Require dotenv for .env loading
+require('dotenv').config();
+
 // Initialize database on startup
 require('./db/init');
 
 const express = require('express');
-const dotenv = require('dotenv');
 
-dotenv.config();
-
+// Create Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -13,12 +14,25 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static('public'));
 
-// Basic route for testing
-app.get('/', (req, res) => {
-  res.json({ message: 'AI Interview App API' });
+// Import route modules
+const setupRoutes = require('./routes/setupRoutes');
+const interviewRoutes = require('./routes/interviewRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
+
+// Use route modules
+app.use('/api/setup', setupRoutes);
+app.use('/api/interview', interviewRoutes);
+app.use('/api/review', reviewRoutes);
+
+// Error handler middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err.message);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal server error'
+  });
 });
 
-// Start server
+// Listen on PORT from env
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
