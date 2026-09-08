@@ -27,12 +27,10 @@ const App = {
         SetupPage.render(this.appElement, data);
         break;
       case 'interview':
-        // InterviewPage.render(this.appElement, data);
-        console.log('Interview page not yet implemented');
+        InterviewPage.render(this.appElement, data);
         break;
       case 'review':
-        // ReviewPage.render(this.appElement, data);
-        console.log('Review page not yet implemented');
+        ReviewPage.render(this.appElement, data);
         break;
       default:
         console.error(`Unknown page: ${pageName}`);

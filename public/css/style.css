@@ -415,6 +415,299 @@ select:disabled {
   cursor: not-allowed;
 }
 
+/* Interview Page */
+.interview-page {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+}
+
+.interview-header {
+  margin-bottom: 24px;
+}
+
+.current-question-box {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 24px;
+}
+
+.question-label {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.question-text {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.chat-container {
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  height: 400px;
+  overflow-y: auto;
+  margin-bottom: 24px;
+  padding: 16px;
+}
+
+.messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.message-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: slideIn 0.3s ease-out;
+}
+
+.ai-message {
+  align-items: flex-start;
+}
+
+.ai-message .message-sender {
+  color: #667eea;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.ai-message .message-content {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 12px;
+  border-radius: 6px;
+  max-width: 90%;
+  line-height: 1.5;
+}
+
+.candidate-message {
+  align-items: flex-end;
+}
+
+.candidate-message .message-sender {
+  color: #764ba2;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.candidate-message .message-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 12px;
+  border-radius: 6px;
+  max-width: 90%;
+  line-height: 1.5;
+}
+
+.interview-input-area {
+  margin-top: 16px;
+}
+
+.message-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.message-input {
+  flex: 1;
+  min-height: 100px;
+  max-height: 150px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.btn-send {
+  align-self: flex-end;
+  height: fit-content;
+  padding: 12px 24px;
+  white-space: nowrap;
+}
+
+.interview-complete-message {
+  background: #efe;
+  border: 1px solid #cfc;
+  color: #3c3;
+  padding: 16px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+/* Review Page */
+.review-page {
+  max-width: 1000px;
+}
+
+.review-header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.review-section {
+  background: white;
+  padding: 24px;
+  margin-bottom: 24px;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+.review-section h2 {
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 6px;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #333;
+}
+
+.info-value {
+  color: #666;
+}
+
+.rubric-container {
+  overflow-x: auto;
+}
+
+.rubric-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.rubric-table thead {
+  background: #f0f0f0;
+}
+
+.rubric-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #ddd;
+}
+
+.rubric-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.rubric-table tr:hover {
+  background: #f9f9f9;
+}
+
+.score-cell {
+  font-weight: 600;
+  color: #667eea;
+  font-size: 16px;
+}
+
+.evidence-cell {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 400px;
+  word-wrap: break-word;
+}
+
+.transcript-container {
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 16px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.transcript-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.transcript-message {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.transcript-message.ai-message {
+  align-items: flex-start;
+}
+
+.transcript-message.ai-message .transcript-sender {
+  color: #667eea;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.transcript-message.ai-message .transcript-content {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 4px;
+  max-width: 85%;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.transcript-message.candidate-message {
+  align-items: flex-end;
+}
+
+.transcript-message.candidate-message .transcript-sender {
+  color: #764ba2;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.transcript-message.candidate-message .transcript-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 10px;
+  border-radius: 4px;
+  max-width: 85%;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.export-buttons button {
+  flex: 1;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .page {
@@ -437,5 +730,31 @@ select:disabled {
     width: 36px;
     height: 36px;
     font-size: 14px;
+  }
+
+  .chat-container {
+    height: 300px;
+  }
+
+  .message-input-group {
+    flex-direction: column;
+  }
+
+  .btn-send {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .export-buttons {
+    flex-direction: column;
+  }
+
+  .transcript-message.ai-message .transcript-content,
+  .transcript-message.candidate-message .transcript-content {
+    max-width: 100%;
   }
 }
