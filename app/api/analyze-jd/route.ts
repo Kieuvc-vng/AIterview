@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { callClaude } from "@/lib/claude";
+import { callQwen } from "@/lib/qwen";
 import { getAnalyzeJDPrompt } from "@/lib/prompts";
 import { AnalyzeJDResponse, Language } from "@/lib/types";
 
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     const systemPrompt = getAnalyzeJDPrompt(lang);
     const userMessage = `Analyze this job description:\n\n${jd}`;
-    const responseText = await callClaude(systemPrompt, userMessage);
+    const responseText = await callQwen(systemPrompt, userMessage);
     const result: AnalyzeJDResponse = JSON.parse(responseText);
 
     return NextResponse.json(result);

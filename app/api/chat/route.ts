@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { callClaude } from "@/lib/claude";
+import { callQwen } from "@/lib/qwen";
 import { getEvaluatePrompt } from "@/lib/prompts";
 import { ChatEvaluation, ChatRequest } from "@/lib/types";
 
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       .join("\n\n");
 
     const userMessage = `Evaluate this interview conversation:\n\n${conversationText}`;
-    const responseText = await callClaude(systemPrompt, userMessage);
+    const responseText = await callQwen(systemPrompt, userMessage, { useBackup: true });
     const evaluation: ChatEvaluation = JSON.parse(responseText);
 
     return NextResponse.json(evaluation);
