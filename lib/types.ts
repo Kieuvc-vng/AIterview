@@ -60,3 +60,35 @@ export interface InterviewResult {
   skills: SkillResult[];
   completedAt: string;
 }
+
+export interface OverallEvaluationRequest {
+  config: InterviewConfig;
+  skillResults: SkillResult[];
+  lang: Language;
+}
+
+export interface SkillEvaluation {
+  skill: string;
+  score: number;
+  level: string;
+  strengths: string[];
+  weaknesses: string[];
+  notes: string;
+}
+
+export interface OverallEvaluation {
+  overallScore: number;
+  recommendation: "Strong Yes" | "Yes" | "Maybe" | "No";
+  summary: string;
+  skillEvaluations: SkillEvaluation[];
+  strengths: string[];
+  weaknesses: string[];
+  interviewNotes: string;
+}
+
+export interface InterviewResultV2 {
+  config: InterviewConfig;
+  skills: SkillResult[];
+  overallEvaluation?: OverallEvaluation;
+  completedAt: string;
+}

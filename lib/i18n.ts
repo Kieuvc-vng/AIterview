@@ -94,6 +94,20 @@ const translations = {
     vi: "JD quá ngắn, vui lòng bổ sung thêm thông tin",
     en: "JD is too short, please add more detail",
   },
+
+  "interview.evaluating": {
+    vi: "Đang tạo báo cáo đánh giá...",
+    en: "Generating evaluation report...",
+  },
+  "interview.overallScore": { vi: "Điểm tổng", en: "Overall Score" },
+  "interview.recommendation": { vi: "Đề xuất", en: "Recommendation" },
+  "interview.strengths": { vi: "Điểm mạnh", en: "Strengths" },
+  "interview.weaknesses": { vi: "Điểm cần cải thiện", en: "Areas for Improvement" },
+  "interview.skillSummary": { vi: "Đánh giá theo kỹ năng", en: "Skill-by-Skill Evaluation" },
+  "interview.reportReady": {
+    vi: "Báo cáo đánh giá đã sẵn sàng.",
+    en: "Evaluation report is ready.",
+  },
 } as const;
 
 type TranslationKey = keyof typeof translations;

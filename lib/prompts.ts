@@ -60,3 +60,44 @@ Return this exact JSON format:
   "notes": "brief evaluation notes"
 }`;
 }
+
+export function getOverallEvaluationPrompt(lang: Language): string {
+  const outputLang = lang === "vi" ? "Vietnamese" : "English";
+  return `You are a senior HR consultant reviewing a completed candidate interview.
+
+Analyze all the interview data below and produce a comprehensive evaluation report.
+
+Rules:
+- Overall score is the weighted average of all skill scores (1-5 scale)
+- Recommendation scale:
+  - "Strong Yes" = overall 4.5-5.0
+  - "Yes" = overall 3.5-4.4
+  - "Maybe" = overall 2.5-3.4
+  - "No" = overall 1.0-2.4
+- For each skill, identify 1-3 specific strengths and 1-3 specific weaknesses based on actual answers
+- Level per skill: "Excellent" (4.5-5), "Good" (3.5-4.4), "Average" (2.5-3.4), "Below Average" (1-2.4)
+- The summary should be 2-3 sentences capturing the candidate's overall performance
+- Interview notes should mention communication quality, response patterns, growth through follow-ups
+- All output text must be in ${outputLang}
+- Return ONLY valid JSON, no markdown fences or extra text
+
+Return this exact JSON format:
+{
+  "overallScore": <number 1-5, one decimal>,
+  "recommendation": "Strong Yes" or "Yes" or "Maybe" or "No",
+  "summary": "2-3 sentence summary",
+  "skillEvaluations": [
+    {
+      "skill": "skill name",
+      "score": <number 1-5, one decimal>,
+      "level": "Excellent" or "Good" or "Average" or "Below Average",
+      "strengths": ["strength 1", "strength 2"],
+      "weaknesses": ["weakness 1"],
+      "notes": "brief skill-specific notes"
+    }
+  ],
+  "strengths": ["overall strength 1", "overall strength 2"],
+  "weaknesses": ["overall weakness 1", "overall weakness 2"],
+  "interviewNotes": "observations about communication and interview behavior"
+}`;
+}
