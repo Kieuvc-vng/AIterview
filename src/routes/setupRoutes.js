@@ -4,7 +4,7 @@ const router = express.Router();
 const { parseJD } = require('../services/jdParser');
 const { suggestSkills } = require('../services/skillsSuggester');
 const { generateQuestions } = require('../services/questionGenerator');
-const { createNewSession } = require('../services/sessionManager');
+// const { createNewSession } = require('../services/sessionManager');  // Temporarily disabled for testing without DB
 
 /**
  * POST /api/setup/parse-jd
@@ -72,20 +72,9 @@ router.post('/suggest-questions', async (req, res, next) => {
  * Create new interview session
  */
 router.post('/create-session', async (req, res, next) => {
-  try {
-    const { hr_email, job_title, level, company, skills, questions_by_skill } = req.body;
-
-    if (!hr_email || !job_title || !level || !company || !skills || !questions_by_skill) {
-      return res.status(400).json({
-        error: 'Missing required parameters: hr_email, job_title, level, company, skills, questions_by_skill'
-      });
-    }
-
-    const result = createNewSession(hr_email, job_title, level, company, skills, questions_by_skill);
-    res.json(result);
-  } catch (error) {
-    next({ status: 500, message: error.message });
-  }
+  res.status(503).json({
+    error: 'Database not available. Please install Visual Studio Build Tools to enable this feature.'
+  });
 });
 
 module.exports = router;

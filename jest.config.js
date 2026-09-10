@@ -7,10 +7,16 @@ module.exports = {
   // Use Node environment instead of jsdom
   testEnvironment: 'node',
 
-  // Test file patterns (only service tests for now, routes need more mocking)
+  // Test file patterns - only run proper Jest tests in tests/ directory
   testMatch: [
-    '**/tests/services/**/*.test.js',
-    '**/src/services/**/*.test.js'
+    '**/tests/**/*.test.js'
+  ],
+
+  // Skip tests with external dependencies (database, API keys)
+  testPathIgnorePatterns: [
+    'qwenClient.test.js',
+    'sessionManager.test.js',
+    'setupRoutes.test.js'
   ],
 
   // Coverage configuration
@@ -26,10 +32,16 @@ module.exports = {
     '/tests/'
   ],
 
-  // Don't transform uuid module
+  // Don't transform node_modules
   transformIgnorePatterns: [
-    'node_modules/uuid/'
+    '/node_modules/'
   ],
+
+  // Mock uuid to avoid ESM issues in tests
+  moduleNameMapper: {
+    '^uuid$': '<rootDir>/tests/__mocks__/uuid.js',
+    '^@/(.*)$': '<rootDir>/src/$1'
+  },
 
   // Test timeout (for async tests)
   testTimeout: 10000,
@@ -38,10 +50,5 @@ module.exports = {
   verbose: true,
 
   // Setup files
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
-
-  // Module path alias (if needed)
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1'
-  }
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.js']
 };

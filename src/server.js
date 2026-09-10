@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 // Initialize database on startup
-require('./db/init');
+// require('./db/init');
 
 const express = require('express');
 

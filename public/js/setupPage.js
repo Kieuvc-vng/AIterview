@@ -26,7 +26,9 @@ const SetupPage = {
   render(container, data = {}) {
     // Merge any passed data
     this.formData = { ...this.formData, ...data };
-    this.currentStep = data.currentStep || 1;
+    if (data.currentStep !== undefined) {
+      this.currentStep = data.currentStep;
+    }
 
     const html = this.getPageHTML();
     container.innerHTML = html;
@@ -85,10 +87,12 @@ const SetupPage = {
    * Get current step content
    */
   getStepContent() {
+    console.log('[DEBUG getStepContent] currentStep is:', this.currentStep);
     switch (this.currentStep) {
       case 1:
         return this.getStep1HTML();
       case 2:
+        console.log('[DEBUG] Returning Step2HTML');
         return this.getStep2HTML();
       case 3:
         return this.getStep3HTML();
@@ -142,9 +146,12 @@ const SetupPage = {
         <label for="level">Level *</label>
         <select id="level" required>
           <option value="">-- Select Level --</option>
+          <option value="Fresher" ${this.formData.level === 'Fresher' ? 'selected' : ''}>Fresher</option>
           <option value="Junior" ${this.formData.level === 'Junior' ? 'selected' : ''}>Junior</option>
           <option value="Mid" ${this.formData.level === 'Mid' ? 'selected' : ''}>Mid</option>
           <option value="Senior" ${this.formData.level === 'Senior' ? 'selected' : ''}>Senior</option>
+          <option value="Lead" ${this.formData.level === 'Lead' ? 'selected' : ''}>Lead</option>
+          <option value="Manager" ${this.formData.level === 'Manager' ? 'selected' : ''}>Manager</option>
         </select>
 
         <label for="company">Company *</label>
@@ -484,13 +491,18 @@ const SetupPage = {
       }
 
       const data = await response.json();
+      console.log('[DEBUG] parseJD response:', data);
       this.formData.job_title = data.job_title;
       this.formData.level = data.level;
       this.formData.company = data.company;
 
+      console.log('[DEBUG] Setting currentStep to 2, was:', this.currentStep);
       this.currentStep = 2;
+      console.log('[DEBUG] After setting, currentStep is:', this.currentStep);
       this.render(document.getElementById('app'));
+      console.log('[DEBUG] After render, currentStep is:', this.currentStep);
     } catch (error) {
+      console.error('[DEBUG] parseJD error:', error);
       App.showError(error.message);
       nextBtn.disabled = false;
       spinner.style.display = 'none';
