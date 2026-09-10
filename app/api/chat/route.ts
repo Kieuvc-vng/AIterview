@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { callQwen } from "@/lib/qwen";
+import { callQwen, safeParseJSON } from "@/lib/qwen";
 import { getEvaluatePrompt } from "@/lib/prompts";
 import { ChatEvaluation, ChatRequest } from "@/lib/types";
 
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     const userMessage = `Evaluate this interview conversation:\n\n${conversationText}`;
     const responseText = await callQwen(systemPrompt, userMessage, { useBackup: true });
-    const evaluation: ChatEvaluation = JSON.parse(responseText);
+    const evaluation = safeParseJSON<ChatEvaluation>(responseText);
 
     return NextResponse.json(evaluation);
   } catch (error) {

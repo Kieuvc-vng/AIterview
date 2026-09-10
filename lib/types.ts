@@ -55,12 +55,6 @@ export interface SkillResult {
   averageScore: number;
 }
 
-export interface InterviewResult {
-  config: InterviewConfig;
-  skills: SkillResult[];
-  completedAt: string;
-}
-
 export interface OverallEvaluationRequest {
   config: InterviewConfig;
   skillResults: SkillResult[];

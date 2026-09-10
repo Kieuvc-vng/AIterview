@@ -28,6 +28,11 @@ async function callModel(
   return content;
 }
 
+export function safeParseJSON<T>(text: string): T {
+  const cleaned = text.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+  return JSON.parse(cleaned);
+}
+
 export async function callQwen(
   systemPrompt: string,
   userMessage: string,
