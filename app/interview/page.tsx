@@ -15,7 +15,8 @@ import {
   AttemptResult,
   QuestionResult,
   SkillResult,
-  InterviewResult,
+  InterviewResultV2,
+  OverallEvaluation,
 } from "@/lib/types";
 import ChatBubble from "@/components/interview/ChatBubble";
 import ProgressBar from "@/components/interview/ProgressBar";
@@ -55,7 +56,8 @@ function InvalidLink() {
 function InterviewChat({ config }: { config: InterviewConfig }) {
   const lang = config.lang;
 
-  const [phase, setPhase] = useState<"welcome" | "interview" | "finished">("welcome");
+  const [phase, setPhase] = useState<"welcome" | "interview" | "evaluating" | "finished">("welcome");
+  const [overallEvaluation, setOverallEvaluation] = useState<OverallEvaluation | null>(null);
   const [messages, setMessages] = useState<(ChatMessage & { isSkillBanner?: boolean })[]>([]);
   const [input, setInput] = useState("");
   const [isThinking, setIsThinking] = useState(false);
@@ -194,10 +196,33 @@ function InterviewChat({ config }: { config: InterviewConfig }) {
     }
   }
 
-  function finishInterview() {
-    const result: InterviewResult = {
+  async function finishInterview() {
+    setPhase("evaluating");
+
+    let evaluation: OverallEvaluation | null = null;
+    try {
+      const res = await fetch("/api/evaluate-overall", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          config,
+          skillResults: allResultsRef.current,
+          lang,
+        }),
+      });
+
+      if (res.ok) {
+        evaluation = await res.json();
+        setOverallEvaluation(evaluation);
+      }
+    } catch {
+      // Phase 3 failure is non-fatal — save raw scores without report
+    }
+
+    const result: InterviewResultV2 = {
       config,
       skills: allResultsRef.current,
+      overallEvaluation: evaluation ?? undefined,
       completedAt: new Date().toISOString(),
     };
     try {
@@ -260,7 +285,7 @@ function InterviewChat({ config }: { config: InterviewConfig }) {
     );
   }
 
-  if (phase === "finished") {
+  if (phase === "evaluating") {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <motion.div
@@ -268,10 +293,32 @@ function InterviewChat({ config }: { config: InterviewConfig }) {
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-md w-full text-center space-y-6"
         >
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-lg">
+            <div className="animate-spin h-8 w-8 border-4 border-white border-t-transparent rounded-full" />
+          </div>
+          <h1 className="text-2xl font-bold">{t("interview.evaluating", lang)}</h1>
+          <p className="text-[var(--color-text-muted)]">
+            {t("interview.thinking", lang)}
+          </p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (phase === "finished") {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-lg w-full text-center space-y-6"
+        >
           <div className="text-6xl">🎉</div>
           <h1 className="text-2xl font-bold">{t("interview.complete", lang)}</h1>
           <p className="text-[var(--color-text-muted)]">
-            {t("interview.resultsSent", lang)}
+            {overallEvaluation
+              ? t("interview.reportReady", lang)
+              : t("interview.resultsSent", lang)}
           </p>
           <button
             onClick={handleExport}
