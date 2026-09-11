@@ -13,6 +13,54 @@ const InterviewPage = {
   interviewComplete: false,
 
   /**
+   * Initialize interview page - handle resume from localStorage
+   */
+  async init(sessionId) {
+    this.sessionId = sessionId;
+    const container = document.getElementById('app');
+
+    // Check if we have SESSION_ID in localStorage
+    const storedSessionId = localStorage.getItem('current_interview_session');
+
+    if (!storedSessionId || storedSessionId !== sessionId) {
+      // First time - show name input form
+      this.render(container, { sessionId });
+      return;
+    }
+
+    // Try to fetch session data from backend (resume case)
+    try {
+      const response = await fetch(`/api/interview/${sessionId}`);
+      if (response.status === 404) {
+        // Session not found - show name input
+        this.render(container, { sessionId });
+        return;
+      }
+
+      if (!response.ok) throw new Error('Failed to fetch session');
+
+      const data = await response.json();
+      const sessionData = data.session;
+      const messages = data.messages || [];
+
+      this.candidateName = sessionData.candidate_name;
+      this.messages = messages;
+      this.interviewStarted = sessionData.status === 'ongoing' || messages.length > 0;
+
+      // Render with loaded data
+      this.render(container, {
+        sessionId,
+        messages,
+        interviewStarted: this.interviewStarted
+      });
+    } catch (error) {
+      console.error('Error loading session:', error);
+      // Fall back to name input
+      this.render(container, { sessionId });
+    }
+  },
+
+  /**
    * Render the interview page
    */
   render(container, data = {}) {

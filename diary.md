@@ -28,6 +28,15 @@ Dòng **Chưa hiểu** là dòng duy nhất mình phải tự trả lời — Cl
 
 ---
 
+## 11/09 — Kiểu + Tiến
+
+**Nhờ làm:** triển khai Browser Token persistence — Phase 1 & 2 (database schema + adapter layer)
+**Claude làm:** tạo schema.sql 4 bảng, viết sessionManager adapter tự động fallback in-memory khi database lỗi, update routes, test 4 endpoints (create-session, get-session, start-interview, message) — tất cả hoạt động
+**Bước:** 3 — Spec → Build
+**Chưa hiểu:** không có gì
+
+---
+
 _Các entry thật bắt đầu từ đây._
 
 ## 08/09 — Kiểu + Tiến

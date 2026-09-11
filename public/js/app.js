@@ -27,7 +27,11 @@ const App = {
         SetupPage.render(this.appElement, data);
         break;
       case 'interview':
-        InterviewPage.render(this.appElement, data);
+        if (data.sessionId) {
+          InterviewPage.init(data.sessionId);
+        } else {
+          InterviewPage.render(this.appElement, data);
+        }
         break;
       case 'review':
         ReviewPage.render(this.appElement, data);

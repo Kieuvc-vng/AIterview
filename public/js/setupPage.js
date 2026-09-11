@@ -616,12 +616,15 @@ const SetupPage = {
       const data = await response.json();
       const { session_id, interview_link } = data;
 
+      // Save SESSION_ID to localStorage for resume capability
+      localStorage.setItem('current_interview_session', session_id);
+
       // Show success and redirect
       App.showSuccess('Interview session created successfully!');
       setTimeout(() => {
-        // Redirect to interview page (will implement later)
-        window.location.href = interview_link;
-      }, 2000);
+        // Navigate to interview page with session ID
+        App.goToPage('interview', { sessionId: session_id });
+      }, 1500);
     } catch (error) {
       App.showError(error.message);
       createBtn.disabled = false;
