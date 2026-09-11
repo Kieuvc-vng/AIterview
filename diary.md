@@ -30,8 +30,13 @@ Dòng **Chưa hiểu** là dòng duy nhất mình phải tự trả lời — Cl
 
 ## 11/09 — Kiểu + Tiến
 
-**Nhờ làm:** triển khai Browser Token persistence — Phase 1 & 2 (database schema + adapter layer)
-**Claude làm:** tạo schema.sql 4 bảng, viết sessionManager adapter tự động fallback in-memory khi database lỗi, update routes, test 4 endpoints (create-session, get-session, start-interview, message) — tất cả hoạt động
+**Nhờ làm:** triển khai Browser Token persistence — Phase 1-4 hoàn chỉnh
+**Claude làm:** 
+- Phase 1: Schema.sql (4 bảng) + sessionManager adapter (fallback in-memory)
+- Phase 2: Update setupRoutes, interviewRoutes, reviewRoutes để dùng sessionManager
+- Phase 3: Frontend resume flow — localStorage + init() function fetch data từ backend
+- Phase 4: Generate mock rubric từ skills, fix _parseSession() cho in-memory data
+- Test toàn bộ flow: create → start → message → review ✓
 **Bước:** 3 — Spec → Build
 **Chưa hiểu:** không có gì
 
