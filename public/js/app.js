@@ -34,7 +34,11 @@ const App = {
         }
         break;
       case 'review':
-        ReviewPage.render(this.appElement, data);
+        if (data.sessionId) {
+          ReviewPage.init(data.sessionId);
+        } else {
+          ReviewPage.render(this.appElement, data);
+        }
         break;
       default:
         console.error(`Unknown page: ${pageName}`);

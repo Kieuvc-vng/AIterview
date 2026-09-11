@@ -83,7 +83,7 @@ class SessionManager {
 
     if (inMemoryStore.sessions[sessionId]) {
       return {
-        session: inMemoryStore.sessions[sessionId],
+        session: this._parseSession(inMemoryStore.sessions[sessionId]),
         messages: inMemoryStore.messages[sessionId] || [],
         current_position: inMemoryStore.states[sessionId] || { current_skill_index: 0, current_question_index: 0, current_attempt: 1 }
       };

@@ -19,10 +19,34 @@ router.get('/:sessionId', async (req, res, next) => {
       return res.status(404).json({ error: 'Session not found' });
     }
 
+    // Parse session data
+    const session = data.session;
+    const messages = data.messages || [];
+    const skills = typeof session.skills === 'string' ? JSON.parse(session.skills) : session.skills;
+
+    // Generate mock rubric from skills
+    const rubric = skills.map((skill, index) => ({
+      skill_name: skill,
+      score: Math.floor(Math.random() * 3) + 7, // Mock score 7-10
+      evidence: [
+        'Demonstrated good understanding',
+        'Provided practical examples',
+        'Showed relevant experience'
+      ]
+    }));
+
     res.json({
-      session: data.session,
-      messages: data.messages,
-      rubric: [] // TODO: generate rubric when needed
+      session: {
+        session_id: session.session_id,
+        candidate_name: session.candidate_name,
+        job_title: session.job_title,
+        level: session.level,
+        company: session.company,
+        status: session.status,
+        created_at: session.created_at
+      },
+      messages,
+      rubric
     });
   } catch (error) {
     next({ status: 500, message: error.message });
