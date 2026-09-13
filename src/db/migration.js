@@ -13,8 +13,10 @@ const migrate = () => {
 
     // Step 1: Backup old tables
     db.exec(`
-      CREATE TABLE IF NOT EXISTS sessions_backup AS SELECT * FROM sessions;
-      CREATE TABLE IF NOT EXISTS rubrics_backup AS SELECT * FROM rubrics;
+      DROP TABLE IF EXISTS sessions_backup;
+      DROP TABLE IF EXISTS rubrics_backup;
+      CREATE TABLE sessions_backup AS SELECT * FROM sessions;
+      CREATE TABLE rubrics_backup AS SELECT * FROM rubrics;
     `);
     console.log('✓ Backup created');
 
@@ -49,11 +51,11 @@ const migrate = () => {
         'candidate_' || lower(substr(hex(md5(s.candidate_name || '|' || j.job_id)), 1, 16)),
         j.job_id,
         s.candidate_name,
-        COALESCE(s.email, 'candidate_' || lower(substr(hex(md5(s.candidate_name)), 1, 12)) || '@app.com'),
+        COALESCE(s.email, 'cand_' || lower(substr(hex(md5(s.candidate_name || '|' || j.job_id)), 1, 12)) || '@app.com'),
         COALESCE(s.phone, '+000000000'),
         s.created_at
       FROM sessions_backup s
-      JOIN jobs j ON s.job_title = j.job_title AND s.level = j.level AND s.company = j.company
+      JOIN jobs j ON TRIM(s.job_title) = TRIM(j.job_title) AND TRIM(s.level) = TRIM(j.level) AND TRIM(s.company) = TRIM(j.company)
       GROUP BY s.candidate_name, j.job_id;
 
       -- Create INTERVIEWS from sessions (rename to interview_id, add FKs)
@@ -65,7 +67,7 @@ const migrate = () => {
         s.status,
         s.created_at
       FROM sessions_backup s
-      JOIN jobs j ON s.job_title = j.job_title AND s.level = j.level AND s.company = j.company
+      JOIN jobs j ON TRIM(s.job_title) = TRIM(j.job_title) AND TRIM(s.level) = TRIM(j.level) AND TRIM(s.company) = TRIM(j.company)
       JOIN candidates c ON j.job_id = c.job_id AND s.candidate_name = c.name;
     `);
     console.log('✓ SESSIONS migrated to JOBS, CANDIDATES, INTERVIEWS');
