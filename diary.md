@@ -42,6 +42,17 @@ Dòng **Chưa hiểu** là dòng duy nhất mình phải tự trả lời — Cl
 
 ---
 
+## 13/09 — Kiểu + Tiến
+
+**Nhờ làm:** brainstorm + spec + plan cho Job Library feature (thư viện job, quản lý ứng viên, tóm tắt câu trả lời)
+**Claude làm:** 
+- Brainstorming: 3 approaches, chọn Refactor DB (Approach B)
+- Spec design: 5 bảng schema, 3 trang frontend, API endpoints, migration plan
+- Implementation plan: 12 tasks chia 4 phases (Tasks 1-2 done, Tasks 3-12 ready)
+- Subagent-driven execution: Tasks 1-2 xong + approved (schema.sql + migration.js)
+**Bước:** Spec → Build (đang ở giữa)
+**Chưa hiểu:** không có gì
+
 _Các entry thật bắt đầu từ đây._
 
 ## 08/09 — Kiểu + Tiến
