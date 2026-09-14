@@ -14,8 +14,13 @@ JD: ${jdText}` }
 
   try {
     const response = await callQwen(messages, systemPrompt);
-    const questions = JSON.parse(response);
-    return questions;
+    const parsed = JSON.parse(response);
+
+    // Handle both formats: {questions_by_skill: {...}} and {...}
+    if (parsed.questions_by_skill && typeof parsed.questions_by_skill === 'object') {
+      return parsed.questions_by_skill;
+    }
+    return parsed;
   } catch (error) {
     console.error('Question generation error:', error);
     const fallback = {};

@@ -1,0 +1,153 @@
+<h2>3 Section Cuối — Migration · Summarization · Model Config</h2>
+
+<div style="margin-bottom: 2rem;">
+  <h3 style="color: #0066cc;">🔄 Section 1: Migration Plan (Schema cũ → mới)</h3>
+  <div style="background: #f5f5f5; padding: 1rem; border-radius: 4px; border-left: 4px solid #0066cc;">
+    <p><strong>Hiện tại:</strong></p>
+    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+      <li>4 bảng: sessions, messages, session_states, rubrics</li>
+      <li>1 session = 1 job + 1 candidate (lặp lại job info nếu có nhiều ứng viên)</li>
+    </ul>
+
+    <p style="margin-top: 1rem;"><strong>Sau migration:</strong></p>
+    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+      <li>5 bảng: jobs, candidates, interviews, messages, summaries</li>
+      <li>1 job dùng lại nhiều lần, messages & summaries dùng chung interview_id</li>
+    </ul>
+
+    <p style="margin-top: 1rem;"><strong>Quá trình Migration:</strong></p>
+    <ol style="margin: 0.5rem 0; padding-left: 1.5rem;">
+      <li><strong>Bước 1:</strong> Tạo bảng mới (jobs, candidates, interviews, summaries)</li>
+      <li><strong>Bước 2:</strong> Migrate data từ sessions cũ
+        <ul style="margin: 0.3rem 0; padding-left: 1.5rem;">
+          <li>Group by (job_title, level, company) → tạo JOBS records</li>
+          <li>Extract candidate_name từ mỗi session → tạo CANDIDATES records</li>
+          <li>Rename sessions → interviews (cập nhật FK: job_id, candidate_id)</li>
+        </ul>
+      </li>
+      <li><strong>Bước 3:</strong> Migrate messages (chỉ rename FK: session_id → interview_id)</li>
+      <li><strong>Bước 4:</strong> Archive/xóa rubrics (không dùng nữa)</li>
+      <li><strong>Bước 5:</strong> Test: queries cũ vẫn chạy được qua VIEW hoặc migration function</li>
+    </ol>
+
+    <p style="margin-top: 1rem; padding: 0.8rem; background: #fff3cd; border-radius: 4px; border-left: 3px solid #ff9800;">
+      <strong>⚠️ Lưu ý:</strong> Nếu có data cũ trong production, cần backup trước. Nếu muốn giữ audit trail, có thể archive sessions table thay vì xóa.
+    </p>
+  </div>
+</div>
+
+<div style="margin-bottom: 2rem;">
+  <h3 style="color: #0066cc;">🤖 Section 2: Summarization Logic (AI tóm tắt)</h3>
+  <div style="background: #f5f5f5; padding: 1rem; border-radius: 4px; border-left: 4px solid #0066cc;">
+    <p><strong>Cơ chế tóm tắt:</strong></p>
+    <div style="background: white; padding: 0.8rem; border-radius: 4px; margin: 0.5rem 0;">
+      <p style="margin: 0.3rem 0;"><strong>Khi nào tóm tắt?</strong></p>
+      <p style="margin: 0.3rem 0; color: #555;">Sau khi ứng viên trả lời mỗi câu hỏi (hoặc follow-up cuối cùng)</p>
+    </div>
+
+    <div style="background: white; padding: 0.8rem; border-radius: 4px; margin: 0.5rem 0;">
+      <p style="margin: 0.3rem 0;"><strong>Input cho AI:</strong></p>
+      <ul style="margin: 0.3rem 0; padding-left: 1.5rem;">
+        <li>Question text (ví dụ: "Python experience?")</li>
+        <li>Tất cả tin nhắn liên quan (câu trả lời chính + follow-ups)</li>
+        <li>System prompt: "Tóm tắt câu trả lời thành 1-2 dòng, giữ lại ý chính"</li>
+      </ul>
+    </div>
+
+    <div style="background: white; padding: 0.8rem; border-radius: 4px; margin: 0.5rem 0;">
+      <p style="margin: 0.3rem 0;"><strong>Output:</strong></p>
+      <ul style="margin: 0.3rem 0; padding-left: 1.5rem;">
+        <li><code>main_answer_summary</code> — tóm tắt câu chính</li>
+        <li><code>followup_summary</code> — tóm tắt follow-up (nếu có)</li>
+      </ul>
+    </div>
+
+    <div style="background: white; padding: 0.8rem; border-radius: 4px; margin: 0.5rem 0;">
+      <p style="margin: 0.3rem 0;"><strong>Ví dụ:</strong></p>
+      <p style="margin: 0.3rem 0; font-family: monospace; font-size: 12px; color: #555;">
+        <strong>Q:</strong> "Python experience?"<br>
+        <strong>A:</strong> "Làm Python 5 năm... backend Django... blah blah..."<br>
+        <strong>Follow-up:</strong> "Async/await?"<br>
+        <strong>A:</strong> "Có dùng async/await... race condition... blah blah..."<br>
+        <br>
+        <strong>→ main_answer_summary:</strong> "5 years Python, Django backend"<br>
+        <strong>→ followup_summary:</strong> "Used async/await, handled race conditions"
+      </p>
+    </div>
+
+    <p style="margin-top: 1rem; padding: 0.8rem; background: #e3f2fd; border-radius: 4px; border-left: 3px solid #2196f3;">
+      <strong>✅ Service mới:</strong> <code>summaryGenerator.js</code> — call AI model để tóm tắt, lưu vào SUMMARIES table
+    </p>
+  </div>
+</div>
+
+<div style="margin-bottom: 2rem;">
+  <h3 style="color: #0066cc;">⚙️ Section 3: Model Configuration</h3>
+  <div style="background: #f5f5f5; padding: 1rem; border-radius: 4px; border-left: 4px solid #0066cc;">
+    <p><strong>Theo plan, bạn cần:</strong></p>
+    <table style="width: 100%; border-collapse: collapse; margin: 0.5rem 0;">
+      <tr style="background: #e8f4f8;">
+        <th style="border: 1px solid #ddd; padding: 0.5rem; text-align: left;">Phase</th>
+        <th style="border: 1px solid #ddd; padding: 0.5rem; text-align: left;">Model</th>
+        <th style="border: 1px solid #ddd; padding: 0.5rem; text-align: left;">Config</th>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #ddd; padding: 0.5rem;">Phase 1: Setup</td>
+        <td style="border: 1px solid #ddd; padding: 0.5rem;">1 model chính</td>
+        <td style="border: 1px solid #ddd; padding: 0.5rem;">
+          <code>SETUP_MODEL</code> (generate questions, suggest skills)
+        </td>
+      </tr>
+      <tr style="background: #f0f0f0;">
+        <td style="border: 1px solid #ddd; padding: 0.5rem;">Phase 2: Interview</td>
+        <td style="border: 1px solid #ddd; padding: 0.5rem;">1 chính + 1 backup</td>
+        <td style="border: 1px solid #ddd; padding: 0.5rem;">
+          <code>INTERVIEW_MODEL</code> + <code>INTERVIEW_MODEL_BACKUP</code>
+        </td>
+      </tr>
+      <tr>
+        <td style="border: 1px solid #ddd; padding: 0.5rem;">Phase 3: Summarization</td>
+        <td style="border: 1px solid #ddd; padding: 0.5rem;">1 chính + 1 backup</td>
+        <td style="border: 1px solid #ddd; padding: 0.5rem;">
+          <code>SUMMARY_MODEL</code> + <code>SUMMARY_MODEL_BACKUP</code>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin-top: 1rem;"><strong>.env Config (Template):</strong></p>
+    <div style="background: #f0f0f0; padding: 0.8rem; border-radius: 4px; font-family: monospace; font-size: 12px; overflow-x: auto;">
+# Setup Phase<br>
+SETUP_MODEL=<span style="background: #ffeb3b; padding: 2px 4px;">your_model_here</span><br>
+<br>
+# Interview Phase<br>
+INTERVIEW_MODEL=<span style="background: #ffeb3b; padding: 2px 4px;">your_model_here</span><br>
+INTERVIEW_MODEL_BACKUP=<span style="background: #ffeb3b; padding: 2px 4px;">your_backup_model_here</span><br>
+<br>
+# Summarization Phase<br>
+SUMMARY_MODEL=<span style="background: #ffeb3b; padding: 2px 4px;">your_model_here</span><br>
+SUMMARY_MODEL_BACKUP=<span style="background: #ffeb3b; padding: 2px 4px;">your_backup_model_here</span>
+    </div>
+
+    <p style="margin-top: 1rem;"><strong>Client Implementation:</strong></p>
+    <div style="background: white; padding: 0.8rem; border-radius: 4px; border: 1px solid #ddd;">
+      <p style="margin: 0.3rem 0; font-family: monospace; font-size: 12px;">
+        <strong>Phase 1:</strong> <code>callQwen(messages, systemPrompt, {model: process.env.SETUP_MODEL})</code><br>
+        <strong>Phase 2:</strong> <code>callQwen(messages, systemPrompt, {model: process.env.INTERVIEW_MODEL, backup: process.env.INTERVIEW_MODEL_BACKUP})</code><br>
+        <strong>Phase 3:</strong> <code>callQwen(messages, systemPrompt, {model: process.env.SUMMARY_MODEL, backup: process.env.SUMMARY_MODEL_BACKUP})</code>
+      </p>
+    </div>
+
+    <p style="margin-top: 1rem; padding: 0.8rem; background: #e8f5e9; border-radius: 4px; border-left: 3px solid #4caf50;">
+      <strong>✅ Cách làm:</strong> Mình sẽ code để phần config Model được <strong>để trống</strong>, sẵn sàng cho bạn điền LLM API key + model name khi bạn quyết định. Không hardcode, flexible swap sau.
+    </p>
+  </div>
+</div>
+
+<div style="margin-top: 2rem; padding: 1rem; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ff9800;">
+  <p style="margin: 0;"><strong>📋 Summary:</strong></p>
+  <ul style="margin: 4px 0; padding-left: 1.5rem;">
+    <li><strong>Migration:</strong> Tạo bảng mới, migrate data từ sessions, archive rubrics</li>
+    <li><strong>Summarization:</strong> summaryGenerator service tóm tắt sau mỗi câu hỏi</li>
+    <li><strong>Model Config:</strong> 3 model slots (Setup, Interview+backup, Summary+backup) để bạn config</li>
+  </ul>
+</div>

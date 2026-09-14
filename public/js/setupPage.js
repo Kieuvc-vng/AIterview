@@ -87,7 +87,6 @@ const SetupPage = {
    * Get current step content
    */
   getStepContent() {
-    console.log('[DEBUG getStepContent] currentStep is:', this.currentStep);
     switch (this.currentStep) {
       case 1:
         return this.getStep1HTML();
@@ -211,6 +210,18 @@ const SetupPage = {
    * Step 4: AI suggests questions (edit interface)
    */
   getStep4HTML() {
+    if (!this.formData.questions_by_skill || Object.keys(this.formData.questions_by_skill).length === 0) {
+      return `
+        <div class="form-group">
+          <h2>Step 4: Review & Edit Questions</h2>
+          <p>No questions were generated. Please go back and try again.</p>
+        </div>
+        <div class="button-group">
+          <button type="button" class="btn-secondary" id="btn-step4-back">Back</button>
+        </div>
+      `;
+    }
+
     const questionsHTML = Object.entries(this.formData.questions_by_skill).map(([skill, questions]) => {
       const questionsListHTML = questions.map((q, i) => `
         <div class="form-group" style="margin-bottom: 12px;">
