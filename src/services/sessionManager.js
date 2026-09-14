@@ -112,12 +112,12 @@ class SessionManager {
 
   async saveMessage(sessionId, message) {
     const message_id = uuidv4();
-    const messageRecord = { message_id, session_id: sessionId, sender: message.sender, content: message.content, skill_name: message.skill_name || null, question_index: message.question_index || null, attempt_number: message.attempt_number || null, created_at: new Date().toISOString() };
+    const messageRecord = { id: message_id, session_id: sessionId, sender: message.sender, content: message.content, skill_name: message.skill_name || null, question_index: message.question_index || null, attempt_number: message.attempt_number || null, created_at: new Date().toISOString() };
 
     if (dbAvailable) {
       try {
-        const stmt = db.prepare(`INSERT INTO messages (message_id, session_id, sender, content, skill_name, question_index, attempt_number, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
-        stmt.run(messageRecord.message_id, messageRecord.session_id, messageRecord.sender, messageRecord.content, messageRecord.skill_name, messageRecord.question_index, messageRecord.attempt_number, messageRecord.created_at);
+        const stmt = db.prepare(`INSERT INTO messages (id, session_id, sender, content, skill_name, question_index, attempt_number, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
+        stmt.run(messageRecord.id, messageRecord.session_id, messageRecord.sender, messageRecord.content, messageRecord.skill_name, messageRecord.question_index, messageRecord.attempt_number, messageRecord.created_at);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
         if (!inMemoryStore.messages[sessionId]) inMemoryStore.messages[sessionId] = [];
@@ -266,7 +266,7 @@ class SessionManager {
     if (dbAvailable) {
       try {
         const stmt = db.prepare(`
-          INSERT INTO interviews (interview_id, job_id, candidate_id, status, created_at)
+          INSERT INTO interviews (id, job_id, candidate_id, status, created_at)
           VALUES (?, ?, ?, 'setup', CURRENT_TIMESTAMP)
         `);
         stmt.run(interview_id, job_id, candidate_id);
@@ -279,7 +279,7 @@ class SessionManager {
   getInterview(interview_id) {
     if (dbAvailable) {
       try {
-        const stmt = db.prepare('SELECT * FROM interviews WHERE interview_id = ?');
+        const stmt = db.prepare('SELECT * FROM interviews WHERE id = ?');
         return stmt.get(interview_id);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
@@ -316,7 +316,7 @@ class SessionManager {
     if (dbAvailable) {
       try {
         const stmt = db.prepare(`
-          INSERT INTO messages (message_id, interview_id, sender, content, created_at)
+          INSERT INTO messages (id, interview_id, sender, content, created_at)
           VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
         `);
         stmt.run(messageId, interview_id, sender, content);
@@ -331,7 +331,7 @@ class SessionManager {
   }
 
   _parseMessage(dbMessage) {
-    return { message_id: dbMessage.message_id, sender: dbMessage.sender, content: dbMessage.content, skill_name: dbMessage.skill_name, question_index: dbMessage.question_index, attempt_number: dbMessage.attempt_number, created_at: dbMessage.created_at };
+    return { id: dbMessage.id, message_id: dbMessage.id, sender: dbMessage.sender, content: dbMessage.content, skill_name: dbMessage.skill_name, question_index: dbMessage.question_index, attempt_number: dbMessage.attempt_number, created_at: dbMessage.created_at };
   }
 }
 

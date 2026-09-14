@@ -29,7 +29,7 @@ const migrate = () => {
     // Use INSERT OR IGNORE for idempotency
     db.exec(`
       -- Create JOBS from unique (job_title, level, company) in sessions
-      INSERT OR IGNORE INTO jobs (job_id, job_title, level, company, skills, questions_by_skill, created_by, created_at)
+      INSERT OR IGNORE INTO jobs (id, job_title, level, company, skills, questions_by_skill, hr_email, created_at)
       SELECT
         'job_' || lower(substr(hex(md5(job_title || '|' || level || '|' || company)), 1, 16)),
         job_title,
@@ -46,29 +46,29 @@ const migrate = () => {
 
       -- Create CANDIDATES from sessions (one per unique candidate)
       -- Extract email from sessions_backup if available, otherwise use stable hash
-      INSERT OR IGNORE INTO candidates (candidate_id, job_id, name, email, phone, created_at)
+      INSERT OR IGNORE INTO candidates (id, job_id, name, email, phone, created_at)
       SELECT
-        'candidate_' || lower(substr(hex(md5(s.candidate_name || '|' || j.job_id)), 1, 16)),
-        j.job_id,
+        'candidate_' || lower(substr(hex(md5(s.candidate_name || '|' || j.id)), 1, 16)),
+        j.id,
         s.candidate_name,
-        COALESCE(s.email, 'cand_' || lower(substr(hex(md5(s.candidate_name || '|' || j.job_id)), 1, 12)) || '@app.com'),
+        COALESCE(s.email, 'cand_' || lower(substr(hex(md5(s.candidate_name || '|' || j.id)), 1, 12)) || '@app.com'),
         COALESCE(s.phone, '+000000000'),
         s.created_at
       FROM sessions_backup s
       JOIN jobs j ON TRIM(s.job_title) = TRIM(j.job_title) AND TRIM(s.level) = TRIM(j.level) AND TRIM(s.company) = TRIM(j.company)
-      GROUP BY s.candidate_name, j.job_id;
+      GROUP BY s.candidate_name, j.id;
 
-      -- Create INTERVIEWS from sessions (rename to interview_id, add FKs)
-      INSERT OR IGNORE INTO interviews (interview_id, job_id, candidate_id, status, created_at)
+      -- Create INTERVIEWS from sessions (add FKs)
+      INSERT OR IGNORE INTO interviews (id, job_id, candidate_id, status, created_at)
       SELECT
         s.session_id,
-        j.job_id,
-        c.candidate_id,
+        j.id,
+        c.id,
         s.status,
         s.created_at
       FROM sessions_backup s
       JOIN jobs j ON TRIM(s.job_title) = TRIM(j.job_title) AND TRIM(s.level) = TRIM(j.level) AND TRIM(s.company) = TRIM(j.company)
-      JOIN candidates c ON j.job_id = c.job_id AND s.candidate_name = c.name;
+      JOIN candidates c ON j.id = c.job_id AND s.candidate_name = c.name;
     `);
     console.log('✓ SESSIONS migrated to JOBS, CANDIDATES, INTERVIEWS');
 

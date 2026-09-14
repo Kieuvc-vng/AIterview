@@ -54,7 +54,7 @@ const summarizeText = async (question, answer) => {
 
 const saveSummary = (db, summary_id, interview_id, skill_name, question_index, question_text, main_summary, followup_summary) => {
   const stmt = db.prepare(`
-    INSERT INTO summaries (summary_id, interview_id, skill_name, question_index, question_text, main_answer_summary, followup_summary)
+    INSERT INTO summaries (id, interview_id, skill_name, question_index, question_text, main_answer_summary, followup_summary)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
   stmt.run(summary_id, interview_id, skill_name, question_index, question_text, main_summary, followup_summary);
