@@ -20,11 +20,13 @@ const interviewRoutes = require('./routes/interviewRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const jobRoutes = require('./routes/jobRoutes');
 const candidateRoutes = require('./routes/candidateRoutes');
+const jobLibraryRoutes = require('./routes/jobLibraryRoutes');
 
 // Use route modules
 app.use('/api/setup', setupRoutes);
 app.use('/api/interview', interviewRoutes);
 app.use('/api/review', reviewRoutes);
+app.use('/api/job-library', jobLibraryRoutes);
 app.use('/jobs', jobRoutes);
 app.use('/candidates', candidateRoutes);
 
