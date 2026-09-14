@@ -150,3 +150,18 @@ _Các entry thật bắt đầu từ đây._
 - Tạo hàm openJobDetail() fetch data và populate modal, closeEditJobModal() để đóng
 **Bước:** 3 — Spec → Build
 **Chưa hiểu:** không có gì
+
+## 14/09 — Kiểu + Tiến (Late Afternoon - Job Editing Feature)
+
+**Nhờ làm:** thêm feature cho phép chỉnh sửa job thông qua modal + setup page
+**Claude làm:**
+- Thêm nút "Chỉnh Sửa" trong modal chi tiết job
+- Thêm API PUT endpoint `/api/job-library/jobs/:id` để update job
+- Modify setupPage.js: detect edit mode từ URL param `?edit=jobId`
+- Load job data và pre-fill tất cả fields (JD, skills, questions)
+- Start setup từ Step 3 (skipped steps 1-2) khi edit mode
+- Button Step 5 hiển thị "Update Job" thay vì "Create Session"
+- On submit: call PUT endpoint để update thay vì POST để create
+- Test: edit button → setup page loaded với skills pre-filled ✓
+**Bước:** 3 — Spec → Build
+**Chưa hiểu:** không có gì
