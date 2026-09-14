@@ -39,6 +39,18 @@ router.get('/jobs/:id', async (req, res, next) => {
 router.delete('/jobs/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
+
+    // Validate ID format
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ error: 'Invalid job ID' });
+    }
+
+    // Check if job exists before deleting
+    const job = await jobLibraryService.getJobById(id);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
     await jobLibraryService.deleteJob(id);
     res.json({ success: true });
   } catch (error) {
@@ -84,6 +96,18 @@ router.post('/candidates/:candidateId/generate-link', async (req, res, next) => 
 router.delete('/candidates/:candidateId', async (req, res, next) => {
   try {
     const { candidateId } = req.params;
+
+    // Validate ID format
+    if (!candidateId || typeof candidateId !== 'string') {
+      return res.status(400).json({ error: 'Invalid candidate ID' });
+    }
+
+    // Check if candidate exists before deleting
+    const candidate = await jobLibraryService.getCandidateById(candidateId);
+    if (!candidate) {
+      return res.status(404).json({ error: 'Candidate not found' });
+    }
+
     await jobLibraryService.deleteCandidate(candidateId);
     res.json({ success: true });
   } catch (error) {
