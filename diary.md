@@ -103,9 +103,24 @@ _Các entry thật bắt đầu từ đây._
 - Task 19: public/README.md (architecture, page flows, API endpoints, CSS classes)
 - Task 20: npm install works, jest tests ready, full build verified
 
-## 14/09 — Kiểu + Tiến
+## 14/09 — Kiểu + Tiến (Morning - Bug Fix)
 
 **Nhờ làm:** sửa bug — Step 3 không thể add/xóa skill, không thể chuyển sang Step 4 khi ấn Generate Questions
 **Claude làm:** tìm được bug ở questionGenerator service — API trả về {questions_by_skill: {...}} nhưng service không unwrap nó, dẫn tới data bị lồng thêm lớp {questions_by_skill: {...}}. Fix bằng cách check và extract questions_by_skill property trước khi return.
 **Bước:** 3 — Spec → Build
+**Chưa hiểu:** không có gì
+
+## 14/09 — Kiểu + Tiến (Afternoon - Integration Testing & Bug Fixes)
+
+**Nhờ làm:** test Job Library end-to-end (từ setup → job library), tìm và sửa bugs
+**Claude làm:** 
+- Tìm ra 5 bugs quan trọng khi test:
+  1. Database initialization bị disable trong server.js → fix enable lại
+  2. Tên cột không đúng trong sessionManager (job_id vs id) → fix column references
+  3. File HTML redirect missing (/job-library.html, /job-detail.html) → fix create pages
+  4. Copy link + Send email buttons missing in UI → fix implement buttons + copy-to-clipboard
+  5. Job detail page candidate management incomplete → fix form handling + actions
+- Consolidate 5 bug fix commits thành 1 commit duy nhất (cdd30fb)
+- Test toàn bộ flow: setup → job library → job detail → add candidate → generate link ✓
+**Bước:** 5 — Test
 **Chưa hiểu:** không có gì

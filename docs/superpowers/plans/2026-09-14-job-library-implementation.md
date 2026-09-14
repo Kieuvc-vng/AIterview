@@ -1283,6 +1283,86 @@ git commit -m "test: verify job library end-to-end flow works"
 
 ---
 
+## Bugs Found and Fixed During Integration Testing (14/09)
+
+During end-to-end testing of the Job Library feature, 5 critical bugs were discovered and fixed in a single comprehensive commit:
+
+### Bug #1: Database Initialization Disabled
+**Issue:** Server initializes database with `.initialize()` but the call was disabled in `src/server.js`, preventing any data persistence.
+
+**Root Cause:** Database initialization code commented out during earlier development.
+
+**Fix Applied:** Re-enabled database initialization in server.js with graceful fallback for errors.
+
+**Files Modified:** `src/server.js`
+
+---
+
+### Bug #2: Column Name Mismatch
+**Issue:** Schema defines `job_id` column in candidates table, but `sessionManager.js` queries reference `id` instead, causing SELECT/UPDATE queries to fail.
+
+**Root Cause:** Schema migration not synchronized with service layer code.
+
+**Fix Applied:** Updated `sessionManager.js` to use correct column references (`job_id` for foreign key).
+
+**Files Modified:** `src/services/sessionManager.js`
+
+---
+
+### Bug #3: Missing HTML Redirect Target Pages
+**Issue:** After completing setup, redirect to `/job-library` endpoint fails with 404 because `/public/job-library.html` doesn't exist.
+
+**Root Cause:** Frontend pages were in the implementation plan but not created during Task 6.
+
+**Fix Applied:** Created `public/job-library.html` and `public/job-detail.html` as redirect target pages.
+
+**Files Created:** 
+- `public/job-library.html`
+- `public/job-detail.html`
+
+---
+
+### Bug #4: Interview Link Not Displayed in Candidate Management UI
+**Issue:** The copy link and send email features in the candidate management UI were missing, making it impossible for users to share interview links with candidates.
+
+**Root Cause:** UI implementation incomplete - missing button handlers and display logic.
+
+**Fix Applied:** 
+- Added "Copy Link" and "Send Email" buttons to `public/library.html`
+- Implemented copy-to-clipboard functionality
+- Added link status display showing whether link was sent
+
+**Files Modified:** `public/library.html`, `public/job-detail.html`
+
+---
+
+### Bug #5: Job Detail Page Candidate Management Incomplete
+**Issue:** The Job Detail page UI for adding/managing candidates had incomplete form handling and action buttons.
+
+**Root Cause:** Implementation incomplete during Task 7.
+
+**Fix Applied:**
+- Enhanced `jobDetailPage.js` with proper form submission handling
+- Added candidate action buttons (Generate Link, Copy Link, Delete)
+- Implemented interview link generation and copying
+- Added email sending UI elements
+
+**Files Modified:** 
+- `public/js/jobDetailPage.js`
+- `public/js/setupPage.js`
+
+---
+
+### Testing Result
+✅ All bugs fixed and verified working end-to-end:
+- Database persists job and candidate data
+- Job library displays saved jobs correctly
+- Job detail page shows full job info and candidate list
+- Interview links can be generated and copied
+- Candidates can be added, viewed, and deleted
+
+---
+
 ## Summary
 
 **Total Tasks:** 10  
@@ -1290,3 +1370,5 @@ git commit -m "test: verify job library end-to-end flow works"
 **Backend:** Job Library service + API routes  
 **Frontend:** Job Library page + Job Detail page  
 **Flow:** Setup → Job Library (instead of Interview)
+
+**Bugs Fixed:** 5 critical issues resolved during integration testing
