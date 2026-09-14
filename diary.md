@@ -138,3 +138,10 @@ _Các entry thật bắt đầu từ đây._
 **Claude làm:** tìm bug ở library.html — nút gọi hàm showCreateJobForm() nhưng hàm này chỉ alert thôi. Fix bằng cách thay alert thành window.location.href = '/index.html' để redirect đến trang Setup.
 **Bước:** 3 — Spec → Build
 **Chưa hiểu:** không có gì
+
+## 14/09 — Kiểu + Tiến (Late Afternoon - Job Library Edit Button Fix)
+
+**Nhờ làm:** sửa bug — nút "Chỉnh Sửa" trên Job Library không hoạt động
+**Claude làm:** tìm bug ở library.html — nút "Chỉnh Sửa" không có onclick handler (khác nút "Gửi cho Ứng Viên" đã có onclick). Fix bằng cách thêm onclick="openJobDetail('${job.id}')" và tạo hàm openJobDetail() redirect đến /job-detail.html?id=...
+**Bước:** 3 — Spec → Build
+**Chưa hiểu:** không có gì
