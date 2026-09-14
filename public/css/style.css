@@ -758,3 +758,72 @@ select:disabled {
     max-width: 100%;
   }
 }
+
+/* Job Library Page */
+.job-library-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.job-library-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.job-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.job-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+}
+
+.job-info .meta {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.job-info .candidates {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #999;
+}
+
+.job-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.empty, .loading, .error {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.error { color: #d32f2f; }
+
+.btn-danger {
+  background: #f44336;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #da190b;
+}
