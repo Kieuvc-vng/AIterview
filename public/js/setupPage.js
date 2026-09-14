@@ -625,17 +625,30 @@ const SetupPage = {
       }
 
       const data = await response.json();
-      const { session_id, interview_link } = data;
+      const { session_id, redirect } = data;
 
       // Save SESSION_ID to localStorage for resume capability
       localStorage.setItem('current_interview_session', session_id);
 
-      // Show success and redirect
-      App.showSuccess('Interview session created successfully!');
-      setTimeout(() => {
-        // Navigate to interview page with session ID
-        App.goToPage('interview', { sessionId: session_id });
-      }, 1500);
+      // Check if backend wants to redirect to job library
+      if (redirect === '/job-library') {
+        // Store HR email in localStorage if available
+        if (this.formData.hr_email) {
+          localStorage.setItem('hr_email', this.formData.hr_email);
+        }
+        // Show success and redirect to job library
+        App.showSuccess('Job created successfully! Redirecting to library...');
+        setTimeout(() => {
+          window.location.href = '/job-library.html';
+        }, 1500);
+      } else {
+        // Fallback for backward compatibility - redirect to interview
+        App.showSuccess('Interview session created successfully!');
+        setTimeout(() => {
+          // Navigate to interview page with session ID
+          App.goToPage('interview', { sessionId: session_id });
+        }, 1500);
+      }
     } catch (error) {
       App.showError(error.message);
       createBtn.disabled = false;
