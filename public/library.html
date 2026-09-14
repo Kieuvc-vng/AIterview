@@ -90,7 +90,7 @@
               </div>
               <div class="actions">
                 <button class="btn-primary" onclick="openSendModal('${job.id}')">Gửi cho Ứng Viên</button>
-                <button class="btn-secondary">Chỉnh Sửa</button>
+                <button class="btn-secondary" onclick="openJobDetail('${job.id}')">Chỉnh Sửa</button>
               </div>
             </div>
           `).join('');
@@ -151,6 +151,10 @@
 
     function showCreateJobForm() {
       window.location.href = '/index.html';
+    }
+
+    function openJobDetail(jobId) {
+      window.location.href = `/job-detail.html?id=${jobId}`;
     }
 
     // Copy link button handler
