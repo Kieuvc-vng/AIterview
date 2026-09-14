@@ -10,6 +10,8 @@
 const SetupPage = {
   currentStep: 1,
   totalSteps: 5,
+  isEditMode: false,
+  editJobId: null,
   formData: {
     jd_text: '',
     job_title: '',
@@ -18,6 +20,51 @@ const SetupPage = {
     hr_email: '',
     skills: [],
     questions_by_skill: {}
+  },
+
+  /**
+   * Initialize - check for edit mode and load data if needed
+   */
+  async init(container) {
+    // Check URL for edit parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const editJobId = urlParams.get('edit');
+
+    if (editJobId) {
+      this.isEditMode = true;
+      this.editJobId = editJobId;
+      await this.loadJobForEdit();
+      // Start from Step 3 (skills) in edit mode
+      this.currentStep = 3;
+    }
+
+    this.render(container);
+  },
+
+  /**
+   * Load job data for editing
+   */
+  async loadJobForEdit() {
+    try {
+      const response = await fetch(`/api/job-library/jobs/${this.editJobId}`);
+      if (!response.ok) throw new Error('Failed to load job');
+
+      const { job } = await response.json();
+
+      // Pre-fill form data
+      this.formData.jd_text = job.jd_text || '';
+      this.formData.job_title = job.job_title || '';
+      this.formData.level = job.level || '';
+      this.formData.company = job.company || '';
+      this.formData.hr_email = job.hr_email || localStorage.getItem('hr_email') || '';
+      this.formData.skills = Array.isArray(job.skills) ? job.skills : JSON.parse(job.skills || '[]');
+      this.formData.questions_by_skill = typeof job.questions_by_skill === 'string'
+        ? JSON.parse(job.questions_by_skill || '{}')
+        : job.questions_by_skill;
+    } catch (error) {
+      console.error('Error loading job:', error);
+      App.showError('Lỗi khi load job data');
+    }
   },
 
   /**
@@ -299,7 +346,7 @@ const SetupPage = {
         <button type="button" class="btn-secondary" id="btn-step5-back">Back</button>
         <button type="button" class="btn-primary" id="btn-step5-create" disabled>
           <span id="step5-spinner" style="display:none;" class="spinner"></span>
-          <span id="step5-text">Create Session</span>
+          <span id="step5-text">${this.isEditMode ? 'Update Job' : 'Create Session'}</span>
         </button>
       </div>
     `;
@@ -597,7 +644,7 @@ const SetupPage = {
   },
 
   /**
-   * API Call: Create Session
+   * API Call: Create Session or Update Job
    */
   async createSession() {
     const spinner = document.getElementById('step5-spinner');
@@ -607,47 +654,75 @@ const SetupPage = {
     createBtn.disabled = true;
 
     try {
-      const response = await fetch('/api/setup/create-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          hr_email: this.formData.hr_email,
-          job_title: this.formData.job_title,
-          level: this.formData.level,
-          company: this.formData.company,
-          skills: this.formData.skills,
-          questions_by_skill: this.formData.questions_by_skill
-        })
-      });
+      let response;
 
-      if (!response.ok) {
-        throw new Error('Failed to create session');
-      }
+      if (this.isEditMode) {
+        // Update existing job
+        response = await fetch(`/api/job-library/jobs/${this.editJobId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            job_title: this.formData.job_title,
+            level: this.formData.level,
+            company: this.formData.company,
+            skills: this.formData.skills,
+            questions_by_skill: this.formData.questions_by_skill,
+            jd_text: this.formData.jd_text
+          })
+        });
 
-      const data = await response.json();
-      const { session_id, redirect } = data;
-
-      // Save SESSION_ID to localStorage for resume capability
-      localStorage.setItem('current_interview_session', session_id);
-
-      // Check if backend wants to redirect to job library
-      if (redirect === '/job-library') {
-        // Store HR email in localStorage if available
-        if (this.formData.hr_email) {
-          localStorage.setItem('hr_email', this.formData.hr_email);
+        if (!response.ok) {
+          throw new Error('Failed to update job');
         }
-        // Show success and redirect to job library
-        App.showSuccess('Job created successfully! Redirecting to library...');
+
+        App.showSuccess('Job updated successfully! Redirecting...');
         setTimeout(() => {
           window.location.href = '/library.html';
         }, 1500);
       } else {
-        // Fallback for backward compatibility - redirect to interview
-        App.showSuccess('Interview session created successfully!');
-        setTimeout(() => {
-          // Navigate to interview page with session ID
-          App.goToPage('interview', { sessionId: session_id });
-        }, 1500);
+        // Create new job
+        response = await fetch('/api/setup/create-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hr_email: this.formData.hr_email,
+            job_title: this.formData.job_title,
+            level: this.formData.level,
+            company: this.formData.company,
+            skills: this.formData.skills,
+            questions_by_skill: this.formData.questions_by_skill
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create session');
+        }
+
+        const data = await response.json();
+        const { session_id, redirect } = data;
+
+        // Save SESSION_ID to localStorage for resume capability
+        localStorage.setItem('current_interview_session', session_id);
+
+        // Check if backend wants to redirect to job library
+        if (redirect === '/job-library') {
+          // Store HR email in localStorage if available
+          if (this.formData.hr_email) {
+            localStorage.setItem('hr_email', this.formData.hr_email);
+          }
+          // Show success and redirect to job library
+          App.showSuccess('Job created successfully! Redirecting to library...');
+          setTimeout(() => {
+            window.location.href = '/library.html';
+          }, 1500);
+        } else {
+          // Fallback for backward compatibility - redirect to interview
+          App.showSuccess('Interview session created successfully!');
+          setTimeout(() => {
+            // Navigate to interview page with session ID
+            App.goToPage('interview', { sessionId: session_id });
+          }, 1500);
+        }
       }
     } catch (error) {
       App.showError(error.message);

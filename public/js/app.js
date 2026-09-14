@@ -24,7 +24,7 @@ const App = {
 
     switch (pageName) {
       case 'setup':
-        SetupPage.render(this.appElement, data);
+        SetupPage.init(this.appElement);
         break;
       case 'interview':
         if (data.sessionId) {
