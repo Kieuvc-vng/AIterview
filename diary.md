@@ -165,3 +165,25 @@ _Các entry thật bắt đầu từ đây._
 - Test: edit button → setup page loaded với skills pre-filled ✓
 **Bước:** 3 — Spec → Build
 **Chưa hiểu:** không có gì
+
+## 14/09 — Kiểu + Tiến (Afternoon - Bug Fixes & Job Editing Feature - Consolidated)
+
+**Nhờ làm:** 
+1. Fix 3 bugs trên Job Library (skills mismatch, create button, edit button)
+2. Thêm feature chỉnh sửa job đầy đủ
+
+**Claude làm:**
+- Bug 1: Fix skills không khớp Step 3-4 → extract actual skills từ API request thay vì hardcode
+- Bug 2: Fix "+ Tạo Job Mới" alert → redirect to setup page
+- Bug 3: Fix "Chỉnh Sửa" button không hoạt động → tạo modal hiển thị tất cả job details (JD, skills, questions)
+- Feature: Job editing đầy đủ:
+  - Thêm PUT endpoint `/api/job-library/jobs/:id`
+  - Thêm "Chỉnh Sửa" button trong modal
+  - setupPage hỗ trợ edit mode (detect từ `?edit=jobId`, load data, pre-fill fields, start Step 3)
+  - Button Step 5 hiển thị "Update Job"
+  - On submit: PUT để update thay vì POST để create
+- Test toàn bộ: setup page tự động load với skills pre-filled ✓
+- Push 11 commits lên remote ✓
+
+**Bước:** 3 — Spec → Build (xong implementation, tested)
+**Chưa hiểu:** không có gì
