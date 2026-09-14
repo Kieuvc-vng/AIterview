@@ -159,6 +159,173 @@ class SessionManager {
     return inMemoryStore.states[sessionId] || { current_skill_index: 0, current_question_index: 0, current_attempt: 1 };
   }
 
+  // Job methods
+  getJobs() {
+    if (dbAvailable) {
+      try {
+        const stmt = db.prepare('SELECT * FROM jobs');
+        return stmt.all();
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    }
+    return [];
+  }
+
+  getJob(job_id) {
+    if (dbAvailable) {
+      try {
+        const stmt = db.prepare('SELECT * FROM jobs WHERE job_id = ?');
+        return stmt.get(job_id);
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    }
+    return null;
+  }
+
+  saveJob(job) {
+    if (dbAvailable) {
+      try {
+        const stmt = db.prepare(`
+          INSERT INTO jobs (job_id, job_title, level, company, description, skills, questions_by_skill, created_by, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        stmt.run(job.job_id, job.job_title, job.level, job.company, job.description, job.skills, job.questions_by_skill, job.created_by, job.created_at);
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    }
+  }
+
+  updateJob(job_id, updates) {
+    if (dbAvailable) {
+      try {
+        const setClause = Object.keys(updates).map(k => `${k} = ?`).join(', ');
+        const values = Object.values(updates);
+        const stmt = db.prepare(`UPDATE jobs SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE job_id = ?`);
+        stmt.run(...values, job_id);
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    }
+  }
+
+  deleteJob(job_id) {
+    if (dbAvailable) {
+      try {
+        const stmt = db.prepare('DELETE FROM jobs WHERE job_id = ?');
+        stmt.run(job_id);
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    }
+  }
+
+  // Candidate methods
+  getCandidatesByJob(job_id) {
+    if (dbAvailable) {
+      try {
+        const stmt = db.prepare('SELECT * FROM candidates WHERE job_id = ?');
+        return stmt.all(job_id);
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    }
+    return [];
+  }
+
+  getCandidate(candidate_id) {
+    if (dbAvailable) {
+      try {
+        const stmt = db.prepare('SELECT * FROM candidates WHERE candidate_id = ?');
+        return stmt.get(candidate_id);
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    }
+    return null;
+  }
+
+  saveCandidate(candidate) {
+    if (dbAvailable) {
+      try {
+        const stmt = db.prepare(`
+          INSERT INTO candidates (candidate_id, job_id, name, email, phone, created_at)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `);
+        stmt.run(candidate.candidate_id, candidate.job_id, candidate.name, candidate.email, candidate.phone, candidate.created_at);
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    }
+  }
+
+  // Interview methods
+  createInterview(interview_id, job_id, candidate_id) {
+    if (dbAvailable) {
+      try {
+        const stmt = db.prepare(`
+          INSERT INTO interviews (interview_id, job_id, candidate_id, status, created_at)
+          VALUES (?, ?, ?, 'setup', CURRENT_TIMESTAMP)
+        `);
+        stmt.run(interview_id, job_id, candidate_id);
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    }
+  }
+
+  getInterview(interview_id) {
+    if (dbAvailable) {
+      try {
+        const stmt = db.prepare('SELECT * FROM interviews WHERE interview_id = ?');
+        return stmt.get(interview_id);
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    }
+    return null;
+  }
+
+  getInterviewMessages(interview_id) {
+    if (dbAvailable) {
+      try {
+        const stmt = db.prepare('SELECT * FROM messages WHERE interview_id = ? ORDER BY created_at ASC');
+        return stmt.all(interview_id);
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    }
+    return [];
+  }
+
+  getSummaries(interview_id) {
+    if (dbAvailable) {
+      try {
+        const stmt = db.prepare('SELECT * FROM summaries WHERE interview_id = ? ORDER BY created_at ASC');
+        return stmt.all(interview_id);
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    }
+    return [];
+  }
+
+  addMessage(interview_id, messageId, sender, content) {
+    if (dbAvailable) {
+      try {
+        const stmt = db.prepare(`
+          INSERT INTO messages (message_id, interview_id, sender, content, created_at)
+          VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+        `);
+        stmt.run(messageId, interview_id, sender, content);
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    }
+  }
+
   _parseSession(dbSession) {
     return { ...dbSession, skills: typeof dbSession.skills === 'string' ? JSON.parse(dbSession.skills) : dbSession.skills, questions_by_skill: typeof dbSession.questions_by_skill === 'string' ? JSON.parse(dbSession.questions_by_skill) : dbSession.questions_by_skill };
   }
