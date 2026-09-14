@@ -1,9 +1,12 @@
 export type Language = "vi" | "en";
 
+export type SkillCategory = "technical" | "soft" | "other";
+
 export interface Skill {
   name: string;
   description: string;
   questions: string[];
+  category?: SkillCategory;
 }
 
 export interface InterviewConfig {
@@ -85,4 +88,25 @@ export interface InterviewResultV2 {
   skills: SkillResult[];
   overallEvaluation?: OverallEvaluation;
   completedAt: string;
+}
+
+export interface SavedJob {
+  id: string;
+  name: string;
+  jobTitle: string;
+  lang: Language;
+  skills: Skill[];
+  createdAt: string;
+}
+
+export interface CandidateLink {
+  id: string;
+  jobId: string;
+  candidateName: string;
+  createdAt: string;
+}
+
+export interface AppStore {
+  jobs: SavedJob[];
+  candidates: CandidateLink[];
 }

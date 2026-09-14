@@ -5,9 +5,14 @@ export function getAnalyzeJDPrompt(lang: Language): string {
   return `You are an expert HR consultant who analyzes job descriptions.
 
 Extract the key skills required and generate interview questions for each skill.
+Categorize each skill into one of three categories:
+- "technical": hard/technical skills (programming languages, frameworks, tools, domain expertise)
+- "soft": soft skills (communication, teamwork, leadership, problem-solving, time management)
+- "other": other requirements (certifications, education, experience level, language proficiency)
 
 Rules:
-- Extract 3-8 distinct skills from the JD
+- Extract 3-10 distinct skills from the JD
+- Each skill must have a "category" field with value "technical", "soft", or "other"
 - For each skill, write a short description (1 sentence)
 - For each skill, generate 2-5 interview questions
 - All output text (skill names, descriptions, questions) must be in ${outputLang}
@@ -20,6 +25,7 @@ Return this exact JSON format:
   "skills": [
     {
       "name": "skill name",
+      "category": "technical" or "soft" or "other",
       "description": "one sentence describing this skill requirement",
       "questions": ["question 1", "question 2", "question 3"]
     }

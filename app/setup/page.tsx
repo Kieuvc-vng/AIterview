@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Language, Skill, InterviewConfig, AnalyzeJDResponse } from "@/lib/types";
@@ -11,9 +12,11 @@ import Step1InputJD from "@/components/setup/Step1InputJD";
 import Step2SelectSkills from "@/components/setup/Step2SelectSkills";
 import Step3EditQuestions from "@/components/setup/Step3EditQuestions";
 import Step4GenerateLink from "@/components/setup/Step4GenerateLink";
+import SaveJobModal from "@/components/setup/SaveJobModal";
 
 export default function SetupPage() {
   const uiLang: Language = "vi";
+  const router = useRouter();
 
   const [step, setStep] = useState(1);
   const [jd, setJD] = useState("");
@@ -23,6 +26,7 @@ export default function SetupPage() {
   const [selectedSkills, setSelectedSkills] = useState<Skill[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [interviewUrl, setInterviewUrl] = useState<string | null>(null);
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
   const stepLabels = [
     t("setup.step1.title", uiLang),
@@ -129,6 +133,32 @@ export default function SetupPage() {
     );
   }
 
+  async function handleSaveJob(name: string) {
+    try {
+      const res = await fetch("/api/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          jobTitle,
+          lang,
+          skills: selectedSkills,
+        }),
+      });
+      if (!res.ok) {
+        toast.error(t("error.apiError", uiLang));
+        setShowSaveModal(false);
+        return;
+      }
+      toast.success(t("jobs.saved", uiLang));
+      setShowSaveModal(false);
+      router.push("/jobs");
+    } catch {
+      toast.error(t("error.apiError", uiLang));
+      setShowSaveModal(false);
+    }
+  }
+
   function handleGenerateLink() {
     const config: InterviewConfig = {
       lang,
@@ -199,6 +229,7 @@ export default function SetupPage() {
               uiLang={uiLang}
               interviewUrl={interviewUrl}
               onGenerate={handleGenerateLink}
+              onSaveJob={() => setShowSaveModal(true)}
             />
           )}
 
@@ -235,6 +266,15 @@ export default function SetupPage() {
           )}
         </div>
       </div>
+
+      {showSaveModal && (
+        <SaveJobModal
+          uiLang={uiLang}
+          defaultName={jobTitle}
+          onSave={handleSaveJob}
+          onClose={() => setShowSaveModal(false)}
+        />
+      )}
     </div>
   );
 }

@@ -31,13 +31,19 @@ export default function LandingPage() {
             Paste a Job Description, let AI generate tailored interview
             questions, then share a link for adaptive candidate interviews.
           </p>
-          <div className="mt-10">
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/setup"
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105"
             >
               Start Creating Interviews
               <ArrowRight className="h-5 w-5" />
+            </Link>
+            <Link
+              href="/jobs"
+              className="inline-flex items-center gap-2 rounded-xl border-2 border-indigo-600 px-8 py-4 text-lg font-semibold text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all"
+            >
+              Danh sách Job
             </Link>
           </div>
         </div>

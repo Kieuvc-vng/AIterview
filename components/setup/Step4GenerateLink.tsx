@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Skill, Language } from "@/lib/types";
 import { t } from "@/lib/i18n";
-import { Copy, Check, Link as LinkIcon } from "lucide-react";
+import { Copy, Check, Link as LinkIcon, Save } from "lucide-react";
 
 interface Step4Props {
   jobTitle: string;
@@ -12,6 +12,7 @@ interface Step4Props {
   uiLang: Language;
   interviewUrl: string | null;
   onGenerate: () => void;
+  onSaveJob: () => void;
 }
 
 export default function Step4GenerateLink({
@@ -21,6 +22,7 @@ export default function Step4GenerateLink({
   uiLang,
   interviewUrl,
   onGenerate,
+  onSaveJob,
 }: Step4Props) {
   const [copied, setCopied] = useState(false);
 
@@ -80,15 +82,24 @@ export default function Step4GenerateLink({
         </div>
       </div>
 
-      {!interviewUrl && (
+      <div className="flex gap-3">
+        {!interviewUrl && (
+          <button
+            onClick={onGenerate}
+            className="flex-1 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 text-lg font-semibold text-white hover:shadow-lg transition-all"
+          >
+            <LinkIcon className="inline h-5 w-5 mr-2" />
+            {t("setup.step4.generate", uiLang)}
+          </button>
+        )}
         <button
-          onClick={onGenerate}
-          className="w-full rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4 text-lg font-semibold text-white hover:shadow-lg transition-all"
+          onClick={onSaveJob}
+          className="flex-1 rounded-xl border-2 border-indigo-600 px-6 py-4 text-lg font-semibold text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all"
         >
-          <LinkIcon className="inline h-5 w-5 mr-2" />
-          {t("setup.step4.generate", uiLang)}
+          <Save className="inline h-5 w-5 mr-2" />
+          {t("jobs.saveJob", uiLang)}
         </button>
-      )}
+      </div>
 
       {interviewUrl && (
         <div className="rounded-xl border-2 border-green-500 bg-green-50 dark:bg-green-950/20 p-6 space-y-4">
