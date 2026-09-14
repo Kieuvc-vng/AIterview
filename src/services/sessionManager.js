@@ -175,7 +175,7 @@ class SessionManager {
   getJob(job_id) {
     if (dbAvailable) {
       try {
-        const stmt = db.prepare('SELECT * FROM jobs WHERE job_id = ?');
+        const stmt = db.prepare('SELECT * FROM jobs WHERE id = ?');
         return stmt.get(job_id);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
@@ -188,10 +188,10 @@ class SessionManager {
     if (dbAvailable) {
       try {
         const stmt = db.prepare(`
-          INSERT INTO jobs (job_id, job_title, level, company, description, skills, questions_by_skill, created_by, created_at)
+          INSERT INTO jobs (id, job_title, level, company, description, skills, questions_by_skill, hr_email, created_at)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
-        stmt.run(job.job_id, job.job_title, job.level, job.company, job.description, job.skills, job.questions_by_skill, job.created_by, job.created_at);
+        stmt.run(job.id, job.job_title, job.level, job.company, job.description, job.skills, job.questions_by_skill, job.hr_email, job.created_at);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
@@ -203,7 +203,7 @@ class SessionManager {
       try {
         const setClause = Object.keys(updates).map(k => `${k} = ?`).join(', ');
         const values = Object.values(updates);
-        const stmt = db.prepare(`UPDATE jobs SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE job_id = ?`);
+        const stmt = db.prepare(`UPDATE jobs SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`);
         stmt.run(...values, job_id);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
@@ -214,7 +214,7 @@ class SessionManager {
   deleteJob(job_id) {
     if (dbAvailable) {
       try {
-        const stmt = db.prepare('DELETE FROM jobs WHERE job_id = ?');
+        const stmt = db.prepare('DELETE FROM jobs WHERE id = ?');
         stmt.run(job_id);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);

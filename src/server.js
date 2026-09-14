@@ -1,8 +1,12 @@
 // Require dotenv for .env loading
 require('dotenv').config();
 
-// Initialize database on startup
-// require('./db/init');
+// Initialize database on startup (optional - will fall back to in-memory)
+try {
+  require('./db/init');
+} catch (error) {
+  console.log('[Server] Database initialization failed, will use in-memory store:', error.message);
+}
 
 const express = require('express');
 

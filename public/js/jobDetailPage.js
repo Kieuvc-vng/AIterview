@@ -3,6 +3,11 @@
 const JobDetailPage = (() => {
   let currentJobId = null;
 
+  const getFullInterviewLink = (relativeLink) => {
+    const baseUrl = window.location.origin;
+    return baseUrl + relativeLink;
+  };
+
   const init = async (jobId) => {
     currentJobId = jobId;
     render();
@@ -92,7 +97,16 @@ const JobDetailPage = (() => {
           <p class="status">Status: ${candidate.interview_status}</p>
         </div>
         <div class="candidate-actions">
-          ${candidate.interview_link ? `<p class="link-info">✓ Link generated</p>` : `<button class="btn btn-secondary btn-sm gen-link-btn" data-candidate-id="${candidate.id}">Generate Link</button>`}
+          ${candidate.interview_link ? `
+            <div class="link-section">
+              <p class="link-info">✓ Link generated</p>
+              <div class="link-display">
+                <input type="text" class="link-input" value="${getFullInterviewLink(candidate.interview_link)}" readonly />
+                <button class="btn btn-secondary btn-small copy-link-btn" data-link="${getFullInterviewLink(candidate.interview_link)}">Copy</button>
+              </div>
+              <button class="btn btn-secondary send-email-btn" data-candidate-email="${candidate.email}" data-candidate-name="${candidate.name}" data-link="${getFullInterviewLink(candidate.interview_link)}">Send Email</button>
+            </div>
+          ` : `<button class="btn btn-secondary btn-sm gen-link-btn" data-candidate-id="${candidate.id}">Generate Link</button>`}
           <button class="btn btn-danger btn-sm delete-cand-btn" data-candidate-id="${candidate.id}">Delete</button>
         </div>
       </div>
@@ -102,6 +116,31 @@ const JobDetailPage = (() => {
       btn.addEventListener('click', (e) => {
         const candidateId = e.target.dataset.candidateId;
         generateInterviewLink(candidateId);
+      });
+    });
+
+    // Copy link button
+    document.querySelectorAll('.copy-link-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const link = e.target.dataset.link;
+        navigator.clipboard.writeText(link).then(() => {
+          alert('Link copied to clipboard!');
+        }).catch(() => {
+          alert('Failed to copy link');
+        });
+      });
+    });
+
+    // Send email button
+    document.querySelectorAll('.send-email-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const email = e.target.dataset.candidateEmail;
+        const name = e.target.dataset.candidateName;
+        const link = e.target.dataset.link;
+        const subject = 'Interview Link';
+        const body = `Hi ${name},\n\nPlease use this link to start your interview:\n${link}\n\nThank you!`;
+        const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.location.href = mailtoLink;
       });
     });
 

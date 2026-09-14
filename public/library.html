@@ -21,6 +21,12 @@
     .modal-content h2 { margin-bottom: 1rem; }
     .modal-content input { width: 100%; padding: 0.7rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
     .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+    .link-section { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .link-info { color: #4caf50; font-weight: 500; margin: 0; }
+    .link-display { display: flex; gap: 10px; }
+    .link-input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; }
+    .btn-small { padding: 6px 12px; font-size: 12px; }
+    .send-email-btn { background: #ff9800; color: white; margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -36,39 +42,54 @@
   <div id="sendModal" class="modal">
     <div class="modal-content">
       <h2>Gửi cho Ứng Viên</h2>
-      <input type="text" id="candidateName" placeholder="Tên ứng viên" />
-      <input type="email" id="candidateEmail" placeholder="Email" />
-      <input type="tel" id="candidatePhone" placeholder="Số điện thoại" />
-      <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeSendModal()">Hủy</button>
-        <button class="btn-primary" onclick="generateLink()">Tạo Link</button>
+      <div id="formSection">
+        <input type="text" id="candidateName" placeholder="Tên ứng viên" />
+        <input type="email" id="candidateEmail" placeholder="Email" />
+        <input type="tel" id="candidatePhone" placeholder="Số điện thoại" />
+        <div class="modal-actions">
+          <button class="btn-secondary" onclick="closeSendModal()">Hủy</button>
+          <button class="btn-primary" onclick="generateLink()">Tạo Link</button>
+        </div>
+      </div>
+      <div id="linkSection" class="link-section" style="display: none;">
+        <p class="link-info">✓ Link tạo thành công</p>
+        <div class="link-display">
+          <input type="text" id="generatedLink" class="link-input" readonly />
+          <button class="btn btn-primary btn-small copy-link-btn">Copy</button>
+        </div>
+        <button class="btn btn-secondary send-email-btn">Gửi Email</button>
+        <button class="btn btn-secondary" onclick="closeSendModal()" style="margin-top: 5px;">Đóng</button>
       </div>
     </div>
   </div>
 
   <script>
     let currentJobId = null;
+    let currentCandidateData = null;
 
     // Load jobs on page load
     document.addEventListener('DOMContentLoaded', loadJobs);
 
     function loadJobs() {
-      fetch('/jobs')
+      // Get hr_email from localStorage
+      const hrEmail = localStorage.getItem('hr_email') || 'default@company.com';
+
+      fetch(`/api/job-library/jobs?hr_email=${encodeURIComponent(hrEmail)}`)
         .then(r => r.json())
-        .then(data => {
+        .then(jobs => {
           const list = document.getElementById('jobsList');
-          if (data.jobs.length === 0) {
+          if (jobs.length === 0) {
             list.innerHTML = '<p style="text-align: center; color: #666;">Chưa có job nào. Tạo job mới!</p>';
             return;
           }
-          list.innerHTML = data.jobs.map(job => `
+          list.innerHTML = jobs.map(job => `
             <div class="job-card">
               <div class="job-info">
                 <h3>${job.job_title} (${job.level})</h3>
                 <p>${job.company} · ${JSON.parse(job.skills || '[]').length} skills</p>
               </div>
               <div class="actions">
-                <button class="btn-primary" onclick="openSendModal('${job.job_id}')">Gửi cho Ứng Viên</button>
+                <button class="btn-primary" onclick="openSendModal('${job.id}')">Gửi cho Ứng Viên</button>
                 <button class="btn-secondary">Chỉnh Sửa</button>
               </div>
             </div>
@@ -79,10 +100,16 @@
     function openSendModal(jobId) {
       currentJobId = jobId;
       document.getElementById('sendModal').classList.add('active');
+      document.getElementById('formSection').style.display = 'block';
+      document.getElementById('linkSection').style.display = 'none';
+      document.getElementById('candidateName').value = '';
+      document.getElementById('candidateEmail').value = '';
+      document.getElementById('candidatePhone').value = '';
     }
 
     function closeSendModal() {
       document.getElementById('sendModal').classList.remove('active');
+      currentCandidateData = null;
     }
 
     function generateLink() {
@@ -104,11 +131,20 @@
         .then(data => {
           if (data.success) {
             const interviewLink = `${window.location.origin}/interview?token=${data.candidate_id}`;
-            alert(`Link tạo thành công:\n\n${interviewLink}`);
-            closeSendModal();
-            document.getElementById('candidateName').value = '';
-            document.getElementById('candidateEmail').value = '';
-            document.getElementById('candidatePhone').value = '';
+
+            // Store candidate data for email functionality
+            currentCandidateData = { name, email, interviewLink };
+
+            // Display link section
+            document.getElementById('generatedLink').value = interviewLink;
+            document.getElementById('formSection').style.display = 'none';
+            document.getElementById('linkSection').style.display = 'flex';
+
+            // Update send email button with data attributes
+            const sendBtn = document.querySelector('.send-email-btn');
+            sendBtn.dataset.email = email;
+            sendBtn.dataset.name = name;
+            sendBtn.dataset.link = interviewLink;
           }
         });
     }
@@ -116,6 +152,33 @@
     function showCreateJobForm() {
       alert('Tạo job mới: Chuyển sang trang Setup (sẽ implement sau)');
     }
+
+    // Copy link button handler
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('copy-link-btn')) {
+        const link = document.getElementById('generatedLink').value;
+        navigator.clipboard.writeText(link).then(() => {
+          alert('Link đã copy!');
+        }).catch(err => {
+          alert('Lỗi khi copy link');
+        });
+      }
+    });
+
+    // Send email button handler
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('send-email-btn')) {
+        const email = e.target.dataset.email;
+        const name = e.target.dataset.name;
+        const link = e.target.dataset.link;
+
+        if (email && link) {
+          const subject = 'Interview Link - AIterview';
+          const body = `Hi ${name},\n\nLink phỏng vấn của bạn:\n${link}\n\nThank you!`;
+          window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        }
+      }
+    });
   </script>
 </body>
 </html>
