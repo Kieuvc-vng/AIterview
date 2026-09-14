@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const { v4: uuidv4 } = require('uuid');
 
 const sessionManager = require('../services/sessionManager');
 const { conductInterview, generateOpeningGreeting } = require('../services/aiIntegration');
 const { initializeInterviewState, getCurrentQuestion, processAnswerQuality, isInterviewComplete, moveToNextSkillIfNeeded } = require('../services/interviewEngine');
+const summaryGenerator = require('../services/summaryGenerator');
 
 /**
  * GET /api/interview/:sessionId
@@ -119,6 +121,74 @@ router.post('/:sessionId/message', async (req, res, next) => {
       next_question: null,
       interview_complete: false
     });
+  } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
+
+/**
+ * POST /api/interview/:interview_id/message
+ * New: Send message with summary generation for new schema
+ */
+router.post('/:interview_id/message', async (req, res, next) => {
+  try {
+    const { interview_id } = req.params;
+    const { content, sender } = req.body;
+
+    if (!content || !sender) {
+      return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+
+    const messageId = 'msg_' + uuidv4();
+    sessionManager.addMessage(interview_id, messageId, sender, content);
+
+    // Generate summary if candidate answered
+    if (sender === 'candidate') {
+      const interview = sessionManager.getInterview(interview_id);
+      const messages = sessionManager.getInterviewMessages(interview_id);
+
+      if (interview && messages.length > 0) {
+        const lastQuestion = messages.find(m => m.sender === 'interviewer');
+        if (lastQuestion) {
+          const { main_answer_summary, followup_summary } = await summaryGenerator.generateSummary(
+            interview_id,
+            'skill',
+            0,
+            lastQuestion.content,
+            messages
+          );
+
+          const summaryId = 'summary_' + uuidv4();
+          if (sessionManager.db) {
+            summaryGenerator.saveSummary(
+              sessionManager.db,
+              summaryId,
+              interview_id,
+              'skill',
+              0,
+              lastQuestion.content,
+              main_answer_summary,
+              followup_summary
+            );
+          }
+        }
+      }
+    }
+
+    res.json({ success: true, messageId });
+  } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
+
+/**
+ * GET /api/interview/:interview_id/summaries
+ * Get all summaries for an interview
+ */
+router.get('/:interview_id/summaries', (req, res, next) => {
+  try {
+    const summaries = sessionManager.getSummaries(req.params.interview_id);
+    res.json({ success: true, summaries });
   } catch (error) {
     next({ status: 500, message: error.message });
   }
