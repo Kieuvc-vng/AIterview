@@ -35,6 +35,43 @@ router.get('/jobs/:id', async (req, res, next) => {
   }
 });
 
+// PUT /api/job-library/jobs/:id - Update job details
+router.put('/jobs/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { job_title, level, company, skills, questions_by_skill, jd_text } = req.body;
+
+    if (!id || typeof id !== 'string') {
+      return res.status(400).json({ error: 'Invalid job ID' });
+    }
+
+    const job = await jobLibraryService.getJobById(id);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    // Update job in database
+    const db = require('../db/init');
+    if (db) {
+      db.prepare(
+        'UPDATE jobs SET job_title = ?, level = ?, company = ?, skills = ?, questions_by_skill = ?, jd_text = ? WHERE id = ?'
+      ).run(
+        job_title,
+        level,
+        company,
+        JSON.stringify(skills),
+        JSON.stringify(questions_by_skill),
+        jd_text,
+        id
+      );
+    }
+
+    res.json({ success: true, job_id: id });
+  } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
+
 // DELETE /api/job-library/jobs/:id - Delete job
 router.delete('/jobs/:id', async (req, res, next) => {
   try {

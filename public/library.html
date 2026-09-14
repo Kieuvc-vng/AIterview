@@ -47,6 +47,7 @@
       </div>
       <div class="modal-actions" style="margin-top: 1rem;">
         <button class="btn-secondary" onclick="closeEditJobModal()">Đóng</button>
+        <button class="btn-primary" id="editJobBtn" onclick="editJobSetup()">Chỉnh Sửa</button>
       </div>
     </div>
   </div>
@@ -166,6 +167,7 @@
     }
 
     function openJobDetail(jobId) {
+      currentJobId = jobId;
       fetch(`/api/job-library/jobs/${jobId}`)
         .then(r => r.json())
         .then(data => {
@@ -218,6 +220,13 @@
 
     function closeEditJobModal() {
       document.getElementById('editJobModal').classList.remove('active');
+    }
+
+    function editJobSetup() {
+      const jobId = currentJobId;
+      if (jobId) {
+        window.location.href = `/index.html?edit=${jobId}`;
+      }
     }
 
     // Copy link button handler
