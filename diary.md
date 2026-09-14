@@ -124,3 +124,10 @@ _Các entry thật bắt đầu từ đây._
 - Test toàn bộ flow: setup → job library → job detail → add candidate → generate link ✓
 **Bước:** 5 — Test
 **Chưa hiểu:** không có gì
+
+## 14/09 — Kiểu + Tiến (Late Afternoon - Skills Mismatch Bug Fix)
+
+**Nhờ làm:** sửa bug — Step 3 chọn kỹ năng như "Technical Skills", "Communication" nhưng Step 4 hiển thị câu hỏi cho "Python", "SQL", "Data Pipelines" - các kỹ năng không khớp
+**Claude làm:** tìm bug ở qwenClient.js — mock response trả về hardcoded skills (Python, SQL, Data Pipelines) thay vì skills thực tế được chọn. Fix bằng cách extract skills từ user message và tạo questions cho những skills đó.
+**Bước:** 3 — Spec → Build
+**Chưa hiểu:** không có gì
