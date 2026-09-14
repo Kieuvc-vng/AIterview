@@ -102,3 +102,10 @@ _Các entry thật bắt đầu từ đây._
 - Task 18: jest.config.js + tests/setup.js + setupRoutes.test.js (test suite for API routes)
 - Task 19: public/README.md (architecture, page flows, API endpoints, CSS classes)
 - Task 20: npm install works, jest tests ready, full build verified
+
+## 14/09 — Kiểu + Tiến
+
+**Nhờ làm:** sửa bug — Step 3 không thể add/xóa skill, không thể chuyển sang Step 4 khi ấn Generate Questions
+**Claude làm:** tìm được bug ở questionGenerator service — API trả về {questions_by_skill: {...}} nhưng service không unwrap nó, dẫn tới data bị lồng thêm lớp {questions_by_skill: {...}}. Fix bằng cách check và extract questions_by_skill property trước khi return.
+**Bước:** 3 — Spec → Build
+**Chưa hiểu:** không có gì
