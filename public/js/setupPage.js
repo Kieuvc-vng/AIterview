@@ -639,7 +639,7 @@ const SetupPage = {
         // Show success and redirect to job library
         App.showSuccess('Job created successfully! Redirecting to library...');
         setTimeout(() => {
-          window.location.href = '/job-library.html';
+          window.location.href = '/library.html';
         }, 1500);
       } else {
         // Fallback for backward compatibility - redirect to interview
