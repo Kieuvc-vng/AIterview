@@ -131,3 +131,10 @@ _Các entry thật bắt đầu từ đây._
 **Claude làm:** tìm bug ở qwenClient.js — mock response trả về hardcoded skills (Python, SQL, Data Pipelines) thay vì skills thực tế được chọn. Fix bằng cách extract skills từ user message và tạo questions cho những skills đó.
 **Bước:** 3 — Spec → Build
 **Chưa hiểu:** không có gì
+
+## 14/09 — Kiểu + Tiến (Late Afternoon - Job Library Button Fix)
+
+**Nhờ làm:** sửa bug — nút "+ Tạo Job Mới" trên Job Library không hoạt động, chỉ hiển thị alert
+**Claude làm:** tìm bug ở library.html — nút gọi hàm showCreateJobForm() nhưng hàm này chỉ alert thôi. Fix bằng cách thay alert thành window.location.href = '/index.html' để redirect đến trang Setup.
+**Bước:** 3 — Spec → Build
+**Chưa hiểu:** không có gì
