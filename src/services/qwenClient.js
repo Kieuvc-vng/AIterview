@@ -24,13 +24,29 @@ const getMockResponse = (systemPrompt, messages) => {
     });
   }
   if (systemLower.includes('generate interview questions') || systemLower.includes('questions')) {
-    return JSON.stringify({
-      questions_by_skill: {
-        'Python': ['Explain list comprehensions', 'What are decorators?'],
-        'SQL': ['Optimize a slow query', 'Explain JOIN types'],
-        'Data Pipelines': ['Design a data pipeline', 'Handle data quality issues']
-      }
-    });
+    // Extract skills from the user message to generate questions for those specific skills
+    const skillsMatch = lastMessage.match(/Skills to evaluate: ([^\n]+)/);
+    const skillsStr = skillsMatch ? skillsMatch[1] : '';
+    const skills = skillsStr.split(', ').map(s => s.trim()).filter(Boolean);
+
+    console.log('[MOCK] Generating questions for skills:', skills, '| skillsStr:', skillsStr);
+
+    const questions_by_skill = {};
+    if (skills.length > 0) {
+      skills.forEach(skill => {
+        questions_by_skill[skill] = [
+          `Tell me about your experience with ${skill}.`,
+          `How do you apply ${skill} in your work?`,
+          `What challenges have you faced with ${skill}?`
+        ];
+      });
+    } else {
+      // Fallback if skills can't be extracted
+      questions_by_skill['Skill 1'] = ['Tell me about your experience.', 'How do you approach problem-solving?'];
+    }
+
+    console.log('[MOCK] Generated questions_by_skill:', JSON.stringify(questions_by_skill));
+    return JSON.stringify({ questions_by_skill });
   }
   if (systemLower.includes('evaluate') || systemLower.includes('candidate')) {
     return JSON.stringify({
