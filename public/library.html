@@ -53,22 +53,25 @@
     document.addEventListener('DOMContentLoaded', loadJobs);
 
     function loadJobs() {
-      fetch('/jobs')
+      // Get hr_email from localStorage
+      const hrEmail = localStorage.getItem('hr_email') || 'default@company.com';
+
+      fetch(`/api/job-library/jobs?hr_email=${encodeURIComponent(hrEmail)}`)
         .then(r => r.json())
-        .then(data => {
+        .then(jobs => {
           const list = document.getElementById('jobsList');
-          if (data.jobs.length === 0) {
+          if (jobs.length === 0) {
             list.innerHTML = '<p style="text-align: center; color: #666;">Chưa có job nào. Tạo job mới!</p>';
             return;
           }
-          list.innerHTML = data.jobs.map(job => `
+          list.innerHTML = jobs.map(job => `
             <div class="job-card">
               <div class="job-info">
                 <h3>${job.job_title} (${job.level})</h3>
                 <p>${job.company} · ${JSON.parse(job.skills || '[]').length} skills</p>
               </div>
               <div class="actions">
-                <button class="btn-primary" onclick="openSendModal('${job.job_id}')">Gửi cho Ứng Viên</button>
+                <button class="btn-primary" onclick="openSendModal('${job.id}')">Gửi cho Ứng Viên</button>
                 <button class="btn-secondary">Chỉnh Sửa</button>
               </div>
             </div>

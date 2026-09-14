@@ -11,7 +11,7 @@ router.get('/jobs', async (req, res, next) => {
     }
 
     const jobs = await jobLibraryService.getJobs(hr_email);
-    res.json({ jobs });
+    res.json(jobs);
   } catch (error) {
     next({ status: 500, message: error.message });
   }
