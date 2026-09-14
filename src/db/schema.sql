@@ -3,27 +3,30 @@
 
 -- 1. JOBS Table (Job Templates)
 CREATE TABLE IF NOT EXISTS jobs (
-  job_id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY,
+  hr_email TEXT NOT NULL,
   job_title TEXT NOT NULL,
   level TEXT NOT NULL,
   company TEXT NOT NULL,
-  description TEXT,
   skills TEXT NOT NULL,
   questions_by_skill TEXT NOT NULL,
-  created_by TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  jd_text TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 2. CANDIDATES Table
 CREATE TABLE IF NOT EXISTS candidates (
-  candidate_id TEXT PRIMARY KEY,
+  id TEXT PRIMARY KEY,
   job_id TEXT NOT NULL,
   name TEXT NOT NULL,
-  email TEXT NOT NULL UNIQUE,
-  phone TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (job_id) REFERENCES jobs(job_id) ON DELETE CASCADE
+  phone TEXT NOT NULL,
+  email TEXT NOT NULL,
+  link_sent BOOLEAN DEFAULT 0,
+  interview_status TEXT DEFAULT 'not_started',
+  interview_link TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
 );
 
 -- 3. INTERVIEWS Table
@@ -35,8 +38,8 @@ CREATE TABLE IF NOT EXISTS interviews (
   started_at TIMESTAMP,
   completed_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (job_id) REFERENCES jobs(job_id) ON DELETE CASCADE,
-  FOREIGN KEY (candidate_id) REFERENCES candidates(candidate_id) ON DELETE CASCADE
+  FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
+  FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE
 );
 
 -- 4. MESSAGES Table (updated FK)
