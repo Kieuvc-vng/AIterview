@@ -187,3 +187,24 @@ _Các entry thật bắt đầu từ đây._
 
 **Bước:** 3 — Spec → Build (xong implementation, tested)
 **Chưa hiểu:** không có gì
+
+## 15/09 — Kiểu + Tiến
+
+**Nhờ làm:** 
+1. Sửa bug JD parsing (tên vị trí hiển thị sai)
+2. Fix copy button không hoạt động
+3. Bỏ tùy chọn gửi email
+4. Thêm danh sách ứng viên trên job
+
+**Claude làm:**
+- Bug 1: Fix JD parsing — company name bị extract từ system prompt prefix thay vì actual JD text → updated regex để skip "Extract fields from this JD:" và lấy first line thực của JD
+  * Test: Vietnamese JD "Tai Game Studio 9" giờ parse correctly ✓
+- Bug 2: Fix copy button — thêm fallback cho trình duyệt cũ + visual feedback (button text đổi thành "✓ Đã Copy" trong 2 giây)
+- Bug 3: Xóa "Gửi Email" button khỏi modal "Gửi cho Ứng Viên"
+- Feature: Thêm "Xem Ứng Viên" button trên job card
+  * Khi click → modal hiện danh sách ứng viên (tên, email, phone, interview link)
+  * Mỗi candidate có nút Copy riêng cho interview link
+  * Hiển thị trạng thái phỏng vấn
+
+**Bước:** 3 — Spec → Build
+**Chưa hiểu:** không có gì
