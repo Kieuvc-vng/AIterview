@@ -52,6 +52,16 @@
     </div>
   </div>
 
+  <div id="candidatesModal" class="modal">
+    <div class="modal-content" style="max-width: 600px; max-height: 600px; overflow-y: auto;">
+      <h2>Danh Sách Ứng Viên</h2>
+      <div id="candidatesList" style="margin: 1rem 0;"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeCandidatesModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
   <div id="sendModal" class="modal">
     <div class="modal-content">
       <h2>Gửi cho Ứng Viên</h2>
@@ -101,7 +111,8 @@
                 <p>${job.company} · ${JSON.parse(job.skills || '[]').length} skills</p>
               </div>
               <div class="actions">
-                <button class="btn-primary" onclick="openSendModal('${job.id}')">Gửi cho Ứng Viên</button>
+                <button class="btn-primary" onclick="openCandidatesModal('${job.id}')">Xem Ứng Viên</button>
+                <button class="btn-secondary" onclick="openSendModal('${job.id}')">Tạo Ứng Viên</button>
                 <button class="btn-secondary" onclick="openJobDetail('${job.id}')">Chỉnh Sửa</button>
               </div>
             </div>
@@ -122,6 +133,73 @@
     function closeSendModal() {
       document.getElementById('sendModal').classList.remove('active');
       currentCandidateData = null;
+    }
+
+    function openCandidatesModal(jobId) {
+      currentJobId = jobId;
+      document.getElementById('candidatesModal').classList.add('active');
+      loadAndDisplayCandidates(jobId);
+    }
+
+    function closeCandidatesModal() {
+      document.getElementById('candidatesModal').classList.remove('active');
+    }
+
+    function loadAndDisplayCandidates(jobId) {
+      fetch(`/api/job-library/jobs/${jobId}`)
+        .then(r => r.json())
+        .then(data => {
+          const { candidates } = data;
+          const listDiv = document.getElementById('candidatesList');
+
+          if (!candidates || candidates.length === 0) {
+            listDiv.innerHTML = '<p style="text-align: center; color: #999;">Chưa có ứng viên nào</p>';
+            return;
+          }
+
+          listDiv.innerHTML = candidates.map(c => {
+            const link = c.interview_link ? `${window.location.origin}${c.interview_link}` : 'Chưa tạo link';
+            const linkHtml = c.interview_link ? `
+              <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <input type="text" value="${link}" readonly style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
+                <button class="btn btn-primary btn-small copy-candidate-link" data-link="${link}">Copy</button>
+              </div>
+            ` : '<p style="color: #ff9800; font-size: 13px;">Link chưa được tạo</p>';
+
+            return `
+              <div style="padding: 12px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <h4 style="margin: 0 0 4px 0;">${c.name}</h4>
+                    <p style="margin: 0; color: #666; font-size: 13px;">${c.email} • ${c.phone}</p>
+                    <p style="margin: 4px 0 0 0; color: #999; font-size: 12px;">Trạng thái: ${c.interview_status || 'Chờ'}</p>
+                  </div>
+                </div>
+                ${linkHtml}
+              </div>
+            `;
+          }).join('');
+
+          // Add copy button handlers
+          document.querySelectorAll('.copy-candidate-link').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const link = e.target.dataset.link;
+              navigator.clipboard.writeText(link).then(() => {
+                e.target.textContent = '✓ Đã Copy';
+                e.target.style.background = '#4caf50';
+                setTimeout(() => {
+                  e.target.textContent = 'Copy';
+                  e.target.style.background = '';
+                }, 2000);
+              }).catch(() => {
+                alert('Không thể copy link');
+              });
+            });
+          });
+        })
+        .catch(err => {
+          document.getElementById('candidatesList').innerHTML = '<p style="color: red;">Lỗi: ' + err.message + '</p>';
+        });
     }
 
     function generateLink() {
