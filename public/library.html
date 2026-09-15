@@ -212,30 +212,36 @@
         return;
       }
 
-      fetch('/candidates', {
+      fetch(`/api/job-library/jobs/${currentJobId}/candidates`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ job_id: currentJobId, name, email, phone })
+        body: JSON.stringify({ name, email, phone })
       })
         .then(r => r.json())
         .then(data => {
-          if (data.success) {
-            const interviewLink = `${window.location.origin}/interview?token=${data.candidate_id}`;
+          if (data.candidate_id) {
+            // Generate interview link by calling the generate-link endpoint
+            return fetch(`/api/job-library/candidates/${data.candidate_id}/generate-link`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ jobId: currentJobId })
+            }).then(r => r.json()).then(linkData => {
+              const interviewLink = linkData.interview_link || `${window.location.origin}/interview?token=${data.candidate_id}`;
 
-            // Store candidate data for email functionality
-            currentCandidateData = { name, email, interviewLink };
+              // Store candidate data for email functionality
+              currentCandidateData = { name, email, interviewLink };
 
-            // Display link section
-            document.getElementById('generatedLink').value = interviewLink;
-            document.getElementById('formSection').style.display = 'none';
-            document.getElementById('linkSection').style.display = 'flex';
-
-            // Update send email button with data attributes
-            const sendBtn = document.querySelector('.send-email-btn');
-            sendBtn.dataset.email = email;
-            sendBtn.dataset.name = name;
-            sendBtn.dataset.link = interviewLink;
+              // Display link section
+              document.getElementById('generatedLink').value = interviewLink;
+              document.getElementById('formSection').style.display = 'none';
+              document.getElementById('linkSection').style.display = 'flex';
+            });
+          } else {
+            alert('Lỗi: không thể tạo ứng viên');
           }
+        })
+        .catch(err => {
+          alert('Lỗi: ' + err.message);
         });
     }
 
