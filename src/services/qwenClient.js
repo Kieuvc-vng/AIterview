@@ -12,10 +12,53 @@ const getMockResponse = (systemPrompt, messages) => {
   const systemLower = systemPrompt?.toLowerCase() || '';
 
   if (systemLower.includes('extract job title') || systemLower.includes('job title')) {
+    // Try to extract job title, level, and company from JD text
+    let job_title = 'Unknown Position';
+    let level = 'Mid';
+    let company = 'Unknown Company';
+
+    // Extract company from first actual line of JD (skip "Extract fields from this JD:" prefix)
+    const lines = lastMessage.split('\n');
+    let jdFirstLine = lines[0];
+
+    // If first line is the prompt instruction, get the next non-empty line
+    if (jdFirstLine.includes('Extract fields') || jdFirstLine.includes('extract') || jdFirstLine.trim().length < 3) {
+      jdFirstLine = lines.slice(1).find(line => line.trim().length > 3) || jdFirstLine;
+    }
+
+    const companyMatch = jdFirstLine.match(/^([^–,\n]+?)(?:\s*–|$)/);
+
+    if (companyMatch) {
+      let extractedCompany = companyMatch[1].trim();
+      // Only use if it's a reasonable company name
+      if (extractedCompany && extractedCompany.length > 2 && extractedCompany.length < 100) {
+        company = extractedCompany;
+      }
+    }
+
+    // Extract job title from "vai trò" or "position" or "role"
+    const titleMatch = lastMessage.match(/(?:vai trò|position|title|role)[\s:]+([A-Z][^,\n.]+?)(?:[,.\n]|$)/i);
+    if (titleMatch) {
+      job_title = titleMatch[1].trim();
+    } else {
+      // Fallback: look for title keywords
+      const titleKeywordMatch = lastMessage.match(/(?:Senior\s+)?(?:Marketing|Data|Software|Product|Business|Project|Sales|HR)\s+(?:Executive|Engineer|Developer|Manager|Lead|Specialist)[^\n,.]*/i);
+      if (titleKeywordMatch) {
+        job_title = titleKeywordMatch[0].trim();
+      }
+    }
+
+    // Determine level based on keywords
+    if (/(?:senior|lead|principal|manager)/i.test(lastMessage)) {
+      level = 'Senior';
+    } else if (/(?:junior|entry|intern|fresher)/i.test(lastMessage)) {
+      level = 'Junior';
+    }
+
     return JSON.stringify({
-      job_title: 'Data Engineer',
-      level: 'Mid',
-      company: 'Tech Company'
+      job_title,
+      level,
+      company
     });
   }
   if (systemLower.includes('extract key skills') || systemLower.includes('key skills')) {
