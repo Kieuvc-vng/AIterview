@@ -133,6 +133,38 @@ const jobLibraryService = {
     }
   },
 
+  // Update job
+  async updateJob(jobId, jobData) {
+    try {
+      let db = null;
+      if (dbModule && dbModule.getDb) {
+        db = await dbModule.getDb();
+      }
+
+      if (!db) throw new Error('Database not available');
+
+      const result = await db.prepare(
+        'UPDATE jobs SET job_title = ?, level = ?, company = ?, skills = ?, questions_by_skill = ?, jd_text = ? WHERE id = ?'
+      ).run(
+        jobData.job_title,
+        jobData.level,
+        jobData.company,
+        JSON.stringify(jobData.skills),
+        JSON.stringify(jobData.questions_by_skill),
+        jobData.jd_text,
+        jobId
+      );
+
+      if (!result || result.changes === 0) {
+        throw new Error(`Job ${jobId} not found`);
+      }
+
+      return jobId;
+    } catch (error) {
+      throw new Error(`Failed to update job: ${error.message}`);
+    }
+  },
+
   // Delete job
   async deleteJob(jobId) {
     try {

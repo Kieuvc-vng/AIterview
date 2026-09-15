@@ -34,8 +34,8 @@ const SetupPage = {
       this.isEditMode = true;
       this.editJobId = editJobId;
       await this.loadJobForEdit();
-      // Start from Step 3 (skills) in edit mode
-      this.currentStep = 3;
+      // Start from Step 1 (JD) in edit mode to review entire flow
+      this.currentStep = 1;
     }
 
     this.render(container);

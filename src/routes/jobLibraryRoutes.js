@@ -45,26 +45,27 @@ router.put('/jobs/:id', async (req, res, next) => {
       return res.status(400).json({ error: 'Invalid job ID' });
     }
 
+    if (!job_title || !level || !company) {
+      return res.status(400).json({
+        error: 'Missing required fields: job_title, level, company'
+      });
+    }
+
+    // Verify job exists
     const job = await jobLibraryService.getJobById(id);
     if (!job) {
       return res.status(404).json({ error: 'Job not found' });
     }
 
-    // Update job in database
-    const db = require('../db/init');
-    if (db) {
-      db.prepare(
-        'UPDATE jobs SET job_title = ?, level = ?, company = ?, skills = ?, questions_by_skill = ?, jd_text = ? WHERE id = ?'
-      ).run(
-        job_title,
-        level,
-        company,
-        JSON.stringify(skills),
-        JSON.stringify(questions_by_skill),
-        jd_text,
-        id
-      );
-    }
+    // Update job using service
+    await jobLibraryService.updateJob(id, {
+      job_title,
+      level,
+      company,
+      skills: skills || [],
+      questions_by_skill: questions_by_skill || {},
+      jd_text: jd_text || ''
+    });
 
     res.json({ success: true, job_id: id });
   } catch (error) {
