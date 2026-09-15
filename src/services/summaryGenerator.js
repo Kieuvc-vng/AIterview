@@ -60,8 +60,66 @@ const saveSummary = (db, summary_id, interview_id, skill_name, question_index, q
   stmt.run(summary_id, interview_id, skill_name, question_index, question_text, main_summary, followup_summary);
 };
 
+const generateAllSummaries = async (interviewId, db) => {
+  try {
+    if (!db) {
+      console.error('[SummaryGenerator] No database available');
+      return [];
+    }
+
+    const messages = await db.prepare(
+      'SELECT * FROM messages WHERE interview_id = ? ORDER BY created_at'
+    ).all(interviewId);
+
+    if (!messages || messages.length === 0) return [];
+
+    const candidateMessages = messages.filter(m => m.sender === 'candidate');
+    const aiMessages = messages.filter(m => m.sender === 'ai');
+
+    const summaries = [];
+
+    for (let i = 0; i < aiMessages.length; i++) {
+      const question = aiMessages[i];
+      const answerIndex = candidateMessages.findIndex(
+        m => new Date(m.created_at) > new Date(question.created_at)
+      );
+
+      if (answerIndex === -1) continue;
+
+      const answer = candidateMessages[answerIndex];
+      const skillName = question.skill_name || 'General';
+      const questionIndex = question.question_index || i;
+
+      try {
+        const { main_answer_summary, followup_summary } = await generateSummary(
+          interviewId,
+          skillName,
+          questionIndex,
+          question.content,
+          [{ ...answer, skill_name: skillName, question_index: questionIndex, attempt_number: 1 }]
+        );
+
+        const summaryId = 'summary_' + uuidv4();
+        await db.prepare(
+          'INSERT OR REPLACE INTO summaries (id, interview_id, skill_name, question_index, question_text, main_answer_summary, followup_summary) VALUES (?, ?, ?, ?, ?, ?, ?)'
+        ).run(summaryId, interviewId, skillName, questionIndex, question.content, main_answer_summary, followup_summary);
+
+        summaries.push({ skill_name: skillName, question_index: questionIndex, main_answer_summary, followup_summary });
+      } catch (err) {
+        console.error(`[SummaryGenerator] Failed to summarize question ${i}:`, err.message);
+      }
+    }
+
+    return summaries;
+  } catch (error) {
+    console.error('[SummaryGenerator] generateAllSummaries error:', error.message);
+    return [];
+  }
+};
+
 module.exports = {
   generateSummary,
   summarizeText,
-  saveSummary
+  saveSummary,
+  generateAllSummaries
 };
