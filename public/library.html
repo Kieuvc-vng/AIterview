@@ -70,7 +70,6 @@
           <input type="text" id="generatedLink" class="link-input" readonly />
           <button class="btn btn-primary btn-small copy-link-btn">Copy</button>
         </div>
-        <button class="btn btn-secondary send-email-btn">Gửi Email</button>
         <button class="btn btn-secondary" onclick="closeSendModal()" style="margin-top: 5px;">Đóng</button>
       </div>
     </div>
@@ -233,28 +232,45 @@
     document.addEventListener('click', (e) => {
       if (e.target.classList.contains('copy-link-btn')) {
         const link = document.getElementById('generatedLink').value;
-        navigator.clipboard.writeText(link).then(() => {
-          alert('Link đã copy!');
-        }).catch(err => {
-          alert('Lỗi khi copy link');
-        });
-      }
-    });
+        const originalText = e.target.textContent;
 
-    // Send email button handler
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('send-email-btn')) {
-        const email = e.target.dataset.email;
-        const name = e.target.dataset.name;
-        const link = e.target.dataset.link;
-
-        if (email && link) {
-          const subject = 'Interview Link - AIterview';
-          const body = `Hi ${name},\n\nLink phỏng vấn của bạn:\n${link}\n\nThank you!`;
-          window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(link).then(() => {
+            e.target.textContent = '✓ Đã Copy';
+            e.target.style.background = '#4caf50';
+            setTimeout(() => {
+              e.target.textContent = originalText;
+              e.target.style.background = '';
+            }, 2000);
+          }).catch(err => {
+            // Fallback: use older method
+            fallbackCopyToClipboard(link, e.target, originalText);
+          });
+        } else {
+          fallbackCopyToClipboard(link, e.target, originalText);
         }
       }
     });
+
+    // Fallback copy function
+    function fallbackCopyToClipboard(text, btn, originalText) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        btn.textContent = '✓ Đã Copy';
+        btn.style.background = '#4caf50';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.background = '';
+        }, 2000);
+      } catch (err) {
+        alert('Không thể copy link. Vui lòng copy thủ công.');
+      }
+      document.body.removeChild(textarea);
+    }
   </script>
 </body>
 </html>
