@@ -2,16 +2,21 @@
 
 let db = null;
 let dbAvailable = false;
+const initModule = require('../db/init');
 
-// Try to load database if available
-try {
-  db = require('../db/init');
-  dbAvailable = true;
-  console.log('[SessionManager] Database loaded');
-} catch (error) {
-  console.log('[SessionManager] Database not available, using in-memory store');
-  dbAvailable = false;
-}
+// Initialize database reference
+(async () => {
+  try {
+    db = await initModule.getDb?.() || initModule.db;
+    if (db) {
+      dbAvailable = true;
+      console.log('[SessionManager] Database loaded');
+    }
+  } catch (error) {
+    console.log('[SessionManager] Database not available, using in-memory store');
+    dbAvailable = false;
+  }
+})();
 
 // In-memory store for when database is unavailable
 const inMemoryStore = {
@@ -37,14 +42,14 @@ class SessionManager {
       updated_at: new Date().toISOString()
     };
 
-    if (dbAvailable) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare(`
           INSERT INTO sessions
           (session_id, hr_email, job_title, level, company, skills, questions_by_skill, status, created_at, updated_at)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
-        stmt.run(session.session_id, session.hr_email, session.job_title, session.level, session.company, session.skills, session.questions_by_skill, session.status, session.created_at, session.updated_at);
+        await stmt.run(session.session_id, session.hr_email, session.job_title, session.level, session.company, session.skills, session.questions_by_skill, session.status, session.created_at, session.updated_at);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
         inMemoryStore.sessions[session_id] = session;
@@ -59,17 +64,17 @@ class SessionManager {
   }
 
   async getSession(sessionId) {
-    if (dbAvailable) {
+    if (dbAvailable && db) {
       try {
         const sessionStmt = db.prepare('SELECT * FROM sessions WHERE session_id = ?');
-        const session = sessionStmt.get(sessionId);
+        const session = await sessionStmt.get(sessionId);
         if (!session) return null;
 
         const messagesStmt = db.prepare('SELECT * FROM messages WHERE session_id = ? ORDER BY created_at ASC');
-        const messages = messagesStmt.all(sessionId);
+        const messages = await messagesStmt.all(sessionId);
 
         const stateStmt = db.prepare('SELECT * FROM session_states WHERE session_id = ?');
-        const state = stateStmt.get(sessionId);
+        const state = await stateStmt.get(sessionId);
 
         return {
           session: this._parseSession(session),
@@ -92,12 +97,12 @@ class SessionManager {
   }
 
   async startInterview(sessionId, candidateName) {
-    if (dbAvailable) {
+    if (dbAvailable && db) {
       try {
         const updateStmt = db.prepare(`UPDATE sessions SET candidate_name = ?, status = 'ongoing', updated_at = ? WHERE session_id = ?`);
-        updateStmt.run(candidateName, new Date().toISOString(), sessionId);
+        await updateStmt.run(candidateName, new Date().toISOString(), sessionId);
         const stateStmt = db.prepare(`INSERT OR REPLACE INTO session_states (session_id, interview_started_at) VALUES (?, ?)`);
-        stateStmt.run(sessionId, new Date().toISOString());
+        await stateStmt.run(sessionId, new Date().toISOString());
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
@@ -114,10 +119,10 @@ class SessionManager {
     const message_id = uuidv4();
     const messageRecord = { id: message_id, session_id: sessionId, sender: message.sender, content: message.content, skill_name: message.skill_name || null, question_index: message.question_index || null, attempt_number: message.attempt_number || null, created_at: new Date().toISOString() };
 
-    if (dbAvailable) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare(`INSERT INTO messages (id, session_id, sender, content, skill_name, question_index, attempt_number, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`);
-        stmt.run(messageRecord.id, messageRecord.session_id, messageRecord.sender, messageRecord.content, messageRecord.skill_name, messageRecord.question_index, messageRecord.attempt_number, messageRecord.created_at);
+        await stmt.run(messageRecord.id, messageRecord.session_id, messageRecord.sender, messageRecord.content, messageRecord.skill_name, messageRecord.question_index, messageRecord.attempt_number, messageRecord.created_at);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
         if (!inMemoryStore.messages[sessionId]) inMemoryStore.messages[sessionId] = [];
@@ -131,10 +136,10 @@ class SessionManager {
   }
 
   async updateSessionState(sessionId, state) {
-    if (dbAvailable) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare(`INSERT OR REPLACE INTO session_states (session_id, current_skill_index, current_question_index, current_attempt) VALUES (?, ?, ?, ?)`);
-        stmt.run(sessionId, state.current_skill_index || 0, state.current_question_index || 0, state.current_attempt || 1);
+        await stmt.run(sessionId, state.current_skill_index || 0, state.current_question_index || 0, state.current_attempt || 1);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
         if (!inMemoryStore.states[sessionId]) inMemoryStore.states[sessionId] = {};
@@ -147,10 +152,10 @@ class SessionManager {
   }
 
   async getSessionState(sessionId) {
-    if (dbAvailable) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare('SELECT * FROM session_states WHERE session_id = ?');
-        const state = stmt.get(sessionId);
+        const state = await stmt.get(sessionId);
         return state || { current_skill_index: 0, current_question_index: 0, current_attempt: 1 };
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
@@ -160,11 +165,11 @@ class SessionManager {
   }
 
   // Job methods
-  getJobs() {
-    if (dbAvailable) {
+  async getJobs() {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare('SELECT * FROM jobs');
-        return stmt.all();
+        return await stmt.all();
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
@@ -172,11 +177,11 @@ class SessionManager {
     return [];
   }
 
-  getJob(job_id) {
-    if (dbAvailable) {
+  async getJob(job_id) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare('SELECT * FROM jobs WHERE id = ?');
-        return stmt.get(job_id);
+        return await stmt.get(job_id);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
@@ -184,38 +189,38 @@ class SessionManager {
     return null;
   }
 
-  saveJob(job) {
-    if (dbAvailable) {
+  async saveJob(job) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare(`
           INSERT INTO jobs (id, job_title, level, company, description, skills, questions_by_skill, hr_email, created_at)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
-        stmt.run(job.id, job.job_title, job.level, job.company, job.description, job.skills, job.questions_by_skill, job.hr_email, job.created_at);
+        await stmt.run(job.id, job.job_title, job.level, job.company, job.description, job.skills, job.questions_by_skill, job.hr_email, job.created_at);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
     }
   }
 
-  updateJob(job_id, updates) {
-    if (dbAvailable) {
+  async updateJob(job_id, updates) {
+    if (dbAvailable && db) {
       try {
         const setClause = Object.keys(updates).map(k => `${k} = ?`).join(', ');
         const values = Object.values(updates);
         const stmt = db.prepare(`UPDATE jobs SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`);
-        stmt.run(...values, job_id);
+        await stmt.run(...values, job_id);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
     }
   }
 
-  deleteJob(job_id) {
-    if (dbAvailable) {
+  async deleteJob(job_id) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare('DELETE FROM jobs WHERE id = ?');
-        stmt.run(job_id);
+        await stmt.run(job_id);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
@@ -223,11 +228,11 @@ class SessionManager {
   }
 
   // Candidate methods
-  getCandidatesByJob(job_id) {
-    if (dbAvailable) {
+  async getCandidatesByJob(job_id) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare('SELECT * FROM candidates WHERE job_id = ?');
-        return stmt.all(job_id);
+        return await stmt.all(job_id);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
@@ -235,11 +240,11 @@ class SessionManager {
     return [];
   }
 
-  getCandidate(candidate_id) {
-    if (dbAvailable) {
+  async getCandidate(candidate_id) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare('SELECT * FROM candidates WHERE candidate_id = ?');
-        return stmt.get(candidate_id);
+        return await stmt.get(candidate_id);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
@@ -247,14 +252,14 @@ class SessionManager {
     return null;
   }
 
-  saveCandidate(candidate) {
-    if (dbAvailable) {
+  async saveCandidate(candidate) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare(`
           INSERT INTO candidates (candidate_id, job_id, name, email, phone, created_at)
           VALUES (?, ?, ?, ?, ?, ?)
         `);
-        stmt.run(candidate.candidate_id, candidate.job_id, candidate.name, candidate.email, candidate.phone, candidate.created_at);
+        await stmt.run(candidate.candidate_id, candidate.job_id, candidate.name, candidate.email, candidate.phone, candidate.created_at);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
@@ -262,25 +267,25 @@ class SessionManager {
   }
 
   // Interview methods
-  createInterview(interview_id, job_id, candidate_id) {
-    if (dbAvailable) {
+  async createInterview(interview_id, job_id, candidate_id) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare(`
           INSERT INTO interviews (id, job_id, candidate_id, status, created_at)
           VALUES (?, ?, ?, 'setup', CURRENT_TIMESTAMP)
         `);
-        stmt.run(interview_id, job_id, candidate_id);
+        await stmt.run(interview_id, job_id, candidate_id);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
     }
   }
 
-  getInterview(interview_id) {
-    if (dbAvailable) {
+  async getInterview(interview_id) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare('SELECT * FROM interviews WHERE id = ?');
-        return stmt.get(interview_id);
+        return await stmt.get(interview_id);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
@@ -288,11 +293,11 @@ class SessionManager {
     return null;
   }
 
-  getInterviewMessages(interview_id) {
-    if (dbAvailable) {
+  async getInterviewMessages(interview_id) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare('SELECT * FROM messages WHERE interview_id = ? ORDER BY created_at ASC');
-        return stmt.all(interview_id);
+        return await stmt.all(interview_id);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
@@ -300,11 +305,11 @@ class SessionManager {
     return [];
   }
 
-  getSummaries(interview_id) {
-    if (dbAvailable) {
+  async getSummaries(interview_id) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare('SELECT * FROM summaries WHERE interview_id = ? ORDER BY created_at ASC');
-        return stmt.all(interview_id);
+        return await stmt.all(interview_id);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
@@ -312,14 +317,14 @@ class SessionManager {
     return [];
   }
 
-  addMessage(interview_id, messageId, sender, content) {
-    if (dbAvailable) {
+  async addMessage(interview_id, messageId, sender, content) {
+    if (dbAvailable && db) {
       try {
         const stmt = db.prepare(`
           INSERT INTO messages (id, interview_id, sender, content, created_at)
           VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
         `);
-        stmt.run(messageId, interview_id, sender, content);
+        await stmt.run(messageId, interview_id, sender, content);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
