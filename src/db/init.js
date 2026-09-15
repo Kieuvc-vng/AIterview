@@ -135,7 +135,17 @@ async function initializeDatabase() {
   return initPromise;
 }
 
-// Initialize on module load
+// Create proxy object that holds db reference once initialized
+const dbProxy = new Proxy({}, {
+  get(target, prop) {
+    if (!db) {
+      throw new Error('Database not initialized yet. Use await getDb() instead.');
+    }
+    return db[prop];
+  }
+});
+
+// Start initialization immediately
 initializeDatabase().catch(error => {
   console.error('[Init] Database initialization failed:', error.message);
 });
@@ -145,5 +155,5 @@ module.exports = {
     if (db) return db;
     return initializeDatabase();
   },
-  db: db
+  db: dbProxy
 };

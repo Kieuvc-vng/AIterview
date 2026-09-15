@@ -1,10 +1,10 @@
-let db = null;
+let dbModule = null;
 
-// Try to load database
+// Try to load database module
 try {
-  db = require('../db/init');
+  dbModule = require('../db/init');
 } catch (error) {
-  console.log('[jobLibraryService] Database not available');
+  console.log('[jobLibraryService] Database module not available');
 }
 
 // In-memory store for when database is unavailable
@@ -17,8 +17,13 @@ const jobLibraryService = {
   // Get all jobs for HR
   async getJobs(hrEmail) {
     try {
+      let db = null;
+      if (dbModule && dbModule.getDb) {
+        db = await dbModule.getDb();
+      }
+
       if (db) {
-        const jobs = db.prepare(
+        const jobs = await db.prepare(
           'SELECT id, job_title, level, company, created_at, (SELECT COUNT(*) FROM candidates WHERE job_id = jobs.id) as candidate_count FROM jobs WHERE hr_email = ? ORDER BY created_at DESC'
         ).all(hrEmail);
         return jobs || [];
@@ -46,9 +51,13 @@ const jobLibraryService = {
   async getJobById(jobId) {
     try {
       let jobData;
+      let db = null;
+      if (dbModule && dbModule.getDb) {
+        db = await dbModule.getDb();
+      }
 
       if (db) {
-        const jobs = db.prepare(
+        const jobs = await db.prepare(
           'SELECT * FROM jobs WHERE id = ?'
         ).all(jobId);
 
@@ -96,8 +105,13 @@ const jobLibraryService = {
         created_at: new Date().toISOString()
       };
 
+      let db = null;
+      if (dbModule && dbModule.getDb) {
+        db = await dbModule.getDb();
+      }
+
       if (db) {
-        db.prepare(
+        await db.prepare(
           'INSERT INTO jobs (id, hr_email, job_title, level, company, skills, questions_by_skill, jd_text) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
         ).run(
           jobId,
@@ -122,8 +136,12 @@ const jobLibraryService = {
   // Delete job
   async deleteJob(jobId) {
     try {
+      let db = null;
+      if (dbModule && dbModule.getDb) {
+        db = await dbModule.getDb();
+      }
       if (!db) throw new Error('Database not available');
-      const result = db.prepare('DELETE FROM jobs WHERE id = ?').run(jobId);
+      const result = await db.prepare('DELETE FROM jobs WHERE id = ?').run(jobId);
       if (!result || result.changes === 0) {
         throw new Error(`Job ${jobId} not found`);
       }
@@ -136,8 +154,12 @@ const jobLibraryService = {
   // Get candidates for a job
   async getCandidatesByJobId(jobId) {
     try {
+      let db = null;
+      if (dbModule && dbModule.getDb) {
+        db = await dbModule.getDb();
+      }
       if (db) {
-        const candidates = db.prepare(
+        const candidates = await db.prepare(
           'SELECT id, name, phone, email, interview_link, link_sent, interview_status FROM candidates WHERE job_id = ? ORDER BY created_at'
         ).all(jobId);
         return candidates || [];
@@ -169,8 +191,13 @@ const jobLibraryService = {
         created_at: new Date().toISOString()
       };
 
+      let db = null;
+      if (dbModule && dbModule.getDb) {
+        db = await dbModule.getDb();
+      }
+
       if (db) {
-        db.prepare(
+        await db.prepare(
           'INSERT INTO candidates (id, job_id, name, phone, email) VALUES (?, ?, ?, ?, ?)'
         ).run(candidateId, jobId, candidateData.name, candidateData.phone, candidateData.email);
       } else {
@@ -187,10 +214,14 @@ const jobLibraryService = {
   // Generate interview link
   async generateInterviewLink(jobId, candidateId) {
     try {
+      let db = null;
+      if (dbModule && dbModule.getDb) {
+        db = await dbModule.getDb();
+      }
       if (!db) throw new Error('Database not available');
       const interviewLink = `/interview?job=${jobId}&candidate=${candidateId}`;
 
-      const result = db.prepare(
+      const result = await db.prepare(
         'UPDATE candidates SET link_sent = 1, interview_link = ? WHERE id = ?'
       ).run(interviewLink, candidateId);
 
@@ -207,8 +238,12 @@ const jobLibraryService = {
   // Delete candidate
   async deleteCandidate(candidateId) {
     try {
+      let db = null;
+      if (dbModule && dbModule.getDb) {
+        db = await dbModule.getDb();
+      }
       if (!db) throw new Error('Database not available');
-      const result = db.prepare('DELETE FROM candidates WHERE id = ?').run(candidateId);
+      const result = await db.prepare('DELETE FROM candidates WHERE id = ?').run(candidateId);
       if (!result || result.changes === 0) {
         throw new Error(`Candidate ${candidateId} not found`);
       }
