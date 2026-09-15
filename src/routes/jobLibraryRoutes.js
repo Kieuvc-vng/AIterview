@@ -153,4 +153,39 @@ router.delete('/candidates/:candidateId', async (req, res, next) => {
   }
 });
 
+// GET /api/job-library/candidates/:candidateId/results - Get interview results
+router.get('/candidates/:candidateId/results', async (req, res, next) => {
+  try {
+    const { candidateId } = req.params;
+    const results = await jobLibraryService.getCandidateResults(candidateId);
+
+    if (!results) {
+      return res.status(404).json({ error: 'Candidate not found' });
+    }
+
+    res.json(results);
+  } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
+
+// POST /api/job-library/candidates/:candidateId/remind - Mock send reminder
+router.post('/candidates/:candidateId/remind', async (req, res, next) => {
+  try {
+    const { candidateId } = req.params;
+    const candidate = await jobLibraryService.getCandidateById(candidateId);
+
+    if (!candidate) {
+      return res.status(404).json({ error: 'Candidate not found' });
+    }
+
+    res.json({
+      success: true,
+      message: `Đã gửi nhắc nhở đến ${candidate.email}`
+    });
+  } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
+
 module.exports = router;

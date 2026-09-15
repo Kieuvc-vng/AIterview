@@ -283,6 +283,57 @@ const jobLibraryService = {
     } catch (error) {
       throw new Error(`Failed to delete candidate: ${error.message}`);
     }
+  },
+
+  // Get candidate by ID
+  async getCandidateById(candidateId) {
+    try {
+      let db = null;
+      if (dbModule && dbModule.getDb) {
+        db = await dbModule.getDb();
+      }
+      if (!db) return null;
+      const candidate = await db.prepare('SELECT * FROM candidates WHERE id = ?').get(candidateId);
+      return candidate || null;
+    } catch (error) {
+      throw new Error(`Failed to fetch candidate: ${error.message}`);
+    }
+  },
+
+  // Get candidate interview results (interview, summaries, messages)
+  async getCandidateResults(candidateId) {
+    try {
+      let db = null;
+      if (dbModule && dbModule.getDb) {
+        db = await dbModule.getDb();
+      }
+      if (!db) return null;
+
+      const candidate = await db.prepare('SELECT * FROM candidates WHERE id = ?').get(candidateId);
+      if (!candidate) return null;
+
+      const interviews = await db.prepare(
+        'SELECT * FROM interviews WHERE candidate_id = ? ORDER BY created_at DESC'
+      ).all(candidateId);
+      const interview = interviews && interviews.length > 0 ? interviews[0] : null;
+
+      let summaries = [];
+      let messages = [];
+
+      if (interview) {
+        summaries = await db.prepare(
+          'SELECT skill_name, question_index, question_text, main_answer_summary, followup_summary FROM summaries WHERE interview_id = ? ORDER BY skill_name, question_index'
+        ).all(interview.id);
+
+        messages = await db.prepare(
+          'SELECT sender, content, skill_name, created_at FROM messages WHERE interview_id = ? ORDER BY created_at'
+        ).all(interview.id);
+      }
+
+      return { candidate, interview, summaries: summaries || [], messages: messages || [] };
+    } catch (error) {
+      throw new Error(`Failed to fetch candidate results: ${error.message}`);
+    }
   }
 };
 
