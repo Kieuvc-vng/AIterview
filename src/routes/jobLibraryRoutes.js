@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jobLibraryService = require('../services/jobLibraryService');
+const { generateSummaryPDF, generateFullChatPDF, generateSummaryCSV, generateFullChatCSV } = require('../services/exportService');
 
 // GET /api/job-library/jobs - List all jobs for HR
 router.get('/jobs', async (req, res, next) => {
@@ -183,6 +184,51 @@ router.post('/candidates/:candidateId/remind', async (req, res, next) => {
       success: true,
       message: `Đã gửi nhắc nhở đến ${candidate.email}`
     });
+  } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
+
+// POST /api/job-library/candidates/:candidateId/export
+router.post('/candidates/:candidateId/export', async (req, res, next) => {
+  try {
+    const { candidateId } = req.params;
+    const { format, content } = req.body;
+
+    if (!format || !content) {
+      return res.status(400).json({ error: 'Missing format or content parameter' });
+    }
+
+    const results = await jobLibraryService.getCandidateResults(candidateId);
+    if (!results) {
+      return res.status(404).json({ error: 'Candidate not found' });
+    }
+
+    const jobId = results.candidate.job_id;
+    let jobTitle = 'Unknown Position';
+    const job = await jobLibraryService.getJobById(jobId);
+    if (job) jobTitle = job.job_title;
+
+    let filePath;
+    let fileName;
+
+    if (content === 'summary' && format === 'pdf') {
+      filePath = await generateSummaryPDF(results.candidate, results.summaries, jobTitle);
+      fileName = `tom-tat_${results.candidate.name}.pdf`;
+    } else if (content === 'summary' && format === 'csv') {
+      filePath = await generateSummaryCSV(results.candidate, results.summaries, jobTitle);
+      fileName = `tom-tat_${results.candidate.name}.csv`;
+    } else if (content === 'full' && format === 'pdf') {
+      filePath = await generateFullChatPDF(results.candidate, results.messages, jobTitle);
+      fileName = `full-chat_${results.candidate.name}.pdf`;
+    } else if (content === 'full' && format === 'csv') {
+      filePath = await generateFullChatCSV(results.candidate, results.messages, jobTitle);
+      fileName = `full-chat_${results.candidate.name}.csv`;
+    } else {
+      return res.status(400).json({ error: 'Invalid format/content combination' });
+    }
+
+    res.download(filePath, fileName);
   } catch (error) {
     next({ status: 500, message: error.message });
   }
