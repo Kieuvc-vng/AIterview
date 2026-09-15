@@ -190,21 +190,34 @@ _Các entry thật bắt đầu từ đây._
 
 ## 15/09 — Kiểu + Tiến
 
-**Nhờ làm:** 
-1. Sửa bug JD parsing (tên vị trí hiển thị sai)
-2. Fix copy button không hoạt động
-3. Bỏ tùy chọn gửi email
-4. Thêm danh sách ứng viên trên job
+**Nhờ làm:**
+1. Sửa bugs JD parsing, copy button, candidates list
+2. Fix database issue (Step 5 "Create Session" fail)
+3. Fix edit job flow (nhảy bước, step navigation stuck, update job fail)
 
 **Claude làm:**
-- Bug 1: Fix JD parsing — company name bị extract từ system prompt prefix thay vì actual JD text → updated regex để skip "Extract fields from this JD:" và lấy first line thực của JD
-  * Test: Vietnamese JD "Tai Game Studio 9" giờ parse correctly ✓
-- Bug 2: Fix copy button — thêm fallback cho trình duyệt cũ + visual feedback (button text đổi thành "✓ Đã Copy" trong 2 giây)
-- Bug 3: Xóa "Gửi Email" button khỏi modal "Gửi cho Ứng Viên"
-- Feature: Thêm "Xem Ứng Viên" button trên job card
-  * Khi click → modal hiện danh sách ứng viên (tên, email, phone, interview link)
-  * Mỗi candidate có nút Copy riêng cho interview link
-  * Hiển thị trạng thái phỏng vấn
 
-**Bước:** 3 — Spec → Build
+**Phần 1 - Các bug ngày hôm trước:**
+- Bug JD parsing: Company name extract từ system prompt prefix → fix regex skip "Extract fields..." (583da56)
+- Bug copy button: Không copy được → add fallback execCommand + visual feedback "✓ Đã Copy" (b9e4186)
+- Bug candidates list: API endpoint sai, missing interview_link → fix endpoint + chain API calls (6c5b141)
+- Feature "Xem Ứng Viên": Modal hiện danh sách candidate với interview link, copy button (6c5b141)
+- Bug job editing: Implement full edit flow - preload data, update endpoint (972a5a3, 61e921a, def7950)
+- Bug buttons: "+ Tạo Job Mới" redirect to setup, "Chỉnh Sửa" modal with details (previous commits)
+- Bug skills mismatch: Extract skills từ request thay vì hardcode (previous commits)
+- Bug database: better-sqlite3 crash Windows → switch sqlite3 (a28967d)
+
+**Phần 2 - Bugs hôm nay:**
+- Bug Step 5 fail: "db.prepare is not a function" → database async race condition. Server không await getDb() trước listen, jobLibraryService dùng db sync trước ready
+  * Fix: server.js await dbModule.getDb(), jobLibraryService await getDb() mỗi method (e4e67e1)
+  * Result: Step 5 Create Session ✓ (job lưu database được)
+  
+- Bug edit flow:
+  * Trước: click "Chỉnh Sửa" → nhảy Step 3, step navigation stuck (Step 3→4 hang), update job fail
+  * Sau: start Step 1 (not Step 3), JD + tất cả data pre-filled, user review từ đầu
+  * Implement updateJob() service + fix PUT endpoint (2b39a37)
+  * Result: Full edit flow ready to test
+
+**Bước:** 3 — Spec → Build (+ Test)
+**Chưa hiểu:** không có gì
 **Chưa hiểu:** không có gì
