@@ -11,6 +11,8 @@ const getTmpDir = () => {
 
 const timestamp = () => new Date().toISOString().replace(/[:.]/g, '-');
 
+const escapeCSV = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
+
 const generateSummaryPDF = async (candidate, summaries, jobTitle) => {
   const filePath = path.join(getTmpDir(), `summary_${candidate.name}_${timestamp()}.pdf`);
   const doc = new PDFDocument();
@@ -42,6 +44,7 @@ const generateSummaryPDF = async (candidate, summaries, jobTitle) => {
   return new Promise((resolve, reject) => {
     stream.on('finish', () => resolve(filePath));
     stream.on('error', reject);
+    doc.on('error', reject);
   });
 };
 
@@ -68,6 +71,7 @@ const generateFullChatPDF = async (candidate, messages, jobTitle) => {
   return new Promise((resolve, reject) => {
     stream.on('finish', () => resolve(filePath));
     stream.on('error', reject);
+    doc.on('error', reject);
   });
 };
 
@@ -76,7 +80,15 @@ const generateSummaryCSV = async (candidate, summaries, jobTitle) => {
 
   const header = 'ung_vien,email,vi_tri,skill,cau_hoi,tom_tat,follow_up\n';
   const rows = summaries.map(s =>
-    `"${candidate.name}","${candidate.email}","${jobTitle}","${s.skill_name}","${s.question_text}","${s.main_answer_summary}","${s.followup_summary || ''}"`
+    [
+      escapeCSV(candidate.name),
+      escapeCSV(candidate.email),
+      escapeCSV(jobTitle),
+      escapeCSV(s.skill_name),
+      escapeCSV(s.question_text),
+      escapeCSV(s.main_answer_summary),
+      escapeCSV(s.followup_summary || '')
+    ].join(',')
   ).join('\n');
 
   fs.writeFileSync(filePath, header + rows, 'utf8');
@@ -88,7 +100,14 @@ const generateFullChatCSV = async (candidate, messages, jobTitle) => {
 
   const header = 'ung_vien,email,vi_tri,sender,content,time\n';
   const rows = messages.map(m =>
-    `"${candidate.name}","${candidate.email}","${jobTitle}","${m.sender}","${(m.content || '').replace(/"/g, '""')}","${m.created_at || ''}"`
+    [
+      escapeCSV(candidate.name),
+      escapeCSV(candidate.email),
+      escapeCSV(jobTitle),
+      escapeCSV(m.sender),
+      escapeCSV(m.content || ''),
+      escapeCSV(m.created_at || '')
+    ].join(',')
   ).join('\n');
 
   fs.writeFileSync(filePath, header + rows, 'utf8');
