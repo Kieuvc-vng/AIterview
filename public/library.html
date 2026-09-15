@@ -27,6 +27,205 @@
     .link-input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; }
     .btn-small { padding: 6px 12px; font-size: 12px; }
     .send-email-btn { background: #ff9800; color: white; margin-top: 5px; }
+
+    /* ===== Phase 3: Candidate card, badges, accordion, chat modal ===== */
+
+    /* Candidate card */
+    .candidate-card {
+      background: white;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .candidate-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .candidate-name {
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .badge {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-completed {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+    .badge-pending {
+      background: #fff3e0;
+      color: #e65100;
+    }
+    .candidate-meta {
+      color: #888;
+      font-size: 12px;
+      margin-bottom: 0.5rem;
+    }
+    .candidate-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+    .btn-copy { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+    .btn-remind { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+    .btn-remind:disabled { background: #f5f5f5; color: #999; border-color: #ddd; cursor: default; }
+    .btn-export { background: #f3e5f5; color: #7b1fa2; border: 1px solid #e1bee7; }
+    .btn-expand { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+
+    /* Accordion */
+    .summary-accordion {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .summary-accordion.open {
+      max-height: 2000px;
+    }
+    .summary-section {
+      padding: 0.75rem 0;
+      border-top: 1px solid #f0f0f0;
+    }
+    .skill-group-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: #1565c0;
+      margin: 0.75rem 0 0.25rem;
+    }
+    .question-item {
+      margin-bottom: 0.5rem;
+      padding-left: 0.5rem;
+    }
+    .question-text {
+      font-size: 12px;
+      font-weight: 500;
+      color: #333;
+    }
+    .answer-summary {
+      font-size: 12px;
+      color: #555;
+      margin-top: 2px;
+    }
+    .followup-summary {
+      font-size: 11px;
+      color: #888;
+      font-style: italic;
+      margin-top: 2px;
+    }
+    .summary-loading {
+      text-align: center;
+      padding: 1rem;
+      color: #999;
+      font-size: 13px;
+    }
+    .summary-empty {
+      text-align: center;
+      padding: 1rem;
+      color: #999;
+      font-size: 13px;
+    }
+
+    /* Export dropdown */
+    .export-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+    .export-menu {
+      display: none;
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 1100;
+      min-width: 140px;
+      margin-bottom: 4px;
+    }
+    .export-menu.show { display: block; }
+    .export-menu-item {
+      padding: 8px 14px;
+      font-size: 12px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .export-menu-item:hover { background: #f5f5f5; }
+
+    /* Full chat modal (modal-in-modal) */
+    .chat-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 1200;
+      justify-content: center;
+      align-items: center;
+    }
+    .chat-modal.active { display: flex; }
+    .chat-modal-content {
+      background: white;
+      border-radius: 10px;
+      max-width: 650px;
+      width: 95%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .chat-modal-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chat-modal-header h3 { margin: 0; font-size: 16px; }
+    .chat-modal-body {
+      padding: 1rem 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .chat-bubble {
+      max-width: 80%;
+      padding: 0.6rem 1rem;
+      border-radius: 12px;
+      margin-bottom: 0.5rem;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .chat-ai {
+      background: #f0f0f0;
+      color: #333;
+      align-self: flex-start;
+      margin-right: auto;
+    }
+    .chat-candidate {
+      background: #e3f2fd;
+      color: #0d47a1;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+    .chat-messages-container {
+      display: flex;
+      flex-direction: column;
+    }
+    .btn-close-chat {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: #666;
+      padding: 4px 8px;
+    }
   </style>
 </head>
 <body>
@@ -85,6 +284,19 @@
     </div>
   </div>
 
+  <!-- Full Chat Modal -->
+  <div id="chatModal" class="chat-modal">
+    <div class="chat-modal-content">
+      <div class="chat-modal-header">
+        <h3 id="chatModalTitle">Toàn Bộ Câu Trả Lời</h3>
+        <button class="btn-close-chat" onclick="closeChatModal()">&times;</button>
+      </div>
+      <div class="chat-modal-body">
+        <div id="chatMessagesContainer" class="chat-messages-container"></div>
+      </div>
+    </div>
+  </div>
+
   <script>
     let currentJobId = null;
     let currentCandidateData = null;
@@ -111,7 +323,7 @@
                 <p>${job.company} · ${JSON.parse(job.skills || '[]').length} skills</p>
               </div>
               <div class="actions">
-                <button class="btn-primary" onclick="openCandidatesModal('${job.id}')">Xem Ứng Viên</button>
+                <button class="btn-primary" onclick="showCandidatesModal('${job.id}', '${(job.job_title || '').replace(/'/g, "\\'")}')">Xem Ứng Viên</button>
                 <button class="btn-secondary" onclick="openSendModal('${job.id}')">Tạo Ứng Viên</button>
                 <button class="btn-secondary" onclick="openJobDetail('${job.id}')">Chỉnh Sửa</button>
               </div>
@@ -135,72 +347,254 @@
       currentCandidateData = null;
     }
 
-    function openCandidatesModal(jobId) {
-      currentJobId = jobId;
-      document.getElementById('candidatesModal').classList.add('active');
-      loadAndDisplayCandidates(jobId);
-    }
-
     function closeCandidatesModal() {
       document.getElementById('candidatesModal').classList.remove('active');
     }
 
-    function loadAndDisplayCandidates(jobId) {
+    // ===== Phase 3: Candidate Results =====
+
+    function showCandidatesModal(jobId, jobTitle) {
+      currentJobId = jobId;
+      const modal = document.getElementById('candidatesModal');
+      const container = document.getElementById('candidatesList');
+      container.innerHTML = '<div class="summary-loading">Đang tải danh sách ứng viên...</div>';
+      modal.classList.add('active');
+
       fetch(`/api/job-library/jobs/${jobId}`)
         .then(r => r.json())
         .then(data => {
-          const { candidates } = data;
-          const listDiv = document.getElementById('candidatesList');
-
-          if (!candidates || candidates.length === 0) {
-            listDiv.innerHTML = '<p style="text-align: center; color: #999;">Chưa có ứng viên nào</p>';
+          const candidates = data.candidates || [];
+          if (candidates.length === 0) {
+            container.innerHTML = '<div class="summary-empty">Chưa có ứng viên nào. Bấm "Tạo Ứng Viên" để thêm.</div>';
             return;
           }
-
-          listDiv.innerHTML = candidates.map(c => {
-            const link = c.interview_link ? `${window.location.origin}${c.interview_link}` : 'Chưa tạo link';
-            const linkHtml = c.interview_link ? `
-              <div style="display: flex; gap: 8px; margin-top: 8px;">
-                <input type="text" value="${link}" readonly style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
-                <button class="btn btn-primary btn-small copy-candidate-link" data-link="${link}">Copy</button>
-              </div>
-            ` : '<p style="color: #ff9800; font-size: 13px;">Link chưa được tạo</p>';
-
-            return `
-              <div style="padding: 12px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <div>
-                    <h4 style="margin: 0 0 4px 0;">${c.name}</h4>
-                    <p style="margin: 0; color: #666; font-size: 13px;">${c.email} • ${c.phone}</p>
-                    <p style="margin: 4px 0 0 0; color: #999; font-size: 12px;">Trạng thái: ${c.interview_status || 'Chờ'}</p>
-                  </div>
-                </div>
-                ${linkHtml}
-              </div>
-            `;
-          }).join('');
-
-          // Add copy button handlers
-          document.querySelectorAll('.copy-candidate-link').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-              const link = e.target.dataset.link;
-              navigator.clipboard.writeText(link).then(() => {
-                e.target.textContent = '✓ Đã Copy';
-                e.target.style.background = '#4caf50';
-                setTimeout(() => {
-                  e.target.textContent = 'Copy';
-                  e.target.style.background = '';
-                }, 2000);
-              }).catch(() => {
-                alert('Không thể copy link');
-              });
-            });
-          });
+          container.innerHTML = candidates.map(c => renderCandidateCard(c, jobId, jobTitle)).join('');
         })
-        .catch(err => {
-          document.getElementById('candidatesList').innerHTML = '<p style="color: red;">Lỗi: ' + err.message + '</p>';
+        .catch(() => {
+          container.innerHTML = '<div class="summary-empty">Lỗi tải danh sách. Vui lòng thử lại.</div>';
         });
     }
+
+    function renderCandidateCard(candidate, jobId, jobTitle) {
+      const isCompleted = candidate.interview_status === 'completed';
+      const badgeClass = isCompleted ? 'badge-completed' : 'badge-pending';
+      const badgeText = isCompleted ? 'Đã hoàn thành' : 'Chưa hoàn thành';
+      const timeAgo = getTimeAgo(candidate.created_at);
+
+      let actionsHtml = `<button class="btn btn-copy btn-small" onclick="copyTestLink('${candidate.id}', '${jobId}', this)">Copy link test</button>`;
+
+      if (!isCompleted) {
+        actionsHtml += `
+          <span class="candidate-meta">${timeAgo}</span>
+          <button class="btn btn-remind btn-small" onclick="remindCandidate('${candidate.id}', this)">Nhắc làm bài</button>
+        `;
+      } else {
+        actionsHtml += `
+          <button class="btn btn-expand btn-small" onclick="toggleSummary('${candidate.id}', '${jobId}')">Xem tóm tắt</button>
+          <button class="btn btn-primary btn-small" onclick="openFullChat('${candidate.id}', '${candidate.name}', '${jobTitle}')">Xem toàn bộ câu trả lời</button>
+          <div class="export-dropdown">
+            <button class="btn btn-export btn-small" onclick="toggleExportMenu('pdf-${candidate.id}')">Xuất PDF ▾</button>
+            <div id="pdf-${candidate.id}" class="export-menu">
+              <button class="export-menu-item" onclick="exportCandidate('${candidate.id}', 'pdf', 'summary')">Tóm tắt</button>
+              <button class="export-menu-item" onclick="exportCandidate('${candidate.id}', 'pdf', 'full')">Full chat</button>
+            </div>
+          </div>
+          <div class="export-dropdown">
+            <button class="btn btn-export btn-small" onclick="toggleExportMenu('csv-${candidate.id}')">Xuất CSV ▾</button>
+            <div id="csv-${candidate.id}" class="export-menu">
+              <button class="export-menu-item" onclick="exportCandidate('${candidate.id}', 'csv', 'summary')">Tóm tắt</button>
+              <button class="export-menu-item" onclick="exportCandidate('${candidate.id}', 'csv', 'full')">Full chat</button>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="candidate-card" id="card-${candidate.id}">
+          <div class="candidate-header">
+            <span class="candidate-name">${candidate.name}</span>
+            <span class="badge ${badgeClass}">${badgeText}</span>
+          </div>
+          <div class="candidate-actions">${actionsHtml}</div>
+          <div id="summary-${candidate.id}" class="summary-accordion"></div>
+        </div>
+      `;
+    }
+
+    function getTimeAgo(dateStr) {
+      if (!dateStr) return '';
+      const diff = Date.now() - new Date(dateStr).getTime();
+      const days = Math.floor(diff / 86400000);
+      if (days === 0) return 'Đã gửi hôm nay';
+      if (days === 1) return 'Đã gửi hôm qua';
+      return `Đã gửi ${days} ngày trước`;
+    }
+
+    function copyTestLink(candidateId, jobId, btn) {
+      const link = `${window.location.origin}/interview?job=${jobId}&candidate=${candidateId}`;
+      navigator.clipboard.writeText(link).then(() => {
+        const original = btn.textContent;
+        btn.textContent = 'Đã copy ✓';
+        btn.disabled = true;
+        setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 2000);
+      }).catch(() => {
+        const textArea = document.createElement('textarea');
+        textArea.value = link;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        const original = btn.textContent;
+        btn.textContent = 'Đã copy ✓';
+        btn.disabled = true;
+        setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 2000);
+      });
+    }
+
+    function remindCandidate(candidateId, btn) {
+      btn.textContent = 'Đang gửi...';
+      btn.disabled = true;
+
+      fetch(`/api/job-library/candidates/${candidateId}/remind`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+          btn.textContent = 'Đã gửi ✓';
+        })
+        .catch(() => {
+          btn.textContent = 'Lỗi, thử lại';
+          btn.disabled = false;
+        });
+    }
+
+    function toggleSummary(candidateId, jobId) {
+      const el = document.getElementById(`summary-${candidateId}`);
+      if (el.classList.contains('open')) {
+        el.classList.remove('open');
+        return;
+      }
+
+      if (el.dataset.loaded) {
+        el.classList.add('open');
+        return;
+      }
+
+      el.innerHTML = '<div class="summary-loading">Đang tải tóm tắt...</div>';
+      el.classList.add('open');
+
+      fetch(`/api/job-library/candidates/${candidateId}/results`)
+        .then(r => r.json())
+        .then(data => {
+          if (!data.summaries || data.summaries.length === 0) {
+            el.innerHTML = `<div class="summary-section"><div class="summary-empty">Chưa có tóm tắt. Đang xử lý, vui lòng thử lại sau.<br><button class="btn btn-small btn-secondary" onclick="retrySummary('${candidateId}', '${jobId}')">Thử lại</button></div></div>`;
+            return;
+          }
+          el.innerHTML = renderSummaries(data.summaries);
+          el.dataset.loaded = 'true';
+        })
+        .catch(() => {
+          el.innerHTML = '<div class="summary-section"><div class="summary-empty">Lỗi tải tóm tắt. Vui lòng thử lại.</div></div>';
+        });
+    }
+
+    function retrySummary(candidateId, jobId) {
+      const el = document.getElementById(`summary-${candidateId}`);
+      el.dataset.loaded = '';
+      toggleSummary(candidateId, jobId);
+    }
+
+    function renderSummaries(summaries) {
+      const grouped = {};
+      for (const s of summaries) {
+        if (!grouped[s.skill_name]) grouped[s.skill_name] = [];
+        grouped[s.skill_name].push(s);
+      }
+
+      let html = '<div class="summary-section">';
+      for (const [skill, items] of Object.entries(grouped)) {
+        html += `<div class="skill-group-title">${skill}</div>`;
+        for (const item of items) {
+          html += `<div class="question-item">`;
+          html += `<div class="question-text">Q: ${item.question_text}</div>`;
+          html += `<div class="answer-summary">${item.main_answer_summary}</div>`;
+          if (item.followup_summary) {
+            html += `<div class="followup-summary">Follow-up: ${item.followup_summary}</div>`;
+          }
+          html += `</div>`;
+        }
+      }
+      html += '</div>';
+      return html;
+    }
+
+    function openFullChat(candidateId, candidateName, jobTitle) {
+      const modal = document.getElementById('chatModal');
+      const title = document.getElementById('chatModalTitle');
+      const container = document.getElementById('chatMessagesContainer');
+
+      title.textContent = `${candidateName} — ${jobTitle}`;
+      container.innerHTML = '<div class="summary-loading">Đang tải...</div>';
+      modal.classList.add('active');
+
+      fetch(`/api/job-library/candidates/${candidateId}/results`)
+        .then(r => r.json())
+        .then(data => {
+          if (!data.messages || data.messages.length === 0) {
+            container.innerHTML = '<div class="summary-empty">Chưa có tin nhắn nào.</div>';
+            return;
+          }
+          container.innerHTML = data.messages.map(m =>
+            `<div class="chat-bubble ${m.sender === 'ai' ? 'chat-ai' : 'chat-candidate'}">${m.content}</div>`
+          ).join('');
+        })
+        .catch(() => {
+          container.innerHTML = '<div class="summary-empty">Lỗi tải dữ liệu.</div>';
+        });
+    }
+
+    function closeChatModal() {
+      document.getElementById('chatModal').classList.remove('active');
+    }
+
+    function toggleExportMenu(menuId) {
+      document.querySelectorAll('.export-menu').forEach(m => {
+        if (m.id !== menuId) m.classList.remove('show');
+      });
+      document.getElementById(menuId).classList.toggle('show');
+    }
+
+    function exportCandidate(candidateId, format, content) {
+      document.querySelectorAll('.export-menu').forEach(m => m.classList.remove('show'));
+
+      fetch(`/api/job-library/candidates/${candidateId}/export`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ format, content })
+      })
+        .then(response => {
+          if (!response.ok) throw new Error('Export failed');
+          return response.blob();
+        })
+        .then(blob => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `export_${candidateId}.${format}`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+        })
+        .catch(() => {
+          alert('Xuất file thất bại, vui lòng thử lại');
+        });
+    }
+
+    // Close export menus when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.export-dropdown')) {
+        document.querySelectorAll('.export-menu').forEach(m => m.classList.remove('show'));
+      }
+    });
 
     function generateLink() {
       const name = document.getElementById('candidateName').value;
