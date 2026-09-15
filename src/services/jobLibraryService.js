@@ -192,7 +192,7 @@ const jobLibraryService = {
       }
       if (db) {
         const candidates = await db.prepare(
-          'SELECT id, name, phone, email, interview_link, link_sent, interview_status FROM candidates WHERE job_id = ? ORDER BY created_at'
+          'SELECT id, name, phone, email, interview_link, link_sent, interview_status, created_at FROM candidates WHERE job_id = ? ORDER BY created_at'
         ).all(jobId);
         return candidates || [];
       } else {

@@ -301,6 +301,11 @@
     let currentJobId = null;
     let currentCandidateData = null;
 
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
     // Load jobs on page load
     document.addEventListener('DOMContentLoaded', loadJobs);
 
@@ -323,7 +328,7 @@
                 <p>${job.company} · ${JSON.parse(job.skills || '[]').length} skills</p>
               </div>
               <div class="actions">
-                <button class="btn-primary" onclick="showCandidatesModal('${job.id}', '${(job.job_title || '').replace(/'/g, "\\'")}')">Xem Ứng Viên</button>
+                <button class="btn-primary" onclick="showCandidatesModal('${job.id}', '${escapeHtml(job.job_title || '')}')">Xem Ứng Viên</button>
                 <button class="btn-secondary" onclick="openSendModal('${job.id}')">Tạo Ứng Viên</button>
                 <button class="btn-secondary" onclick="openJobDetail('${job.id}')">Chỉnh Sửa</button>
               </div>
@@ -385,13 +390,13 @@
 
       if (!isCompleted) {
         actionsHtml += `
-          <span class="candidate-meta">${timeAgo}</span>
+          <span class="candidate-meta">${escapeHtml(timeAgo)}</span>
           <button class="btn btn-remind btn-small" onclick="remindCandidate('${candidate.id}', this)">Nhắc làm bài</button>
         `;
       } else {
         actionsHtml += `
           <button class="btn btn-expand btn-small" onclick="toggleSummary('${candidate.id}', '${jobId}')">Xem tóm tắt</button>
-          <button class="btn btn-primary btn-small" onclick="openFullChat('${candidate.id}', '${candidate.name}', '${jobTitle}')">Xem toàn bộ câu trả lời</button>
+          <button class="btn btn-primary btn-small" onclick="openFullChat('${candidate.id}', '${escapeHtml(candidate.name)}', '${escapeHtml(jobTitle)}')">Xem toàn bộ câu trả lời</button>
           <div class="export-dropdown">
             <button class="btn btn-export btn-small" onclick="toggleExportMenu('pdf-${candidate.id}')">Xuất PDF ▾</button>
             <div id="pdf-${candidate.id}" class="export-menu">
@@ -412,8 +417,8 @@
       return `
         <div class="candidate-card" id="card-${candidate.id}">
           <div class="candidate-header">
-            <span class="candidate-name">${candidate.name}</span>
-            <span class="badge ${badgeClass}">${badgeText}</span>
+            <span class="candidate-name">${escapeHtml(candidate.name)}</span>
+            <span class="badge ${badgeClass}">${escapeHtml(badgeText)}</span>
           </div>
           <div class="candidate-actions">${actionsHtml}</div>
           <div id="summary-${candidate.id}" class="summary-accordion"></div>
@@ -511,13 +516,13 @@
 
       let html = '<div class="summary-section">';
       for (const [skill, items] of Object.entries(grouped)) {
-        html += `<div class="skill-group-title">${skill}</div>`;
+        html += `<div class="skill-group-title">${escapeHtml(skill)}</div>`;
         for (const item of items) {
           html += `<div class="question-item">`;
-          html += `<div class="question-text">Q: ${item.question_text}</div>`;
-          html += `<div class="answer-summary">${item.main_answer_summary}</div>`;
+          html += `<div class="question-text">Q: ${escapeHtml(item.question_text)}</div>`;
+          html += `<div class="answer-summary">${escapeHtml(item.main_answer_summary)}</div>`;
           if (item.followup_summary) {
-            html += `<div class="followup-summary">Follow-up: ${item.followup_summary}</div>`;
+            html += `<div class="followup-summary">Follow-up: ${escapeHtml(item.followup_summary)}</div>`;
           }
           html += `</div>`;
         }
@@ -543,7 +548,7 @@
             return;
           }
           container.innerHTML = data.messages.map(m =>
-            `<div class="chat-bubble ${m.sender === 'ai' ? 'chat-ai' : 'chat-candidate'}">${m.content}</div>`
+            `<div class="chat-bubble ${m.sender === 'ai' ? 'chat-ai' : 'chat-candidate'}">${escapeHtml(m.content)}</div>`
           ).join('');
         })
         .catch(() => {
