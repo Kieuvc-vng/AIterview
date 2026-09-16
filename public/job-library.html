@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thư Viện Job</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app"></div>
+
+  <script src="js/jobLibraryPage.js"></script>
+  <script>
+    // Initialize the job library page
+    document.addEventListener('DOMContentLoaded', () => {
+      const hrEmail = localStorage.getItem('hr_email') || 'default@company.com';
+      JobLibraryPage.init(hrEmail);
+    });
+  </script>
+</body>
+</html>

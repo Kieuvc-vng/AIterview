@@ -1,0 +1,86 @@
+<h2>3 Cách Build Job Library + Summarization</h2>
+<p class="subtitle">Chọn approach nào? Mỗi cách có trade-off khác nhau</p>
+
+<div class="options">
+  <div class="option" data-choice="minimal" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Minimal Change</h3>
+      <p><strong>Thêm tính năng, giữ structure cũ</strong></p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>✓ Nhanh</h4>
+          <ul>
+            <li>Reuse code hiện tại</li>
+            <li>Ít thay đổi DB schema</li>
+            <li>Build 2-3 ngày</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>✗ Hạn chế</h4>
+          <ul>
+            <li>Code sẽ complexity tăng</li>
+            <li>Khó scale sau này</li>
+            <li>Job library được "add-on" vào system</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="refactor" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Refactor Database</h3>
+      <p><strong>Thiết kế lại DB cho job + candidates + summaries</strong></p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>✓ Sạch</h4>
+          <ul>
+            <li>Schema rõ ràng, dễ query</li>
+            <li>Performance tốt</li>
+            <li>Scale dễ dàng sau</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>✗ Lâu hơn</h4>
+          <ul>
+            <li>Cần di migrate data</li>
+            <li>Update nhiều API routes</li>
+            <li>Build 4-5 ngày</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="modular" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Modular Services</h3>
+      <p><strong>Tách thành modules: Job Service + Candidate Service + Summary Service</strong></p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>✓ Dễ bảo trì</h4>
+          <ul>
+            <li>Mỗi service độc lập</li>
+            <li>Test riêng lẻ dễ</li>
+            <li>Reuse modules sau</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>✗ Phức tạp nhất</h4>
+          <ul>
+            <li>Setup phức tạp</li>
+            <li>Cần define interface tốt</li>
+            <li>Build 5-7 ngày</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 2rem; padding: 1rem; background: #f5f5f5; border-radius: 4px;">
+  <p style="margin: 0;"><strong>Khuyến nghị:</strong> Approach <strong>B (Refactor Database)</strong> — cân bằng giữa tốc độ và chất lượng. Schema rõ ràng sẽ giúp bạn dễ thêm tính năng sau này (chẳng hạn integrate với ATS).</p>
+</div>

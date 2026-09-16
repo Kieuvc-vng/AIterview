@@ -10,6 +10,8 @@
 const SetupPage = {
   currentStep: 1,
   totalSteps: 5,
+  isEditMode: false,
+  editJobId: null,
   formData: {
     jd_text: '',
     job_title: '',
@@ -21,12 +23,65 @@ const SetupPage = {
   },
 
   /**
+   * Initialize - check for edit mode and load data if needed
+   */
+  async init(container) {
+    // Check URL for edit parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const editJobId = urlParams.get('edit');
+
+    // Get HR email from localStorage (use consistently across jobs)
+    const savedHrEmail = localStorage.getItem('hr_email');
+    if (savedHrEmail) {
+      this.formData.hr_email = savedHrEmail;
+    }
+
+    if (editJobId) {
+      this.isEditMode = true;
+      this.editJobId = editJobId;
+      await this.loadJobForEdit();
+      // Start from Step 1 (JD) in edit mode to review entire flow
+      this.currentStep = 1;
+    }
+
+    this.render(container);
+  },
+
+  /**
+   * Load job data for editing
+   */
+  async loadJobForEdit() {
+    try {
+      const response = await fetch(`/api/job-library/jobs/${this.editJobId}`);
+      if (!response.ok) throw new Error('Failed to load job');
+
+      const { job } = await response.json();
+
+      // Pre-fill form data
+      this.formData.jd_text = job.jd_text || '';
+      this.formData.job_title = job.job_title || '';
+      this.formData.level = job.level || '';
+      this.formData.company = job.company || '';
+      this.formData.hr_email = job.hr_email || localStorage.getItem('hr_email') || '';
+      this.formData.skills = Array.isArray(job.skills) ? job.skills : JSON.parse(job.skills || '[]');
+      this.formData.questions_by_skill = typeof job.questions_by_skill === 'string'
+        ? JSON.parse(job.questions_by_skill || '{}')
+        : job.questions_by_skill;
+    } catch (error) {
+      console.error('Error loading job:', error);
+      App.showError('Lỗi khi load job data');
+    }
+  },
+
+  /**
    * Render the setup page
    */
   render(container, data = {}) {
     // Merge any passed data
     this.formData = { ...this.formData, ...data };
-    this.currentStep = data.currentStep || 1;
+    if (data.currentStep !== undefined) {
+      this.currentStep = data.currentStep;
+    }
 
     const html = this.getPageHTML();
     container.innerHTML = html;
@@ -89,6 +144,7 @@ const SetupPage = {
       case 1:
         return this.getStep1HTML();
       case 2:
+        console.log('[DEBUG] Returning Step2HTML');
         return this.getStep2HTML();
       case 3:
         return this.getStep3HTML();
@@ -105,6 +161,10 @@ const SetupPage = {
    * Step 1: Input JD
    */
   getStep1HTML() {
+    const savedHrEmail = localStorage.getItem('hr_email');
+    const emailFieldDisabled = savedHrEmail ? 'disabled' : '';
+    const emailNote = savedHrEmail ? '<p style="color: #666; font-size: 13px; margin-top: 4px;">This email was saved from your previous job creation.</p>' : '';
+
     return `
       <div class="form-group">
         <h2>Step 1: Paste Job Description</h2>
@@ -115,7 +175,8 @@ const SetupPage = {
 
       <div class="form-group">
         <label for="hr_email">Your Email *</label>
-        <input type="email" id="hr_email" placeholder="your@email.com" value="${this.formData.hr_email}" required>
+        <input type="email" id="hr_email" placeholder="your@email.com" value="${this.formData.hr_email}" required ${emailFieldDisabled}>
+        ${emailNote}
       </div>
 
       <div class="button-group">
@@ -142,9 +203,12 @@ const SetupPage = {
         <label for="level">Level *</label>
         <select id="level" required>
           <option value="">-- Select Level --</option>
+          <option value="Fresher" ${this.formData.level === 'Fresher' ? 'selected' : ''}>Fresher</option>
           <option value="Junior" ${this.formData.level === 'Junior' ? 'selected' : ''}>Junior</option>
           <option value="Mid" ${this.formData.level === 'Mid' ? 'selected' : ''}>Mid</option>
           <option value="Senior" ${this.formData.level === 'Senior' ? 'selected' : ''}>Senior</option>
+          <option value="Lead" ${this.formData.level === 'Lead' ? 'selected' : ''}>Lead</option>
+          <option value="Manager" ${this.formData.level === 'Manager' ? 'selected' : ''}>Manager</option>
         </select>
 
         <label for="company">Company *</label>
@@ -204,6 +268,18 @@ const SetupPage = {
    * Step 4: AI suggests questions (edit interface)
    */
   getStep4HTML() {
+    if (!this.formData.questions_by_skill || Object.keys(this.formData.questions_by_skill).length === 0) {
+      return `
+        <div class="form-group">
+          <h2>Step 4: Review & Edit Questions</h2>
+          <p>No questions were generated. Please go back and try again.</p>
+        </div>
+        <div class="button-group">
+          <button type="button" class="btn-secondary" id="btn-step4-back">Back</button>
+        </div>
+      `;
+    }
+
     const questionsHTML = Object.entries(this.formData.questions_by_skill).map(([skill, questions]) => {
       const questionsListHTML = questions.map((q, i) => `
         <div class="form-group" style="margin-bottom: 12px;">
@@ -281,7 +357,7 @@ const SetupPage = {
         <button type="button" class="btn-secondary" id="btn-step5-back">Back</button>
         <button type="button" class="btn-primary" id="btn-step5-create" disabled>
           <span id="step5-spinner" style="display:none;" class="spinner"></span>
-          <span id="step5-text">Create Session</span>
+          <span id="step5-text">${this.isEditMode ? 'Update Job' : 'Create Session'}</span>
         </button>
       </div>
     `;
@@ -319,15 +395,23 @@ const SetupPage = {
     const nextBtn = document.getElementById('btn-step1-next');
 
     const updateButton = () => {
-      nextBtn.disabled = !jdInput.value.trim() || !emailInput.value.trim();
+      // Email must be filled (either from input or from formData)
+      const emailValue = emailInput.value.trim() || this.formData.hr_email;
+      nextBtn.disabled = !jdInput.value.trim() || !emailValue;
     };
 
     jdInput.addEventListener('input', updateButton);
-    emailInput.addEventListener('input', updateButton);
+    if (!emailInput.disabled) {
+      emailInput.addEventListener('input', updateButton);
+    }
 
     nextBtn.addEventListener('click', async () => {
       this.formData.jd_text = jdInput.value.trim();
-      this.formData.hr_email = emailInput.value.trim();
+      // Use email from input only if it's not disabled, otherwise use saved value
+      if (!emailInput.disabled) {
+        this.formData.hr_email = emailInput.value.trim();
+      }
+      // If email field is disabled and empty, email should already be in formData from init()
 
       await this.parseJD();
     });
@@ -463,6 +547,8 @@ const SetupPage = {
 
   /**
    * API Call: Parse JD
+   * In edit mode: skip AI detection, load data from database
+   * In normal mode: call API to detect job details
    */
   async parseJD() {
     const spinner = document.getElementById('step1-spinner');
@@ -473,24 +559,35 @@ const SetupPage = {
     nextBtn.disabled = true;
 
     try {
-      const response = await fetch('/api/setup/parse-jd', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jd_text: this.formData.jd_text })
-      });
+      if (this.isEditMode) {
+        // Edit mode: skip AI detection, just move to step 2 with existing data
+        console.log('[DEBUG] Edit mode detected, skipping AI detection');
+      } else {
+        // Normal mode: call AI to parse job description
+        const response = await fetch('/api/setup/parse-jd', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jd_text: this.formData.jd_text })
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to parse job description');
+        if (!response.ok) {
+          throw new Error('Failed to parse job description');
+        }
+
+        const data = await response.json();
+        console.log('[DEBUG] parseJD response:', data);
+        this.formData.job_title = data.job_title;
+        this.formData.level = data.level;
+        this.formData.company = data.company;
       }
 
-      const data = await response.json();
-      this.formData.job_title = data.job_title;
-      this.formData.level = data.level;
-      this.formData.company = data.company;
-
+      console.log('[DEBUG] Setting currentStep to 2, was:', this.currentStep);
       this.currentStep = 2;
+      console.log('[DEBUG] After setting, currentStep is:', this.currentStep);
       this.render(document.getElementById('app'));
+      console.log('[DEBUG] After render, currentStep is:', this.currentStep);
     } catch (error) {
+      console.error('[DEBUG] parseJD error:', error);
       App.showError(error.message);
       nextBtn.disabled = false;
       spinner.style.display = 'none';
@@ -499,6 +596,8 @@ const SetupPage = {
 
   /**
    * API Call: Suggest Skills
+   * In edit mode: skip API detection, keep existing skills
+   * In normal mode: call API to suggest skills
    */
   async suggestSkills() {
     const spinner = document.getElementById('step2-spinner');
@@ -509,22 +608,26 @@ const SetupPage = {
     nextBtn.disabled = true;
 
     try {
-      const response = await fetch('/api/setup/suggest-skills', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jd_text: this.formData.jd_text,
-          job_title: this.formData.job_title,
-          level: this.formData.level
-        })
-      });
+      if (!this.isEditMode) {
+        // Normal mode: call API to suggest skills
+        const response = await fetch('/api/setup/suggest-skills', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jd_text: this.formData.jd_text,
+            job_title: this.formData.job_title,
+            level: this.formData.level
+          })
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to suggest skills');
+        if (!response.ok) {
+          throw new Error('Failed to suggest skills');
+        }
+
+        const data = await response.json();
+        this.formData.skills = data.skills;
       }
-
-      const data = await response.json();
-      this.formData.skills = data.skills;
+      // Edit mode: skip API, keep existing skills from database
 
       this.currentStep = 3;
       this.render(document.getElementById('app'));
@@ -537,6 +640,8 @@ const SetupPage = {
 
   /**
    * API Call: Suggest Questions
+   * In edit mode: skip API detection, keep existing questions
+   * In normal mode: call API to suggest questions
    */
   async suggestQuestions() {
     const spinner = document.getElementById('step3-spinner');
@@ -546,23 +651,27 @@ const SetupPage = {
     nextBtn.disabled = true;
 
     try {
-      const response = await fetch('/api/setup/suggest-questions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jd_text: this.formData.jd_text,
-          skills: this.formData.skills,
-          job_title: this.formData.job_title,
-          level: this.formData.level
-        })
-      });
+      if (!this.isEditMode) {
+        // Normal mode: call API to suggest questions
+        const response = await fetch('/api/setup/suggest-questions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jd_text: this.formData.jd_text,
+            skills: this.formData.skills,
+            job_title: this.formData.job_title,
+            level: this.formData.level
+          })
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate questions');
+        if (!response.ok) {
+          throw new Error('Failed to generate questions');
+        }
+
+        const data = await response.json();
+        this.formData.questions_by_skill = data.questions_by_skill;
       }
-
-      const data = await response.json();
-      this.formData.questions_by_skill = data.questions_by_skill;
+      // Edit mode: skip API, keep existing questions from database
 
       this.currentStep = 4;
       this.render(document.getElementById('app'));
@@ -574,7 +683,7 @@ const SetupPage = {
   },
 
   /**
-   * API Call: Create Session
+   * API Call: Create Session or Update Job
    */
   async createSession() {
     const spinner = document.getElementById('step5-spinner');
@@ -584,32 +693,76 @@ const SetupPage = {
     createBtn.disabled = true;
 
     try {
-      const response = await fetch('/api/setup/create-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          hr_email: this.formData.hr_email,
-          job_title: this.formData.job_title,
-          level: this.formData.level,
-          company: this.formData.company,
-          skills: this.formData.skills,
-          questions_by_skill: this.formData.questions_by_skill
-        })
-      });
+      let response;
 
-      if (!response.ok) {
-        throw new Error('Failed to create session');
+      if (this.isEditMode) {
+        // Update existing job
+        response = await fetch(`/api/job-library/jobs/${this.editJobId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            job_title: this.formData.job_title,
+            level: this.formData.level,
+            company: this.formData.company,
+            skills: this.formData.skills,
+            questions_by_skill: this.formData.questions_by_skill,
+            jd_text: this.formData.jd_text
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update job');
+        }
+
+        App.showSuccess('Job updated successfully! Redirecting...');
+        setTimeout(() => {
+          window.location.href = '/library.html';
+        }, 1500);
+      } else {
+        // Create new job
+        response = await fetch('/api/setup/create-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            hr_email: this.formData.hr_email,
+            job_title: this.formData.job_title,
+            level: this.formData.level,
+            company: this.formData.company,
+            skills: this.formData.skills,
+            questions_by_skill: this.formData.questions_by_skill
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create session');
+        }
+
+        const data = await response.json();
+        const { session_id, redirect } = data;
+
+        // Save SESSION_ID to localStorage for resume capability
+        localStorage.setItem('current_interview_session', session_id);
+
+        // Check if backend wants to redirect to job library
+        if (redirect === '/job-library') {
+          // Store HR email in localStorage if available
+          if (this.formData.hr_email) {
+            localStorage.setItem('hr_email', this.formData.hr_email);
+          }
+          // Show success and redirect to job library
+          App.showSuccess('Job created successfully! Redirecting to library...');
+          setTimeout(() => {
+            window.location.href = '/library.html';
+          }, 1500);
+        } else {
+          // Fallback for backward compatibility - redirect to interview
+          App.showSuccess('Interview session created successfully!');
+          setTimeout(() => {
+            // Navigate to interview page with session ID
+            App.goToPage('interview', { sessionId: session_id });
+          }, 1500);
+        }
       }
-
-      const data = await response.json();
-      const { session_id, interview_link } = data;
-
-      // Show success and redirect
-      App.showSuccess('Interview session created successfully!');
-      setTimeout(() => {
-        // Redirect to interview page (will implement later)
-        window.location.href = interview_link;
-      }, 2000);
     } catch (error) {
       App.showError(error.message);
       createBtn.disabled = false;

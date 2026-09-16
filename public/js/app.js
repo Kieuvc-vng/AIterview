@@ -24,13 +24,33 @@ const App = {
 
     switch (pageName) {
       case 'setup':
-        SetupPage.render(this.appElement, data);
+        SetupPage.init(this.appElement);
         break;
       case 'interview':
-        InterviewPage.render(this.appElement, data);
+        if (data.sessionId) {
+          InterviewPage.init(data.sessionId);
+        } else {
+          InterviewPage.render(this.appElement, data);
+        }
         break;
       case 'review':
-        ReviewPage.render(this.appElement, data);
+        if (data.sessionId) {
+          ReviewPage.init(data.sessionId);
+        } else {
+          ReviewPage.render(this.appElement, data);
+        }
+        break;
+      case 'job-library':
+        const hrEmail = data.hrEmail || localStorage.getItem('hr_email') || 'default@company.com';
+        JobLibraryPage.init(hrEmail);
+        break;
+      case 'job-detail':
+        if (data.jobId) {
+          JobDetailPage.init(data.jobId);
+        } else {
+          console.error('Missing job_id');
+          this.goToPage('job-library', { hrEmail: data.hrEmail || localStorage.getItem('hr_email') });
+        }
         break;
       default:
         console.error(`Unknown page: ${pageName}`);

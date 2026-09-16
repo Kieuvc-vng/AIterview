@@ -1,0 +1,95 @@
+<h2>API Flow — 3 Phase chính</h2>
+<p class="subtitle">Setup → Interview → Review</p>
+
+<div style="margin-bottom: 2rem;">
+  <h3 style="color: #0066cc;">Phase 1️⃣: SETUP (Tạo Job Library)</h3>
+  <div style="background: #f5f5f5; padding: 1rem; border-radius: 4px; border-left: 4px solid #0066cc;">
+    <p><strong>Luồng:</strong></p>
+    <ol style="margin: 0.5rem 0;">
+      <li>HR upload JD → API parse job info (job_title, level, company)</li>
+      <li>API suggest skills → HR chọn</li>
+      <li>API generate questions per skill → HR review/edit</li>
+      <li>HR click "Save to Library" → tạo JOBS record</li>
+      <li>✅ Job template được lưu, reusable cho nhiều ứng viên</li>
+    </ol>
+    <p><strong>Endpoints:</strong></p>
+    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+      <li><code>POST /setup/parse-jd</code> → extract job info</li>
+      <li><code>POST /setup/suggest-skills</code> → suggest từ JD</li>
+      <li><code>POST /setup/generate-questions</code> → generate từ skills</li>
+      <li><code>POST /jobs</code> ← <strong style="color: #d32f2f;">NEW</strong> → save job to library</li>
+    </ul>
+  </div>
+</div>
+
+<div style="margin-bottom: 2rem;">
+  <h3 style="color: #0066cc;">Phase 2️⃣: SEND TO CANDIDATE (Tạo Link Phỏng Vấn)</h3>
+  <div style="background: #f5f5f5; padding: 1rem; border-radius: 4px; border-left: 4px solid #0066cc;">
+    <p><strong>Luồng:</strong></p>
+    <ol style="margin: 0.5rem 0;">
+      <li>HR click job từ library</li>
+      <li>Form xuất hiện: nhập Tên, Email, Phone ứng viên</li>
+      <li>HR click "Generate Link" → tạo CANDIDATE + INTERVIEW record</li>
+      <li>✅ Unique link được tạo (browser token, 1 device)</li>
+      <li>HR send link → ứng viên click → phỏng vấn start</li>
+    </ol>
+    <p><strong>Endpoints:</strong></p>
+    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+      <li><code>GET /jobs</code> ← <strong style="color: #d32f2f;">NEW</strong> → list jobs từ library</li>
+      <li><code>GET /jobs/:job_id</code> ← <strong style="color: #d32f2f;">NEW</strong> → xem detail job</li>
+      <li><code>POST /candidates</code> ← <strong style="color: #d32f2f;">NEW</strong> → tạo candidate</li>
+      <li><code>POST /interviews</code> ← <strong style="color: #d32f2f;">NEW</strong> → tạo interview session</li>
+    </ul>
+  </div>
+</div>
+
+<div style="margin-bottom: 2rem;">
+  <h3 style="color: #0066cc;">Phase 3️⃣: INTERVIEW (Phỏng Vấn)</h3>
+  <div style="background: #f5f5f5; padding: 1rem; border-radius: 4px; border-left: 4px solid #0066cc;">
+    <p><strong>Luồng:</strong></p>
+    <ol style="margin: 0.5rem 0;">
+      <li>Ứng viên trả lời Q1 → API evaluate (AI: good or not)</li>
+      <li>Nếu cần → AI hỏi follow-up → ứng viên trả lời</li>
+      <li>Sau mỗi câu → <strong style="color: #d32f2f;">AI TÓM TẮT (NEW)</strong> → lưu vào SUMMARIES</li>
+      <li>Loop cho hết questions</li>
+      <li>Interview end → ứng viên chuyển qua review page</li>
+    </ol>
+    <p><strong>Endpoints:</strong></p>
+    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+      <li><code>GET /interviews/:interview_id</code> → xem session</li>
+      <li><code>POST /interviews/:interview_id/start</code> → start interview</li>
+      <li><code>POST /interviews/:interview_id/message</code> → gửi tin nhắn</li>
+      <li><code>POST /summaries</code> ← <strong style="color: #d32f2f;">NEW</strong> → lưu tóm tắt</li>
+    </ul>
+  </div>
+</div>
+
+<div style="margin-bottom: 2rem;">
+  <h3 style="color: #0066cc;">Phase 4️⃣: REVIEW (Xem Kết Quả)</h3>
+  <div style="background: #f5f5f5; padding: 1rem; border-radius: 4px; border-left: 4px solid #0066cc;">
+    <p><strong>Luồng:</strong></p>
+    <ol style="margin: 0.5rem 0;">
+      <li>HR xem job → list candidates từ library</li>
+      <li>HR click 1 candidate → thấy tóm tắt (layout: hybrid)</li>
+      <li>Mặc định xem tóm tắt, click "expand" xem full chat</li>
+      <li>HR export PDF/CSV</li>
+    </ol>
+    <p><strong>Endpoints:</strong></p>
+    <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+      <li><code>GET /jobs/:job_id/candidates</code> ← <strong style="color: #d32f2f;">NEW</strong> → list candidates per job</li>
+      <li><code>GET /summaries/:interview_id</code> ← <strong style="color: #d32f2f;">NEW</strong> → xem tóm tắt</li>
+      <li><code>POST /export/pdf</code> → export (cần update)</li>
+      <li><code>POST /export/csv</code> → export (cần update)</li>
+    </ul>
+  </div>
+</div>
+
+<div style="margin-top: 2rem; padding: 1rem; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ff9800;">
+  <p style="margin: 0;"><strong>⚠️ Thay đổi chính:</strong></p>
+  <ul style="margin: 4px 0; padding-left: 1.5rem;">
+    <li>❌ LOẠI: rubricGenerator (không chấm điểm nữa)</li>
+    <li>✅ THÊM: summaryGenerator (tóm tắt câu trả lời)</li>
+    <li>✅ THÊM: jobLibrary APIs (CRUD jobs)</li>
+    <li>✅ THÊM: candidateManagement APIs (CRUD candidates)</li>
+  </ul>
+</div>

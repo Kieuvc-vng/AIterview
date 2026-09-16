@@ -11,6 +11,14 @@ const ReviewPage = {
   rubricSummary: null,
 
   /**
+   * Initialize review page with session ID
+   */
+  init(sessionId) {
+    this.sessionId = sessionId;
+    this.render(document.getElementById('app'));
+  },
+
+  /**
    * Render the review page
    */
   render(container, data = {}) {
@@ -180,9 +188,9 @@ const ReviewPage = {
         <tbody>
           ${this.rubric.map(item => `
             <tr>
-              <td><strong>${this.escapeHtml(item.skill)}</strong></td>
-              <td class="score-cell">${item.score}</td>
-              <td class="evidence-cell">${this.escapeHtml(item.evidence)}</td>
+              <td><strong>${this.escapeHtml(item.skill_name || item.skill || 'N/A')}</strong></td>
+              <td class="score-cell">${item.score || '—'}</td>
+              <td class="evidence-cell">${Array.isArray(item.evidence) ? item.evidence.join('; ') : this.escapeHtml(item.evidence || '—')}</td>
             </tr>
           `).join('')}
         </tbody>
