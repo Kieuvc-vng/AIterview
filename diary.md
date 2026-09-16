@@ -254,7 +254,7 @@ _Các entry thật bắt đầu từ đây._
 **Bước:** 3 — Spec → Build → Test
 **Chưa hiểu:** không có gì
 
-## 17/09 — Kiểu + Tiến
+## 17/09 — Kiểu + Tiến (Morning)
 
 **Nhờ làm:**
 1. Khi mở app lần đầu, hiển thị Thư Viện Job thay vì trang Setup
@@ -268,4 +268,24 @@ _Các entry thật bắt đầu từ đây._
 - Commit: 3c4ac3f
 
 **Bước:** 3 — Spec → Build → Test
+**Chưa hiểu:** không có gì
+
+## 17/09 — Kiểu + Tiến (Afternoon - Bug Fix)
+
+**Nhờ làm:** Sửa bug — khi tạo job mới với email khác, tất cả job cũ biến mất khỏi library
+
+**Claude làm:**
+- Tìm root cause: App lưu `hr_email` vào localStorage mỗi lần tạo job. Library filter jobs bằng email này. Nếu user nhập email khác → localStorage update → library chỉ show jobs của email mới, jobs cũ ẩn.
+- Fix: Khi mở form tạo job:
+  1. Check localStorage có `hr_email` không
+  2. Nếu có → pre-fill email field + disable nó
+  3. Thêm dòng chữ "Email này được lưu từ lần tạo job trước"
+  4. Submit form: dùng email từ localStorage thay vì user input
+- Test: 
+  1. Tạo job 1 với email "test@test.com" → lưu vào localStorage ✓
+  2. Tạo job 2 với email field disabled, tự dùng "test@test.com" ✓
+  3. Library hiện cả 2 jobs (trước fix chỉ hiện job 2) ✓
+- Commit: 30da5c2
+
+**Bước:** 5 — Test
 **Chưa hiểu:** không có gì
