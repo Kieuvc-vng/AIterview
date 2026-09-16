@@ -227,6 +227,7 @@ _Các entry thật bắt đầu từ đây._
 **Nhờ làm:** 
 1. Fix bug edit job — dữ liệu Step 3-4 bị xóa, AI detect lại từ đầu
 2. Fix bug suggest-skills — luôn suggest 2 skill cứng ("Technical Skills" + "Communication")
+3. Thêm delete button ở Job Library
 
 **Claude làm:**
 
@@ -239,9 +240,16 @@ _Các entry thật bắt đầu từ đây._
 
 **Phần 2 - Hardcoded skills fix:**
 - Tìm bug: qwenClient.js mock response return hardcoded skills, không extract từ JD
-- Fix: thay hardcode bằng keyword matching — search 25+ skill keywords (Python, React, AWS, Leadership, etc.) trong JD
-- Test: JD "Python Developer + React + AWS" → suggest Python, JavaScript, React, SQL, Database Design ✓ (không cứng nữa!)
+- Fix: thay hardcode bằng keyword matching — search 25+ skill keywords trong JD
+- Test: JD "Python + React + AWS" → suggest Python, JavaScript, React, SQL, Database ✓
 - Commit: 7d9b6db
+
+**Phần 3 - Delete job button:**
+- Spec: 4 buttons trên job card (Xem Ứng Viên, Tạo Ứng Viên, Chỉnh Sửa, Xóa)
+- Fix deleteJob service: delete candidates trước, rồi delete job (cascade)
+- Thêm delete button + confirmation modal + handlers ở library.html
+- Test: click delete → confirm modal → cancel works ✓, confirm delete → API call ✓, job removed ✓
+- Commit: f1bf006, fc02fc2
 
 **Bước:** 3 — Spec → Build → Test
 **Chưa hiểu:** không có gì
