@@ -165,7 +165,7 @@ const jobLibraryService = {
     }
   },
 
-  // Delete job
+  // Delete job and all associated candidates
   async deleteJob(jobId) {
     try {
       let db = null;
@@ -173,10 +173,17 @@ const jobLibraryService = {
         db = await dbModule.getDb();
       }
       if (!db) throw new Error('Database not available');
+
+      // First delete all candidates for this job
+      await db.prepare('DELETE FROM candidates WHERE job_id = ?').run(jobId);
+
+      // Then delete the job itself
       const result = await db.prepare('DELETE FROM jobs WHERE id = ?').run(jobId);
       if (!result || result.changes === 0) {
         throw new Error(`Job ${jobId} not found`);
       }
+
+      console.log(`[jobLibraryService] Job ${jobId} and associated candidates deleted`);
       return true;
     } catch (error) {
       throw new Error(`Failed to delete job: ${error.message}`);
