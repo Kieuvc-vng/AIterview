@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interview | AIterview</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="app" class="app-container">
+    <!-- Interview page will be rendered here -->
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/setupPage.js"></script>
+  <script src="/js/interviewPage.js"></script>
+  <script src="/js/reviewPage.js"></script>
+  <script>
+    // Parse URL parameters for candidate interview
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const jobId = params.get('job');
+      const candidateId = params.get('candidate');
+
+      if (jobId && candidateId) {
+        // Create a session ID from job and candidate
+        // Format: interview_<jobId>_<candidateId>
+        const sessionId = `interview_${jobId}_${candidateId}`;
+
+        // Store session info in localStorage for reference
+        localStorage.setItem('current_job_id', jobId);
+        localStorage.setItem('current_candidate_id', candidateId);
+        localStorage.setItem('current_interview_session', sessionId);
+
+        // Initialize interview page with session ID
+        App.goToPage('interview', { sessionId });
+      } else {
+        // Missing parameters
+        App.appElement.innerHTML = '<div class="message message-error"><span>⚠️</span> Invalid interview link. Missing job or candidate information.</div>';
+      }
+    });
+  </script>
+</body>
+</html>

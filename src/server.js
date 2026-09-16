@@ -2,6 +2,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const path = require('path');
 
 // Initialize database and start server
 async function startServer() {
@@ -27,6 +28,11 @@ async function startServer() {
   // Redirect root to library BEFORE static middleware
   app.get('/', (req, res) => {
     res.redirect('/library.html');
+  });
+
+  // Serve interview.html for /interview route
+  app.get('/interview', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/interview.html'));
   });
 
   // Static files after redirect (don't serve index.html as default for /)
