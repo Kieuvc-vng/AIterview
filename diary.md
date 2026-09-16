@@ -221,3 +221,21 @@ _Các entry thật bắt đầu từ đây._
 **Bước:** 3 — Spec → Build (+ Test)
 **Chưa hiểu:** không có gì
 **Chưa hiểu:** không có gì
+
+## 16/09 — Kiểu + Tiến
+
+**Nhờ làm:** Fix bug edit job — dữ liệu Step 3-4 bị xóa, AI detect lại từ đầu
+
+**Claude làm:**
+- Brainstorm + Spec: chốt yêu cầu — data phải giữ nguyên, không re-detect
+- Tìm bug ở `setupPage.js`:
+  * `parseJD()` gọi `/api/setup/parse-jd` ngay cả khi edit mode → xóa data từ DB
+  * `suggestSkills()` gọi API suggest-skills → overwrite existing skills
+  * `suggestQuestions()` gọi API suggest-questions → overwrite existing questions
+- Fix 3 methods: check `if (this.isEditMode)` skip API call, keep existing data
+- Test full flow: edit job → Step 1-5 all data preserved (JD, company, level, skills, questions) ✓
+- Button "Update Job" works, redirect to library ✓
+- Commit 2 fixes: parseJD + suggestSkills/suggestQuestions (feabb69, 1ebef4a)
+
+**Bước:** 3 — Spec → Build
+**Chưa hiểu:** không có gì
