@@ -61,10 +61,75 @@ const getMockResponse = (systemPrompt, messages) => {
       company
     });
   }
-  if (systemLower.includes('extract key skills') || systemLower.includes('key skills')) {
-    return JSON.stringify({
-      skills: ['Python', 'SQL', 'Data Pipelines', 'Apache Spark', 'System Design']
+  if (systemLower.includes('suggest') && systemLower.includes('skill')) {
+    // Extract skills from JD content by looking for keywords
+    const jdLower = lastMessage.toLowerCase();
+
+    // Define skill keywords to search for
+    const skillKeywords = {
+      // Technical
+      'python': 'Python',
+      'javascript': 'JavaScript',
+      'react': 'React',
+      'sql': 'SQL',
+      'database': 'Database Design',
+      'data pipelines': 'Data Pipelines',
+      'apache spark': 'Apache Spark',
+      'aws': 'AWS',
+      'cloud': 'Cloud Architecture',
+      'docker': 'Docker',
+      'kubernetes': 'Kubernetes',
+      'git': 'Git',
+      'devops': 'DevOps',
+      'system design': 'System Design',
+      'api': 'API Design',
+      'rest': 'REST APIs',
+      'graphql': 'GraphQL',
+      'machine learning': 'Machine Learning',
+      'data analysis': 'Data Analysis',
+      'analytics': 'Analytics',
+
+      // Soft skills
+      'leadership': 'Leadership',
+      'team management': 'Team Management',
+      'communication': 'Communication',
+      'problem solving': 'Problem Solving',
+      'critical thinking': 'Critical Thinking',
+      'project management': 'Project Management',
+      'agile': 'Agile',
+      'scrum': 'Scrum',
+      'stakeholder management': 'Stakeholder Management',
+      'negotiation': 'Negotiation',
+
+      // Domain
+      'marketing': 'Marketing',
+      'sales': 'Sales',
+      'product management': 'Product Management',
+      'ux': 'UX Design',
+      'ui': 'UI Design',
+      'brand': 'Brand Strategy',
+      'seo': 'SEO',
+      'content': 'Content Strategy'
+    };
+
+    const foundSkills = new Set();
+
+    // Search for matching keywords
+    Object.entries(skillKeywords).forEach(([keyword, skillName]) => {
+      if (jdLower.includes(keyword)) {
+        foundSkills.add(skillName);
+      }
     });
+
+    // If found skills, return them; otherwise return generic skills
+    const skills = Array.from(foundSkills).slice(0, 5);
+
+    if (skills.length === 0) {
+      // Fallback if no keywords found
+      return JSON.stringify(['Communication', 'Problem Solving', 'Team Collaboration']);
+    }
+
+    return JSON.stringify(skills);
   }
   if (systemLower.includes('generate interview questions') || systemLower.includes('questions')) {
     // Extract skills from the user message to generate questions for those specific skills
