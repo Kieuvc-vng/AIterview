@@ -32,7 +32,7 @@ async function startServer() {
 
   // Serve interview.html for /interview route
   app.get('/interview', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/interview.html'));
+    res.redirect(`/interview.html${req.url.substring(req.url.indexOf('?'))}`);
   });
 
   // Static files after redirect (don't serve index.html as default for /)
