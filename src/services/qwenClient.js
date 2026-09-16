@@ -17,23 +17,15 @@ const getMockResponse = (systemPrompt, messages) => {
     let level = 'Mid';
     let company = 'Unknown Company';
 
-    // Extract company from first actual line of JD (skip "Extract fields from this JD:" prefix)
-    const lines = lastMessage.split('\n');
-    let jdFirstLine = lines[0];
-
-    // If first line is the prompt instruction, get the next non-empty line
-    if (jdFirstLine.includes('Extract fields') || jdFirstLine.includes('extract') || jdFirstLine.trim().length < 3) {
-      jdFirstLine = lines.slice(1).find(line => line.trim().length > 3) || jdFirstLine;
+    // Extract from structured lines
+    const companyMatch = lastMessage.match(/Company:\s*([^\n]+)/i);
+    if (companyMatch) {
+      company = companyMatch[1].trim();
     }
 
-    const companyMatch = jdFirstLine.match(/^([^–,\n]+?)(?:\s*–|$)/);
-
-    if (companyMatch) {
-      let extractedCompany = companyMatch[1].trim();
-      // Only use if it's a reasonable company name
-      if (extractedCompany && extractedCompany.length > 2 && extractedCompany.length < 100) {
-        company = extractedCompany;
-      }
+    const jobTitleMatch = lastMessage.match(/Job\s+Title:\s*([^\n]+)/i);
+    if (jobTitleMatch) {
+      job_title = jobTitleMatch[1].trim();
     }
 
     // Extract job title from "vai trò" or "position" or "role"

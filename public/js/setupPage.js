@@ -103,9 +103,9 @@ const SetupPage = {
           </div>
         </div>
 
-        <div class="step-content active">
+        <form class="step-content active" id="setup-form" onsubmit="return false;">
           ${this.getStepContent()}
-        </div>
+        </form>
       </div>
     `;
   },
@@ -428,24 +428,68 @@ const SetupPage = {
     const companyInput = document.getElementById('company');
     const nextBtn = document.getElementById('btn-step2-next');
     const backBtn = document.getElementById('btn-step2-back');
+    const form = document.getElementById('setup-form');
+
+    if (!jobTitleInput || !levelSelect || !companyInput || !nextBtn || !backBtn) {
+      console.error('[Step2] Missing DOM elements:', {jobTitleInput, levelSelect, companyInput, nextBtn, backBtn});
+      return;
+    }
 
     const updateButton = () => {
       nextBtn.disabled = !jobTitleInput.value.trim() || !levelSelect.value || !companyInput.value.trim();
     };
 
     jobTitleInput.addEventListener('input', updateButton);
-    levelSelect.addEventListener('change', updateButton);
-    companyInput.addEventListener('input', updateButton);
+    jobTitleInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !nextBtn.disabled) {
+        e.preventDefault();
+        handleNext();
+      }
+    });
 
-    nextBtn.addEventListener('click', async () => {
+    levelSelect.addEventListener('change', updateButton);
+    levelSelect.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !nextBtn.disabled) {
+        e.preventDefault();
+        handleNext();
+      }
+    });
+
+    companyInput.addEventListener('input', updateButton);
+    companyInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !nextBtn.disabled) {
+        e.preventDefault();
+        handleNext();
+      }
+    });
+
+    // Use form submit or button click as fallback
+    const handleNext = async () => {
+      console.log('[Step2] Button clicked, calling suggestSkills');
       this.formData.job_title = jobTitleInput.value.trim();
       this.formData.level = levelSelect.value;
       this.formData.company = companyInput.value.trim();
 
       await this.suggestSkills();
+    };
+
+    nextBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      handleNext();
     });
 
-    backBtn.addEventListener('click', () => {
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        // Trigger if button is enabled (form is valid)
+        if (!nextBtn.disabled) {
+          handleNext();
+        }
+      });
+    }
+
+    backBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       this.currentStep = 1;
       this.render(document.getElementById('app'));
     });
