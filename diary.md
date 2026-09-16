@@ -224,18 +224,24 @@ _Các entry thật bắt đầu từ đây._
 
 ## 16/09 — Kiểu + Tiến
 
-**Nhờ làm:** Fix bug edit job — dữ liệu Step 3-4 bị xóa, AI detect lại từ đầu
+**Nhờ làm:** 
+1. Fix bug edit job — dữ liệu Step 3-4 bị xóa, AI detect lại từ đầu
+2. Fix bug suggest-skills — luôn suggest 2 skill cứng ("Technical Skills" + "Communication")
 
 **Claude làm:**
-- Brainstorm + Spec: chốt yêu cầu — data phải giữ nguyên, không re-detect
-- Tìm bug ở `setupPage.js`:
-  * `parseJD()` gọi `/api/setup/parse-jd` ngay cả khi edit mode → xóa data từ DB
-  * `suggestSkills()` gọi API suggest-skills → overwrite existing skills
-  * `suggestQuestions()` gọi API suggest-questions → overwrite existing questions
-- Fix 3 methods: check `if (this.isEditMode)` skip API call, keep existing data
-- Test full flow: edit job → Step 1-5 all data preserved (JD, company, level, skills, questions) ✓
-- Button "Update Job" works, redirect to library ✓
-- Commit 2 fixes: parseJD + suggestSkills/suggestQuestions (feabb69, 1ebef4a)
 
-**Bước:** 3 — Spec → Build
+**Phần 1 - Edit job data preservation:**
+- Brainstorm + Spec: data phải giữ nguyên, không re-detect
+- Tìm bug: `parseJD()`, `suggestSkills()`, `suggestQuestions()` gọi API trong edit mode → xóa data
+- Fix: thêm check `if (this.isEditMode)` skip API call ở 3 methods
+- Test: edit job → Step 1-5 all data preserved ✓, "Update Job" works ✓
+- Commit: feabb69, 1ebef4a
+
+**Phần 2 - Hardcoded skills fix:**
+- Tìm bug: qwenClient.js mock response return hardcoded skills, không extract từ JD
+- Fix: thay hardcode bằng keyword matching — search 25+ skill keywords (Python, React, AWS, Leadership, etc.) trong JD
+- Test: JD "Python Developer + React + AWS" → suggest Python, JavaScript, React, SQL, Database Design ✓ (không cứng nữa!)
+- Commit: 7d9b6db
+
+**Bước:** 3 — Spec → Build → Test
 **Chưa hiểu:** không có gì
