@@ -577,6 +577,8 @@ const SetupPage = {
 
   /**
    * API Call: Suggest Skills
+   * In edit mode: skip API detection, keep existing skills
+   * In normal mode: call API to suggest skills
    */
   async suggestSkills() {
     const spinner = document.getElementById('step2-spinner');
@@ -587,22 +589,26 @@ const SetupPage = {
     nextBtn.disabled = true;
 
     try {
-      const response = await fetch('/api/setup/suggest-skills', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jd_text: this.formData.jd_text,
-          job_title: this.formData.job_title,
-          level: this.formData.level
-        })
-      });
+      if (!this.isEditMode) {
+        // Normal mode: call API to suggest skills
+        const response = await fetch('/api/setup/suggest-skills', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jd_text: this.formData.jd_text,
+            job_title: this.formData.job_title,
+            level: this.formData.level
+          })
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to suggest skills');
+        if (!response.ok) {
+          throw new Error('Failed to suggest skills');
+        }
+
+        const data = await response.json();
+        this.formData.skills = data.skills;
       }
-
-      const data = await response.json();
-      this.formData.skills = data.skills;
+      // Edit mode: skip API, keep existing skills from database
 
       this.currentStep = 3;
       this.render(document.getElementById('app'));
@@ -615,6 +621,8 @@ const SetupPage = {
 
   /**
    * API Call: Suggest Questions
+   * In edit mode: skip API detection, keep existing questions
+   * In normal mode: call API to suggest questions
    */
   async suggestQuestions() {
     const spinner = document.getElementById('step3-spinner');
@@ -624,23 +632,27 @@ const SetupPage = {
     nextBtn.disabled = true;
 
     try {
-      const response = await fetch('/api/setup/suggest-questions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jd_text: this.formData.jd_text,
-          skills: this.formData.skills,
-          job_title: this.formData.job_title,
-          level: this.formData.level
-        })
-      });
+      if (!this.isEditMode) {
+        // Normal mode: call API to suggest questions
+        const response = await fetch('/api/setup/suggest-questions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jd_text: this.formData.jd_text,
+            skills: this.formData.skills,
+            job_title: this.formData.job_title,
+            level: this.formData.level
+          })
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate questions');
+        if (!response.ok) {
+          throw new Error('Failed to generate questions');
+        }
+
+        const data = await response.json();
+        this.formData.questions_by_skill = data.questions_by_skill;
       }
-
-      const data = await response.json();
-      this.formData.questions_by_skill = data.questions_by_skill;
+      // Edit mode: skip API, keep existing questions from database
 
       this.currentStep = 4;
       this.render(document.getElementById('app'));
