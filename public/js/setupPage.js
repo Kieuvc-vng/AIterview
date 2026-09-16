@@ -528,6 +528,8 @@ const SetupPage = {
 
   /**
    * API Call: Parse JD
+   * In edit mode: skip AI detection, load data from database
+   * In normal mode: call API to detect job details
    */
   async parseJD() {
     const spinner = document.getElementById('step1-spinner');
@@ -538,21 +540,27 @@ const SetupPage = {
     nextBtn.disabled = true;
 
     try {
-      const response = await fetch('/api/setup/parse-jd', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jd_text: this.formData.jd_text })
-      });
+      if (this.isEditMode) {
+        // Edit mode: skip AI detection, just move to step 2 with existing data
+        console.log('[DEBUG] Edit mode detected, skipping AI detection');
+      } else {
+        // Normal mode: call AI to parse job description
+        const response = await fetch('/api/setup/parse-jd', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jd_text: this.formData.jd_text })
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to parse job description');
+        if (!response.ok) {
+          throw new Error('Failed to parse job description');
+        }
+
+        const data = await response.json();
+        console.log('[DEBUG] parseJD response:', data);
+        this.formData.job_title = data.job_title;
+        this.formData.level = data.level;
+        this.formData.company = data.company;
       }
-
-      const data = await response.json();
-      console.log('[DEBUG] parseJD response:', data);
-      this.formData.job_title = data.job_title;
-      this.formData.level = data.level;
-      this.formData.company = data.company;
 
       console.log('[DEBUG] Setting currentStep to 2, was:', this.currentStep);
       this.currentStep = 2;
