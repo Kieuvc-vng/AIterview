@@ -30,6 +30,12 @@ const SetupPage = {
     const urlParams = new URLSearchParams(window.location.search);
     const editJobId = urlParams.get('edit');
 
+    // Get HR email from localStorage (use consistently across jobs)
+    const savedHrEmail = localStorage.getItem('hr_email');
+    if (savedHrEmail) {
+      this.formData.hr_email = savedHrEmail;
+    }
+
     if (editJobId) {
       this.isEditMode = true;
       this.editJobId = editJobId;
@@ -155,6 +161,10 @@ const SetupPage = {
    * Step 1: Input JD
    */
   getStep1HTML() {
+    const savedHrEmail = localStorage.getItem('hr_email');
+    const emailFieldDisabled = savedHrEmail ? 'disabled' : '';
+    const emailNote = savedHrEmail ? '<p style="color: #666; font-size: 13px; margin-top: 4px;">This email was saved from your previous job creation.</p>' : '';
+
     return `
       <div class="form-group">
         <h2>Step 1: Paste Job Description</h2>
@@ -165,7 +175,8 @@ const SetupPage = {
 
       <div class="form-group">
         <label for="hr_email">Your Email *</label>
-        <input type="email" id="hr_email" placeholder="your@email.com" value="${this.formData.hr_email}" required>
+        <input type="email" id="hr_email" placeholder="your@email.com" value="${this.formData.hr_email}" required ${emailFieldDisabled}>
+        ${emailNote}
       </div>
 
       <div class="button-group">
@@ -384,15 +395,23 @@ const SetupPage = {
     const nextBtn = document.getElementById('btn-step1-next');
 
     const updateButton = () => {
-      nextBtn.disabled = !jdInput.value.trim() || !emailInput.value.trim();
+      // Email must be filled (either from input or from formData)
+      const emailValue = emailInput.value.trim() || this.formData.hr_email;
+      nextBtn.disabled = !jdInput.value.trim() || !emailValue;
     };
 
     jdInput.addEventListener('input', updateButton);
-    emailInput.addEventListener('input', updateButton);
+    if (!emailInput.disabled) {
+      emailInput.addEventListener('input', updateButton);
+    }
 
     nextBtn.addEventListener('click', async () => {
       this.formData.jd_text = jdInput.value.trim();
-      this.formData.hr_email = emailInput.value.trim();
+      // Use email from input only if it's not disabled, otherwise use saved value
+      if (!emailInput.disabled) {
+        this.formData.hr_email = emailInput.value.trim();
+      }
+      // If email field is disabled and empty, email should already be in formData from init()
 
       await this.parseJD();
     });
