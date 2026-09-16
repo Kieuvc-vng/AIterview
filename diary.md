@@ -253,3 +253,19 @@ _Các entry thật bắt đầu từ đây._
 
 **Bước:** 3 — Spec → Build → Test
 **Chưa hiểu:** không có gì
+
+## 17/09 — Kiểu + Tiến
+
+**Nhờ làm:**
+1. Khi mở app lần đầu, hiển thị Thư Viện Job thay vì trang Setup
+
+**Claude làm:**
+- Thêm redirect route từ `/` sang `/library.html` ở server.js
+- Fix middleware order: redirect route phải trước static middleware
+- Set `express.static({ index: false })` để tránh serve index.html mặc định
+- Test: mở http://localhost:3000/ → show Thư Viện Job ✓
+- Test: click "+ Tạo Job Mới" → show Setup page ✓
+- Commit: 3c4ac3f
+
+**Bước:** 3 — Spec → Build → Test
+**Chưa hiểu:** không có gì
