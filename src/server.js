@@ -23,7 +23,14 @@ async function startServer() {
 
   // Middleware
   app.use(express.json());
-  app.use(express.static('public'));
+
+  // Redirect root to library BEFORE static middleware
+  app.get('/', (req, res) => {
+    res.redirect('/library.html');
+  });
+
+  // Static files after redirect (don't serve index.html as default for /)
+  app.use(express.static('public', { index: false }));
 
   // Import route modules
   const setupRoutes = require('./routes/setupRoutes');
