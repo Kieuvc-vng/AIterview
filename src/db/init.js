@@ -124,6 +124,13 @@ async function initializeDatabase() {
         }
       }
 
+      // Migrations: add columns if missing
+      try {
+        await db.run('ALTER TABLE candidates ADD COLUMN reminded_at TIMESTAMP');
+      } catch (e) {
+        // Column already exists
+      }
+
       console.log('Database initialized:', dbPath);
       return db;
     } catch (error) {

@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS candidates (
   link_sent BOOLEAN DEFAULT 0,
   interview_status TEXT DEFAULT 'not_started' CHECK(interview_status IN ('not_started', 'in_progress', 'completed')),
   interview_link TEXT,
+  reminded_at TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE,
   UNIQUE(job_id, email)

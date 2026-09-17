@@ -192,7 +192,7 @@ const jobLibraryService = {
       }
       if (db) {
         const candidates = await db.prepare(
-          'SELECT id, name, phone, email, interview_link, link_sent, interview_status, created_at FROM candidates WHERE job_id = ? ORDER BY created_at'
+          'SELECT id, name, phone, email, interview_link, link_sent, interview_status, reminded_at, created_at FROM candidates WHERE job_id = ? ORDER BY created_at'
         ).all(jobId);
         return candidates || [];
       } else {
@@ -333,6 +333,16 @@ const jobLibraryService = {
       return { candidate, interview, summaries: summaries || [], messages: messages || [] };
     } catch (error) {
       throw new Error(`Failed to fetch candidate results: ${error.message}`);
+    }
+  },
+
+  async updateCandidateRemindedAt(candidateId, timestamp) {
+    let db = null;
+    if (dbModule && dbModule.getDb) {
+      db = await dbModule.getDb();
+    }
+    if (db) {
+      await db.prepare('UPDATE candidates SET reminded_at = ? WHERE id = ?').run(timestamp, candidateId);
     }
   }
 };

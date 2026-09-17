@@ -493,13 +493,18 @@
       const isCompleted = candidate.interview_status === 'completed';
       const badgeClass = isCompleted ? 'badge-completed' : 'badge-pending';
       const badgeText = isCompleted ? 'Đã hoàn thành' : 'Chưa hoàn thành';
-      const timeAgo = getTimeAgo(candidate.created_at);
+      const sentAgo = formatTimeAgo(candidate.created_at);
+      const remindedAgo = formatTimeAgo(candidate.reminded_at);
 
       let actionsHtml = `<button class="btn btn-copy btn-small" data-action="copy-link" data-candidate-id="${escapeHtml(candidate.id)}" data-job-id="${escapeHtml(jobId)}">Copy link test</button>`;
 
       if (!isCompleted) {
+        let metaLines = `Đã gửi ${escapeHtml(sentAgo)}`;
+        if (remindedAgo) {
+          metaLines += `<br>Đã nhắc làm bài ${escapeHtml(remindedAgo)}`;
+        }
         actionsHtml += `
-          <span class="candidate-meta">${escapeHtml(timeAgo)}</span>
+          <span class="candidate-meta">${metaLines}</span>
           <button class="btn btn-remind btn-small" data-action="remind" data-candidate-id="${escapeHtml(candidate.id)}">Nhắc làm bài</button>
         `;
       } else {
@@ -533,13 +538,15 @@
       `;
     }
 
-    function getTimeAgo(dateStr) {
+    function formatTimeAgo(dateStr) {
       if (!dateStr) return '';
       const diff = Date.now() - new Date(dateStr).getTime();
+      const hours = Math.floor(diff / 3600000);
       const days = Math.floor(diff / 86400000);
-      if (days === 0) return 'Đã gửi hôm nay';
-      if (days === 1) return 'Đã gửi hôm qua';
-      return `Đã gửi ${days} ngày trước`;
+      if (hours < 1) return 'vừa xong';
+      if (hours < 24) return `${hours} giờ trước`;
+      if (days === 1) return '1 ngày trước';
+      return `${days} ngày trước`;
     }
 
     function copyTestLink(candidateId, jobId, btn) {
@@ -570,7 +577,12 @@
       fetch(`/api/job-library/candidates/${candidateId}/remind`, { method: 'POST' })
         .then(r => r.json())
         .then(data => {
-          btn.textContent = 'Đã gửi ✓';
+          btn.textContent = 'Đã nhắc ✓';
+          const metaEl = btn.parentElement.querySelector('.candidate-meta');
+          if (metaEl) {
+            const sentLine = metaEl.innerHTML.split('<br>')[0];
+            metaEl.innerHTML = sentLine + '<br>Đã nhắc làm bài vừa xong';
+          }
         })
         .catch(() => {
           btn.textContent = 'Lỗi, thử lại';

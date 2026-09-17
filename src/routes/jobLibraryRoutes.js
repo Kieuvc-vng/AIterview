@@ -206,9 +206,13 @@ router.post('/candidates/:candidateId/remind', async (req, res, next) => {
       return res.status(404).json({ error: 'Candidate not found' });
     }
 
+    const now = new Date().toISOString();
+    await jobLibraryService.updateCandidateRemindedAt(candidateId, now);
+
     res.json({
       success: true,
-      message: `Đã gửi nhắc nhở đến ${candidate.email}`
+      message: `Đã gửi nhắc nhở đến ${candidate.email}`,
+      reminded_at: now
     });
   } catch (error) {
     next({ status: 500, message: error.message });
