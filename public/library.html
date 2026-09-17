@@ -131,6 +131,19 @@
       font-size: 13px;
     }
 
+    /* Candidate stats */
+    .candidate-stats {
+      margin: 12px 0 4px;
+      padding: 10px 14px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #555;
+      display: flex;
+      gap: 20px;
+    }
+    .candidate-stats span { font-weight: 600; color: #333; }
+
     /* Export dropdown */
     .export-dropdown {
       position: relative;
@@ -139,17 +152,28 @@
     .export-menu {
       display: none;
       position: absolute;
-      bottom: 100%;
+      top: 100%;
       left: 0;
       background: white;
       border: 1px solid #ddd;
       border-radius: 6px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.15);
       z-index: 1100;
-      min-width: 140px;
-      margin-bottom: 4px;
+      min-width: 200px;
+      margin-top: 4px;
     }
     .export-menu.show { display: block; }
+    .export-menu-label {
+      padding: 6px 14px 2px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+    }
+    .export-menu-divider {
+      border-top: 1px solid #eee;
+      margin: 4px 0;
+    }
     .export-menu-item {
       padding: 8px 14px;
       font-size: 12px;
@@ -421,7 +445,13 @@
             container.innerHTML = '<div class="summary-empty">Chưa có ứng viên nào. Bấm "Tạo Ứng Viên" để thêm.</div>';
             return;
           }
-          container.innerHTML = candidates.map(c => renderCandidateCard(c, jobId, jobTitle)).join('');
+          const completedCount = candidates.filter(c => c.interview_status === 'completed').length;
+          const statsHtml = `<div class="candidate-stats">
+            Tổng số ứng viên: <span>${candidates.length}</span>
+            &nbsp;|&nbsp;
+            Đã hoàn thành test: <span>${completedCount}</span>
+          </div>`;
+          container.innerHTML = candidates.map(c => renderCandidateCard(c, jobId, jobTitle)).join('') + statsHtml;
         })
         .catch(() => {
           container.innerHTML = '<div class="summary-empty">Lỗi tải danh sách. Vui lòng thử lại.</div>';
@@ -477,17 +507,15 @@
           <button class="btn btn-expand btn-small" data-action="toggle-summary" data-candidate-id="${escapeHtml(candidate.id)}" data-job-id="${escapeHtml(jobId)}">Xem tóm tắt</button>
           <button class="btn btn-primary btn-small" data-action="open-full-chat" data-candidate-id="${escapeHtml(candidate.id)}" data-candidate-name="${escapeHtml(candidate.name)}" data-job-title="${escapeHtml(jobTitle)}">Xem toàn bộ câu trả lời</button>
           <div class="export-dropdown">
-            <button class="btn btn-export btn-small" data-action="toggle-export-menu" data-menu-id="pdf-${escapeHtml(candidate.id)}">Xuất PDF ▾</button>
-            <div id="pdf-${candidate.id}" class="export-menu">
+            <button class="btn btn-export btn-small" data-action="toggle-export-menu" data-menu-id="export-${escapeHtml(candidate.id)}">Xuất file ▾</button>
+            <div id="export-${candidate.id}" class="export-menu">
+              <div class="export-menu-label">PDF</div>
               <button class="export-menu-item" data-action="export" data-candidate-id="${escapeHtml(candidate.id)}" data-format="pdf" data-content="summary">Tóm tắt</button>
-              <button class="export-menu-item" data-action="export" data-candidate-id="${escapeHtml(candidate.id)}" data-format="pdf" data-content="full">Full chat</button>
-            </div>
-          </div>
-          <div class="export-dropdown">
-            <button class="btn btn-export btn-small" data-action="toggle-export-menu" data-menu-id="csv-${escapeHtml(candidate.id)}">Xuất CSV ▾</button>
-            <div id="csv-${candidate.id}" class="export-menu">
+              <button class="export-menu-item" data-action="export" data-candidate-id="${escapeHtml(candidate.id)}" data-format="pdf" data-content="full">Toàn bộ câu trả lời</button>
+              <div class="export-menu-divider"></div>
+              <div class="export-menu-label">CSV</div>
               <button class="export-menu-item" data-action="export" data-candidate-id="${escapeHtml(candidate.id)}" data-format="csv" data-content="summary">Tóm tắt</button>
-              <button class="export-menu-item" data-action="export" data-candidate-id="${escapeHtml(candidate.id)}" data-format="csv" data-content="full">Full chat</button>
+              <button class="export-menu-item" data-action="export" data-candidate-id="${escapeHtml(candidate.id)}" data-format="csv" data-content="full">Toàn bộ câu trả lời</button>
             </div>
           </div>
         `;
