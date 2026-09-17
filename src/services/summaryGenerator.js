@@ -1,6 +1,5 @@
 // src/services/summaryGenerator.js
 const { callQwen } = require('./qwenClient');
-const { v4: uuidv4 } = require('uuid');
 
 const generateSummary = async (interview_id, skill_name, question_index, question_text, messages) => {
   try {
@@ -99,7 +98,7 @@ const generateAllSummaries = async (interviewId, db) => {
           [{ ...answer, skill_name: skillName, question_index: questionIndex, attempt_number: 1 }]
         );
 
-        const summaryId = 'summary_' + uuidv4();
+        const summaryId = `summary_${interviewId}_${questionIndex}`;
         await db.prepare(
           'INSERT OR REPLACE INTO summaries (id, interview_id, skill_name, question_index, question_text, main_answer_summary, followup_summary) VALUES (?, ?, ?, ?, ?, ?, ?)'
         ).run(summaryId, interviewId, skillName, questionIndex, question.content, main_answer_summary, followup_summary);

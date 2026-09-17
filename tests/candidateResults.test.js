@@ -7,7 +7,19 @@ jest.mock('../src/services/jobLibraryService', () => ({
   getCandidateById: jest.fn()
 }));
 
+// Mock summaryGenerator
+jest.mock('../src/services/summaryGenerator', () => ({
+  generateAllSummaries: jest.fn()
+}));
+
+// Mock db/init
+jest.mock('../src/db/init', () => ({
+  getDb: jest.fn()
+}));
+
 const jobLibraryService = require('../src/services/jobLibraryService');
+const { generateAllSummaries } = require('../src/services/summaryGenerator');
+const dbModule = require('../src/db/init');
 const jobLibraryRoutes = require('../src/routes/jobLibraryRoutes');
 
 const app = express();
@@ -41,6 +53,47 @@ describe('GET /api/job-library/candidates/:candidateId/results', () => {
     jobLibraryService.getCandidateResults.mockResolvedValue(null);
     const res = await request(app).get('/api/job-library/candidates/nonexistent/results');
     expect(res.status).toBe(404);
+  });
+});
+
+describe('POST /api/job-library/candidates/:candidateId/generate-summaries', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  test('generates summaries successfully', async () => {
+    jobLibraryService.getCandidateResults.mockResolvedValue({
+      candidate: { id: 'cand_1', name: 'Test', email: 'test@test.com', phone: '123', interview_status: 'completed', created_at: '2026-09-15' },
+      interview: { id: 'int_1', status: 'completed' },
+      summaries: [],
+      messages: []
+    });
+    dbModule.getDb.mockResolvedValue({ mockDb: true });
+    generateAllSummaries.mockResolvedValue([
+      { skill_name: 'Python', question_index: 0, question_text: 'Python experience?', main_answer_summary: '5 years Python', followup_summary: '' }
+    ]);
+
+    const res = await request(app).post('/api/job-library/candidates/cand_1/generate-summaries');
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.summaries).toHaveLength(1);
+    expect(generateAllSummaries).toHaveBeenCalledWith('int_1', { mockDb: true });
+  });
+
+  test('returns 404 if candidate not found', async () => {
+    jobLibraryService.getCandidateResults.mockResolvedValue(null);
+    const res = await request(app).post('/api/job-library/candidates/nonexistent/generate-summaries');
+    expect(res.status).toBe(404);
+  });
+
+  test('returns 400 if no interview exists', async () => {
+    jobLibraryService.getCandidateResults.mockResolvedValue({
+      candidate: { id: 'cand_1', name: 'Test' },
+      interview: null,
+      summaries: [],
+      messages: []
+    });
+    const res = await request(app).post('/api/job-library/candidates/cand_1/generate-summaries');
+    expect(res.status).toBe(400);
   });
 });
 

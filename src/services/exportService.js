@@ -14,7 +14,7 @@ const timestamp = () => new Date().toISOString().replace(/[:.]/g, '-');
 const escapeCSV = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
 
 const generateSummaryPDF = async (candidate, summaries, jobTitle) => {
-  const filePath = path.join(getTmpDir(), `summary_${candidate.name}_${timestamp()}.pdf`);
+  const filePath = path.join(getTmpDir(), `summary_${candidate.id}_${timestamp()}.pdf`);
   const doc = new PDFDocument();
   const stream = fs.createWriteStream(filePath);
   doc.pipe(stream);
@@ -49,7 +49,7 @@ const generateSummaryPDF = async (candidate, summaries, jobTitle) => {
 };
 
 const generateFullChatPDF = async (candidate, messages, jobTitle) => {
-  const filePath = path.join(getTmpDir(), `fullchat_${candidate.name}_${timestamp()}.pdf`);
+  const filePath = path.join(getTmpDir(), `fullchat_${candidate.id}_${timestamp()}.pdf`);
   const doc = new PDFDocument();
   const stream = fs.createWriteStream(filePath);
   doc.pipe(stream);
@@ -76,7 +76,7 @@ const generateFullChatPDF = async (candidate, messages, jobTitle) => {
 };
 
 const generateSummaryCSV = async (candidate, summaries, jobTitle) => {
-  const filePath = path.join(getTmpDir(), `summary_${candidate.name}_${timestamp()}.csv`);
+  const filePath = path.join(getTmpDir(), `summary_${candidate.id}_${timestamp()}.csv`);
 
   const header = 'ung_vien,email,vi_tri,skill,cau_hoi,tom_tat,follow_up\n';
   const rows = summaries.map(s =>
@@ -96,7 +96,7 @@ const generateSummaryCSV = async (candidate, summaries, jobTitle) => {
 };
 
 const generateFullChatCSV = async (candidate, messages, jobTitle) => {
-  const filePath = path.join(getTmpDir(), `fullchat_${candidate.name}_${timestamp()}.csv`);
+  const filePath = path.join(getTmpDir(), `fullchat_${candidate.id}_${timestamp()}.csv`);
 
   const header = 'ung_vien,email,vi_tri,sender,content,time\n';
   const rows = messages.map(m =>

@@ -226,6 +226,26 @@
       color: #666;
       padding: 4px 8px;
     }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 6px;
+      color: white;
+      font-size: 14px;
+      z-index: 2000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      animation: toast-in 0.2s ease;
+    }
+    .toast-error { background: #d32f2f; }
+    .toast-info { background: #333; }
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
@@ -306,6 +326,14 @@
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
     }
 
+    function showToast(message, type) {
+      const toast = document.createElement('div');
+      toast.className = 'toast toast-' + (type || 'info');
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
     // Load jobs on page load
     document.addEventListener('DOMContentLoaded', loadJobs);
 
@@ -328,14 +356,34 @@
                 <p>${job.company} · ${JSON.parse(job.skills || '[]').length} skills</p>
               </div>
               <div class="actions">
-                <button class="btn-primary" onclick="showCandidatesModal('${job.id}', '${escapeHtml(job.job_title || '')}')">Xem Ứng Viên</button>
-                <button class="btn-secondary" onclick="openSendModal('${job.id}')">Tạo Ứng Viên</button>
-                <button class="btn-secondary" onclick="openJobDetail('${job.id}')">Chỉnh Sửa</button>
+                <button class="btn-primary" data-action="show-candidates" data-job-id="${escapeHtml(job.id)}" data-job-title="${escapeHtml(job.job_title || '')}">Xem Ứng Viên</button>
+                <button class="btn-secondary" data-action="open-send-modal" data-job-id="${escapeHtml(job.id)}">Tạo Ứng Viên</button>
+                <button class="btn-secondary" data-action="open-job-detail" data-job-id="${escapeHtml(job.id)}">Chỉnh Sửa</button>
               </div>
             </div>
           `).join('');
         });
     }
+
+    // Event delegation for job card actions (avoids inline onclick with interpolated strings)
+    document.getElementById('jobsList').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const jobId = btn.dataset.jobId;
+      const jobTitle = btn.dataset.jobTitle;
+
+      switch (btn.dataset.action) {
+        case 'show-candidates':
+          showCandidatesModal(jobId, jobTitle);
+          break;
+        case 'open-send-modal':
+          openSendModal(jobId);
+          break;
+        case 'open-job-detail':
+          openJobDetail(jobId);
+          break;
+      }
+    });
 
     function openSendModal(jobId) {
       currentJobId = jobId;
@@ -380,35 +428,66 @@
         });
     }
 
+    // Event delegation for candidate card actions (avoids inline onclick with interpolated strings)
+    document.getElementById('candidatesList').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      const { candidateId, jobId, jobTitle, candidateName, format, content, menuId } = btn.dataset;
+
+      switch (btn.dataset.action) {
+        case 'copy-link':
+          copyTestLink(candidateId, jobId, btn);
+          break;
+        case 'remind':
+          remindCandidate(candidateId, btn);
+          break;
+        case 'toggle-summary':
+          toggleSummary(candidateId, jobId);
+          break;
+        case 'retry-summary':
+          retrySummary(candidateId, jobId);
+          break;
+        case 'open-full-chat':
+          openFullChat(candidateId, candidateName, jobTitle);
+          break;
+        case 'toggle-export-menu':
+          toggleExportMenu(menuId);
+          break;
+        case 'export':
+          exportCandidate(candidateId, format, content);
+          break;
+      }
+    });
+
     function renderCandidateCard(candidate, jobId, jobTitle) {
       const isCompleted = candidate.interview_status === 'completed';
       const badgeClass = isCompleted ? 'badge-completed' : 'badge-pending';
       const badgeText = isCompleted ? 'Đã hoàn thành' : 'Chưa hoàn thành';
       const timeAgo = getTimeAgo(candidate.created_at);
 
-      let actionsHtml = `<button class="btn btn-copy btn-small" onclick="copyTestLink('${candidate.id}', '${jobId}', this)">Copy link test</button>`;
+      let actionsHtml = `<button class="btn btn-copy btn-small" data-action="copy-link" data-candidate-id="${escapeHtml(candidate.id)}" data-job-id="${escapeHtml(jobId)}">Copy link test</button>`;
 
       if (!isCompleted) {
         actionsHtml += `
           <span class="candidate-meta">${escapeHtml(timeAgo)}</span>
-          <button class="btn btn-remind btn-small" onclick="remindCandidate('${candidate.id}', this)">Nhắc làm bài</button>
+          <button class="btn btn-remind btn-small" data-action="remind" data-candidate-id="${escapeHtml(candidate.id)}">Nhắc làm bài</button>
         `;
       } else {
         actionsHtml += `
-          <button class="btn btn-expand btn-small" onclick="toggleSummary('${candidate.id}', '${jobId}')">Xem tóm tắt</button>
-          <button class="btn btn-primary btn-small" onclick="openFullChat('${candidate.id}', '${escapeHtml(candidate.name)}', '${escapeHtml(jobTitle)}')">Xem toàn bộ câu trả lời</button>
+          <button class="btn btn-expand btn-small" data-action="toggle-summary" data-candidate-id="${escapeHtml(candidate.id)}" data-job-id="${escapeHtml(jobId)}">Xem tóm tắt</button>
+          <button class="btn btn-primary btn-small" data-action="open-full-chat" data-candidate-id="${escapeHtml(candidate.id)}" data-candidate-name="${escapeHtml(candidate.name)}" data-job-title="${escapeHtml(jobTitle)}">Xem toàn bộ câu trả lời</button>
           <div class="export-dropdown">
-            <button class="btn btn-export btn-small" onclick="toggleExportMenu('pdf-${candidate.id}')">Xuất PDF ▾</button>
+            <button class="btn btn-export btn-small" data-action="toggle-export-menu" data-menu-id="pdf-${escapeHtml(candidate.id)}">Xuất PDF ▾</button>
             <div id="pdf-${candidate.id}" class="export-menu">
-              <button class="export-menu-item" onclick="exportCandidate('${candidate.id}', 'pdf', 'summary')">Tóm tắt</button>
-              <button class="export-menu-item" onclick="exportCandidate('${candidate.id}', 'pdf', 'full')">Full chat</button>
+              <button class="export-menu-item" data-action="export" data-candidate-id="${escapeHtml(candidate.id)}" data-format="pdf" data-content="summary">Tóm tắt</button>
+              <button class="export-menu-item" data-action="export" data-candidate-id="${escapeHtml(candidate.id)}" data-format="pdf" data-content="full">Full chat</button>
             </div>
           </div>
           <div class="export-dropdown">
-            <button class="btn btn-export btn-small" onclick="toggleExportMenu('csv-${candidate.id}')">Xuất CSV ▾</button>
+            <button class="btn btn-export btn-small" data-action="toggle-export-menu" data-menu-id="csv-${escapeHtml(candidate.id)}">Xuất CSV ▾</button>
             <div id="csv-${candidate.id}" class="export-menu">
-              <button class="export-menu-item" onclick="exportCandidate('${candidate.id}', 'csv', 'summary')">Tóm tắt</button>
-              <button class="export-menu-item" onclick="exportCandidate('${candidate.id}', 'csv', 'full')">Full chat</button>
+              <button class="export-menu-item" data-action="export" data-candidate-id="${escapeHtml(candidate.id)}" data-format="csv" data-content="summary">Tóm tắt</button>
+              <button class="export-menu-item" data-action="export" data-candidate-id="${escapeHtml(candidate.id)}" data-format="csv" data-content="full">Full chat</button>
             </div>
           </div>
         `;
@@ -478,19 +557,24 @@
         return;
       }
 
+      el.classList.add('open');
+
       if (el.dataset.loaded) {
-        el.classList.add('open');
         return;
       }
 
+      loadSummaryContent(candidateId, jobId);
+    }
+
+    function loadSummaryContent(candidateId, jobId) {
+      const el = document.getElementById(`summary-${candidateId}`);
       el.innerHTML = '<div class="summary-loading">Đang tải tóm tắt...</div>';
-      el.classList.add('open');
 
       fetch(`/api/job-library/candidates/${candidateId}/results`)
         .then(r => r.json())
         .then(data => {
           if (!data.summaries || data.summaries.length === 0) {
-            el.innerHTML = `<div class="summary-section"><div class="summary-empty">Chưa có tóm tắt. Đang xử lý, vui lòng thử lại sau.<br><button class="btn btn-small btn-secondary" onclick="retrySummary('${candidateId}', '${jobId}')">Thử lại</button></div></div>`;
+            el.innerHTML = `<div class="summary-section"><div class="summary-empty">Chưa có tóm tắt. Đang xử lý, vui lòng thử lại sau.<br><button class="btn btn-small btn-secondary" data-action="retry-summary" data-candidate-id="${candidateId}" data-job-id="${jobId}">Thử lại</button></div></div>`;
             return;
           }
           el.innerHTML = renderSummaries(data.summaries);
@@ -504,7 +588,21 @@
     function retrySummary(candidateId, jobId) {
       const el = document.getElementById(`summary-${candidateId}`);
       el.dataset.loaded = '';
-      toggleSummary(candidateId, jobId);
+      el.classList.add('open');
+      el.innerHTML = '<div class="summary-loading">Đang tạo tóm tắt...</div>';
+
+      // Generate the summaries on-demand first, then re-fetch and render them
+      fetch(`/api/job-library/candidates/${candidateId}/generate-summaries`, { method: 'POST' })
+        .then(r => {
+          if (!r.ok) throw new Error('Generate failed');
+          return r.json();
+        })
+        .then(() => {
+          loadSummaryContent(candidateId, jobId);
+        })
+        .catch(() => {
+          el.innerHTML = `<div class="summary-section"><div class="summary-empty">Lỗi tạo tóm tắt. Vui lòng thử lại.<br><button class="btn btn-small btn-secondary" data-action="retry-summary" data-candidate-id="${candidateId}" data-job-id="${jobId}">Thử lại</button></div></div>`;
+        });
     }
 
     function renderSummaries(summaries) {
@@ -590,7 +688,7 @@
           window.URL.revokeObjectURL(url);
         })
         .catch(() => {
-          alert('Xuất file thất bại, vui lòng thử lại');
+          showToast('Xuất file thất bại, vui lòng thử lại', 'error');
         });
     }
 

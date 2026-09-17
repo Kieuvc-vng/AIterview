@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jobLibraryService = require('../services/jobLibraryService');
 const { generateSummaryPDF, generateFullChatPDF, generateSummaryCSV, generateFullChatCSV } = require('../services/exportService');
+const { generateAllSummaries } = require('../services/summaryGenerator');
 
 // GET /api/job-library/jobs - List all jobs for HR
 router.get('/jobs', async (req, res, next) => {
@@ -165,6 +166,31 @@ router.get('/candidates/:candidateId/results', async (req, res, next) => {
     }
 
     res.json(results);
+  } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
+
+// POST /api/job-library/candidates/:candidateId/generate-summaries - Generate summaries on demand
+router.post('/candidates/:candidateId/generate-summaries', async (req, res, next) => {
+  try {
+    const { candidateId } = req.params;
+    const results = await jobLibraryService.getCandidateResults(candidateId);
+
+    if (!results) {
+      return res.status(404).json({ error: 'Candidate not found' });
+    }
+
+    if (!results.interview) {
+      return res.status(400).json({ error: 'No interview exists for this candidate' });
+    }
+
+    const dbModule = require('../db/init');
+    const db = await dbModule.getDb();
+
+    const summaries = await generateAllSummaries(results.interview.id, db);
+
+    res.json({ success: true, summaries });
   } catch (error) {
     next({ status: 500, message: error.message });
   }
