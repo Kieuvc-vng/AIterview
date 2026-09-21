@@ -316,3 +316,30 @@ _Các entry thật bắt đầu từ đây._
 
 **Bước:** 5 — Test
 **Chưa hiểu:** không có gì
+
+## 21/09 — Kiểu + Tiến
+
+**Nhờ làm:**
+1. Test và sửa bugs: email field không edit, interview link không mở được
+2. Thêm tính năng xóa ứng viên
+
+**Claude làm:**
+
+**Phần 1 - Bug fixes (4 bugs):**
+- Bug 1: Email field bị disable ở Step 1 → Fix: xóa disabled attribute
+- Bug 2: Interview link = relative path → Fix: backend generate full URL (pass baseUrl)
+- Bug 3: Duplicate URL ở jobDetailPage.js → Fix: check nếu link đã full URL
+- Bug 4: Duplicate URL ở library.html (actual bug) → Fix: check startsWith('http')
+- Test: link "http://localhost:3000/interview.html?..." giờ mở được bình thường
+- 4 commits: 0a561ce, d2637ef, 13f2d63, 9be9d49
+
+**Phần 2 - Feature: Delete candidate:**
+- Thêm nút "Xóa" (đỏ) cạnh "Copy" ở danh sách ứng viên
+- Click nút hiển thị confirmation dialog: "Bạn có chắc muốn xóa ứng viên "Tên"?"
+- Call DELETE /api/job-library/candidates/:id → xóa từ database
+- UI update: ứng viên bị xóa disappear khỏi danh sách
+- Test: John Doe deleted successfully, chỉ còn Kieuer + Jane Smith
+- Commit: feat: add delete candidate functionality (832080a)
+
+**Bước:** Spec → Build → Test (xong)
+**Chưa hiểu:** không có gì
