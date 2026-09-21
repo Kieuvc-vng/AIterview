@@ -2,8 +2,9 @@
 const axios = require('axios');
 
 const QWEN_API_KEY = process.env.QWEN_API_KEY;
-const QWEN_MODEL = process.env.QWEN_MODEL || 'qwen-3.7-plus';
-const QWEN_API_URL = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
+const QWEN_MODEL = process.env.QWEN_MODEL || 'qwen/qwen3.7-plus';
+const QWEN_API_BASE_URL = process.env.QWEN_API_BASE_URL || 'https://maas-lle-aiplatform-hcm.api.vngcloud.vn/v2';
+const QWEN_API_URL = `${QWEN_API_BASE_URL}/chat/completions`;
 
 const isPlaceholderKey = () => !QWEN_API_KEY || QWEN_API_KEY.includes('your_');
 
@@ -184,7 +185,14 @@ const callQwen = async (messages, systemPrompt = null) => {
       timeout: 30000
     });
 
-    return response.data.output.text;
+    // Handle both DashScope and OpenAI-compatible response formats
+    if (response.data.output?.text) {
+      return response.data.output.text;
+    } else if (response.data.choices?.[0]?.message?.content) {
+      return response.data.choices[0].message.content;
+    } else {
+      throw new Error('Unexpected response format from API');
+    }
   } catch (error) {
     console.error('Qwen API error:', error.message);
     throw new Error(`Qwen API failed: ${error.message}`);
