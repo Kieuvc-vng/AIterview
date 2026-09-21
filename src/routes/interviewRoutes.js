@@ -3,9 +3,44 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 
 const sessionManager = require('../services/sessionManager');
+const jobLibraryService = require('../services/jobLibraryService');
 const { conductInterview, generateOpeningGreeting } = require('../services/aiIntegration');
 const { initializeInterviewState, getCurrentQuestion, processAnswerQuality, isInterviewComplete, moveToNextSkillIfNeeded } = require('../services/interviewEngine');
 const summaryGenerator = require('../services/summaryGenerator');
+
+/**
+ * POST /api/interview/create-from-candidate
+ * Create a new interview session from job and candidate IDs
+ */
+router.post('/create-from-candidate', async (req, res, next) => {
+  try {
+    const { jobId, candidateId } = req.body;
+
+    if (!jobId || !candidateId) {
+      return res.status(400).json({ error: 'Missing jobId or candidateId' });
+    }
+
+    // Fetch job details from job library
+    const job = await jobLibraryService.getJobById(jobId);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    // Create session using job data
+    const sessionData = await sessionManager.createSession({
+      hr_email: job.hr_email,
+      job_title: job.job_title,
+      level: job.level,
+      company: job.company,
+      skills: typeof job.skills === 'string' ? JSON.parse(job.skills) : job.skills,
+      questions_by_skill: typeof job.questions_by_skill === 'string' ? JSON.parse(job.questions_by_skill) : job.questions_by_skill
+    });
+
+    res.json({ sessionId: sessionData.session_id });
+  } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
 
 /**
  * GET /api/interview/:sessionId

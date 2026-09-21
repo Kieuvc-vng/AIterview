@@ -17,23 +17,36 @@
   <script src="/js/reviewPage.js"></script>
   <script>
     // Parse URL parameters for candidate interview
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get('job');
       const candidateId = params.get('candidate');
 
       if (jobId && candidateId) {
-        // Create a session ID from job and candidate
-        // Format: interview_<jobId>_<candidateId>
-        const sessionId = `interview_${jobId}_${candidateId}`;
+        try {
+          // Create a real interview session on the backend
+          const response = await fetch('/api/interview/create-from-candidate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jobId, candidateId })
+          });
 
-        // Store session info in localStorage for reference
-        localStorage.setItem('current_job_id', jobId);
-        localStorage.setItem('current_candidate_id', candidateId);
-        localStorage.setItem('current_interview_session', sessionId);
+          if (!response.ok) {
+            throw new Error(`Failed to create interview session: ${response.status}`);
+          }
 
-        // Initialize interview page with session ID
-        App.goToPage('interview', { sessionId });
+          const { sessionId } = await response.json();
+
+          // Store session info in localStorage for reference
+          localStorage.setItem('current_job_id', jobId);
+          localStorage.setItem('current_candidate_id', candidateId);
+          localStorage.setItem('current_interview_session', sessionId);
+
+          // Initialize interview page with real session ID
+          App.goToPage('interview', { sessionId });
+        } catch (error) {
+          App.appElement.innerHTML = `<div class="message message-error"><span>⚠️</span> Failed to start interview: ${error.message}</div>`;
+        }
       } else {
         // Missing parameters
         App.appElement.innerHTML = '<div class="message message-error"><span>⚠️</span> Invalid interview link. Missing job or candidate information.</div>';
