@@ -123,7 +123,8 @@ router.post('/candidates/:candidateId/generate-link', async (req, res, next) => 
       return res.status(400).json({ error: 'Missing jobId' });
     }
 
-    const link = await jobLibraryService.generateInterviewLink(jobId, candidateId);
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const link = await jobLibraryService.generateInterviewLink(jobId, candidateId, baseUrl);
     res.json({ interview_link: link });
   } catch (error) {
     next({ status: 500, message: error.message });

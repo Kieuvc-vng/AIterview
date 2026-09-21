@@ -251,14 +251,15 @@ const jobLibraryService = {
   },
 
   // Generate interview link
-  async generateInterviewLink(jobId, candidateId) {
+  async generateInterviewLink(jobId, candidateId, baseUrl = '') {
     try {
       let db = null;
       if (dbModule && dbModule.getDb) {
         db = await dbModule.getDb();
       }
       if (!db) throw new Error('Database not available');
-      const interviewLink = `/interview.html?job=${jobId}&candidate=${candidateId}`;
+      const pathOnly = `/interview.html?job=${jobId}&candidate=${candidateId}`;
+      const interviewLink = baseUrl ? `${baseUrl}${pathOnly}` : pathOnly;
 
       const result = await db.prepare(
         'UPDATE candidates SET link_sent = 1, interview_link = ? WHERE id = ?'
