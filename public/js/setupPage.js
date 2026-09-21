@@ -162,8 +162,7 @@ const SetupPage = {
    */
   getStep1HTML() {
     const savedHrEmail = localStorage.getItem('hr_email');
-    const emailFieldDisabled = savedHrEmail ? 'disabled' : '';
-    const emailNote = savedHrEmail ? '<p style="color: #666; font-size: 13px; margin-top: 4px;">This email was saved from your previous job creation.</p>' : '';
+    const emailNote = savedHrEmail ? '<p style="color: #666; font-size: 13px; margin-top: 4px;">This email was saved from your previous job creation. You can change it anytime.</p>' : '';
 
     return `
       <div class="form-group">
@@ -175,7 +174,7 @@ const SetupPage = {
 
       <div class="form-group">
         <label for="hr_email">Your Email *</label>
-        <input type="email" id="hr_email" placeholder="your@email.com" value="${this.formData.hr_email}" required ${emailFieldDisabled}>
+        <input type="email" id="hr_email" placeholder="your@email.com" value="${this.formData.hr_email}" required>
         ${emailNote}
       </div>
 
