@@ -180,6 +180,7 @@
               <div style="display: flex; gap: 8px; margin-top: 8px;">
                 <input type="text" value="${link}" readonly style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
                 <button class="btn btn-primary btn-small copy-candidate-link" data-link="${link}">Copy</button>
+                <button class="btn btn-danger btn-small delete-candidate-btn" data-candidate-id="${c.id}" data-candidate-name="${c.name}">Xóa</button>
               </div>
             ` : '<p style="color: #ff9800; font-size: 13px;">Link chưa được tạo</p>';
 
@@ -211,6 +212,24 @@
               }).catch(() => {
                 alert('Không thể copy link');
               });
+            });
+          });
+
+          // Add delete button handlers
+          document.querySelectorAll('.delete-candidate-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const candidateId = e.target.dataset.candidateId;
+              const candidateName = e.target.dataset.candidateName;
+
+              if (confirm(`Bạn có chắc muốn xóa ứng viên "${candidateName}"? Không thể hoàn tác.`)) {
+                fetch(`/api/job-library/candidates/${candidateId}`, { method: 'DELETE' })
+                  .then(r => {
+                    if (!r.ok) throw new Error('Xóa không thành công');
+                    // Remove from UI
+                    e.target.closest('[style*="padding: 12px"]').remove();
+                  })
+                  .catch(err => alert('Lỗi: ' + err.message));
+              }
             });
           });
         })

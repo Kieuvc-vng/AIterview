@@ -141,12 +141,6 @@ router.delete('/candidates/:candidateId', async (req, res, next) => {
       return res.status(400).json({ error: 'Invalid candidate ID' });
     }
 
-    // Check if candidate exists before deleting
-    const candidate = await jobLibraryService.getCandidateById(candidateId);
-    if (!candidate) {
-      return res.status(404).json({ error: 'Candidate not found' });
-    }
-
     await jobLibraryService.deleteCandidate(candidateId);
     res.json({ success: true });
   } catch (error) {
