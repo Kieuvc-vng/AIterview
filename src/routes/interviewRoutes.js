@@ -102,7 +102,7 @@ router.post('/:sessionId/start', async (req, res, next) => {
       opening_message,
       current_question: {
         skill: 'TBD',
-        question: 'Interview started'
+        question_text: 'Interview started'
       }
     });
   } catch (error) {
