@@ -97,12 +97,29 @@ router.post('/:sessionId/start', async (req, res, next) => {
 
     const updatedData = await sessionManager.getSession(sessionId);
 
+    // Get first question from questions_by_skill
+    let currentQuestion = null;
+    const questionsBySkill = typeof updatedData.session.questions_by_skill === 'string'
+      ? JSON.parse(updatedData.session.questions_by_skill)
+      : updatedData.session.questions_by_skill;
+
+    if (questionsBySkill && Object.keys(questionsBySkill).length > 0) {
+      const firstSkill = Object.keys(questionsBySkill)[0];
+      const skillQuestions = questionsBySkill[firstSkill];
+      if (skillQuestions && skillQuestions.length > 0) {
+        currentQuestion = {
+          skill: firstSkill,
+          question_text: skillQuestions[0]
+        };
+      }
+    }
+
     res.json({
       session: updatedData.session,
       opening_message,
-      current_question: {
+      current_question: currentQuestion || {
         skill: 'TBD',
-        question_text: 'Interview started'
+        question_text: 'No questions available'
       }
     });
   } catch (error) {
