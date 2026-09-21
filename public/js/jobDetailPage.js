@@ -5,11 +5,16 @@ const JobDetailPage = (() => {
 
   const getFullInterviewLink = (link) => {
     if (!link) return '';
-    if (link.startsWith('http://') || link.startsWith('https://')) {
+    const isFullUrl = link.startsWith('http://') || link.startsWith('https://');
+    if (isFullUrl) {
       return link;
     }
     const baseUrl = window.location.origin;
-    return baseUrl + link;
+    const result = baseUrl + link;
+    if (result.includes('http://localhost:3000http://')) {
+      console.warn('[WARN] Potential duplicate URL detected:', { link, result });
+    }
+    return result;
   };
 
   const init = async (jobId) => {

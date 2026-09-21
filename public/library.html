@@ -171,7 +171,11 @@
           }
 
           listDiv.innerHTML = candidates.map(c => {
-            const link = c.interview_link ? `${window.location.origin}${c.interview_link}` : 'Chưa tạo link';
+            const link = c.interview_link ? (
+              c.interview_link.startsWith('http://') || c.interview_link.startsWith('https://')
+                ? c.interview_link
+                : `${window.location.origin}${c.interview_link}`
+            ) : 'Chưa tạo link';
             const linkHtml = c.interview_link ? `
               <div style="display: flex; gap: 8px; margin-top: 8px;">
                 <input type="text" value="${link}" readonly style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
