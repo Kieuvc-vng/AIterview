@@ -3,9 +3,13 @@
 const JobDetailPage = (() => {
   let currentJobId = null;
 
-  const getFullInterviewLink = (relativeLink) => {
+  const getFullInterviewLink = (link) => {
+    if (!link) return '';
+    if (link.startsWith('http://') || link.startsWith('https://')) {
+      return link;
+    }
     const baseUrl = window.location.origin;
-    return baseUrl + relativeLink;
+    return baseUrl + link;
   };
 
   const init = async (jobId) => {
