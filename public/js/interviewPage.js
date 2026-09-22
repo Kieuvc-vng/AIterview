@@ -38,6 +38,7 @@ const InterviewPage = {
           const data = await response.json();
           this.interviewId = storedInterviewId;
           this.messages = data.messages || [];
+          this.candidateName = data.interview?.candidate_name || 'Candidate';
           this.interviewStarted = data.interview && data.interview.status === 'active' || this.messages.length > 0;
 
           // Restore questions from localStorage
