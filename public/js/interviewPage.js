@@ -87,6 +87,9 @@ const InterviewPage = {
     this.interviewId = data.interviewId || this.interviewId;
     this.messages = data.messages || [];
     this.interviewStarted = data.interviewStarted || false;
+    if (data.currentQuestion) {
+      this.currentQuestion = data.currentQuestion;
+    }
 
     const html = this.interviewStarted
       ? this.getChatInterfaceHTML()
@@ -394,7 +397,8 @@ const InterviewPage = {
       this.render(document.getElementById('app'), {
         interviewId: this.interviewId,
         interviewStarted: true,
-        messages: this.messages
+        messages: this.messages,
+        currentQuestion: this.currentQuestion
       });
     } catch (error) {
       App.showError(error.message);
