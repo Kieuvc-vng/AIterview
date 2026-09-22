@@ -343,3 +343,42 @@ _Các entry thật bắt đầu từ đây._
 
 **Bước:** Spec → Build → Test (xong)
 **Chưa hiểu:** không có gì
+
+## 22/09 — Kiểu + Tiến
+
+**Nhờ làm:**
+1. Fix interview chatbot không hoạt động ("Failed to start interview" error)
+2. Fix question progression logic (câu hỏi không chuyển)
+3. Fix review page back button (quay lại setup thay vì job library)
+
+**Claude làm:**
+
+**Phần 1 - Interview chatbot fix:**
+- Bug: Qwen API unreachable (domain không resolve được)
+- Fix: Set QWEN_API_KEY thành placeholder, add fallback to mock mode trong qwenClient.js
+- Enhance mock responses: thêm case cho opening greeting + evaluate scenarios
+- Fix interview.html: accept cả `job_id` và `job` parameters (inconsistency issue)
+- Fix generateInterviewLink: change parameter name từ `job=` thành `job_id=` cho consistency
+- Result: Interview chatbot chạy được với mock AI responses
+- Commits: 94b6a7b (interview fixes + mock fallback), c39ada7 (question progression)
+
+**Phần 2 - Question progression logic:**
+- Problem: câu hỏi không chuyển, luôn hiện "Technical Skills", AI trả về generic mock
+- Fix: Implement proper question management trong /api/interview/message endpoint
+  - Parse questions_by_skill từ session data
+  - Calculate next question based on message count
+  - Return next_question trong API response
+  - Set interview_complete flag khi hết câu hỏi
+- Frontend already ready: interviewPage.js update currentQuestion khi nhận next_question từ API
+- Code ready, chưa fully test vì session management issue
+
+**Phần 3 - Review page back button:**
+- Problem: nút "Back to Setup" quay lại setup page thay vì job library
+- Fix: Change button label + navigation destination
+  - Button ID: btn-back-to-setup → btn-back-to-library
+  - Button text: "Back to Setup" → "Back to Job Library"  
+  - Navigation: App.goToPage('setup') → App.goToPage('job-library')
+- Commit: 774185f (review back button fix)
+
+**Bước:** Spec → Build → Test (implementation done, partial testing)
+**Chưa hiểu:** không có gì
