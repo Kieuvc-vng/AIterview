@@ -145,6 +145,8 @@ router.post('/:sessionId/message', async (req, res, next) => {
       return res.status(404).json({ error: 'Session not found' });
     }
 
+    const session = sessionData.session;
+
     // Save candidate message
     await sessionManager.saveMessage(sessionId, {
       sender: 'candidate',
@@ -154,24 +156,52 @@ router.post('/:sessionId/message', async (req, res, next) => {
       attempt_number: null
     });
 
-    // Get AI response (mock for now)
-    const ai_response = `Thank you for that answer. Let me follow up on what you said...`;
+    // Parse questions by skill from session
+    const questionsBySkill = typeof session.questions_by_skill === 'string'
+      ? JSON.parse(session.questions_by_skill)
+      : session.questions_by_skill;
+
+    // Get all questions in order
+    const allQuestions = [];
+    const skillOrder = Object.keys(questionsBySkill);
+    skillOrder.forEach(skill => {
+      const questions = questionsBySkill[skill];
+      questions.forEach(q => {
+        allQuestions.push({ skill, question_text: q });
+      });
+    });
+
+    // Get next question (simple increment from message count)
+    const messageCount = sessionData.messages ? sessionData.messages.length : 1;
+    const nextQuestionIndex = Math.floor((messageCount - 1) / 2); // Every 2 messages = 1 question
+    let nextQuestion = null;
+
+    if (nextQuestionIndex < allQuestions.length) {
+      nextQuestion = allQuestions[nextQuestionIndex];
+    }
+
+    // Get AI response
+    const ai_response = nextQuestion
+      ? `Thank you for your answer. ${nextQuestion.question_text}`
+      : `Thank you for your responses. That concludes our interview. We'll be in touch soon!`;
 
     // Save AI response
     await sessionManager.saveMessage(sessionId, {
       sender: 'ai',
       content: ai_response,
-      skill_name: null,
-      question_index: null,
-      attempt_number: null
+      skill_name: nextQuestion ? nextQuestion.skill : null,
+      question_index: nextQuestionIndex,
+      attempt_number: 1
     });
+
+    const isComplete = !nextQuestion || nextQuestionIndex >= allQuestions.length - 1;
 
     res.json({
       ai_response,
       answer_good: true,
-      next_action: 'next_question',
-      next_question: null,
-      interview_complete: false
+      next_action: isComplete ? 'interview_complete' : 'next_question',
+      next_question: nextQuestion,
+      interview_complete: isComplete
     });
   } catch (error) {
     next({ status: 500, message: error.message });
