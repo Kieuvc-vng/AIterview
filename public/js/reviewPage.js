@@ -181,7 +181,6 @@ const ReviewPage = {
         <thead>
           <tr>
             <th>Skill</th>
-            <th>Score (0-10)</th>
             <th>Evidence</th>
           </tr>
         </thead>
@@ -189,7 +188,6 @@ const ReviewPage = {
           ${this.rubric.map(item => `
             <tr>
               <td><strong>${this.escapeHtml(item.skill_name || item.skill || 'N/A')}</strong></td>
-              <td class="score-cell">${item.score || '—'}</td>
               <td class="evidence-cell">${Array.isArray(item.evidence) ? item.evidence.join('; ') : this.escapeHtml(item.evidence || '—')}</td>
             </tr>
           `).join('')}

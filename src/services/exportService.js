@@ -66,16 +66,14 @@ const generatePDF = async (messages, rubrics, sessionData) => {
     const availableWidth = pageWidth - 2 * margin;
     const colWidths = {
       skill: availableWidth * 0.35,
-      score: availableWidth * 0.15,
-      evidence: availableWidth * 0.5
+      evidence: availableWidth * 0.65
     };
 
     // Table header
     const headerY = doc.y;
     doc.fontSize(9).font('Helvetica-Bold');
     doc.text('Skill', margin, headerY, { width: colWidths.skill });
-    doc.text('Score', margin + colWidths.skill, headerY, { width: colWidths.score, align: 'center' });
-    doc.text('Evidence', margin + colWidths.skill + colWidths.score, headerY, { width: colWidths.evidence });
+    doc.text('Evidence', margin + colWidths.skill, headerY, { width: colWidths.evidence });
 
     doc.moveTo(margin, headerY + 15).lineTo(pageWidth - margin, headerY + 15).stroke();
     doc.moveDown();
@@ -84,11 +82,9 @@ const generatePDF = async (messages, rubrics, sessionData) => {
     doc.fontSize(9).font('Helvetica');
     for (const rubric of rubrics) {
       const rowY = doc.y;
-      const scoreText = `${rubric.score}/10`;
 
       doc.text(rubric.skill_name, margin, rowY, { width: colWidths.skill });
-      doc.text(scoreText, margin + colWidths.skill, rowY, { width: colWidths.score, align: 'center' });
-      doc.text(rubric.evidence, margin + colWidths.skill + colWidths.score, rowY, {
+      doc.text(rubric.evidence, margin + colWidths.skill, rowY, {
         width: colWidths.evidence,
         ellipsis: true,
         height: 30
@@ -145,7 +141,6 @@ const generateCSV = async (rubrics, sessionData) => {
     // Prepare data for CSV
     const csvData = rubrics.map((rubric) => ({
       skill_name: rubric.skill_name,
-      score: rubric.score,
       evidence: rubric.evidence,
       strengths: Array.isArray(rubric.strengths) ? rubric.strengths.join('; ') : '',
       weaknesses: Array.isArray(rubric.weaknesses) ? rubric.weaknesses.join('; ') : ''
@@ -155,7 +150,6 @@ const generateCSV = async (rubrics, sessionData) => {
       path: filePath,
       header: [
         { id: 'skill_name', title: 'Skill' },
-        { id: 'score', title: 'Score (0-10)' },
         { id: 'evidence', title: 'Evidence' },
         { id: 'strengths', title: 'Strengths' },
         { id: 'weaknesses', title: 'Weaknesses' }
