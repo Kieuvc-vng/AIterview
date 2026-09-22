@@ -293,15 +293,33 @@ router.post('/:interviewId/message', async (req, res, next) => {
     let interviewComplete = false;
 
     try {
-      const interview = inMemoryStore.interviewStates[interviewId];
-      if (interview) {
-        const job = await jobLibraryService.getJobById(interview.job_id);
+      // Get interview to find job_id
+      let job_id = null;
+
+      if (db) {
+        const interviews = await db.prepare('SELECT * FROM interviews WHERE id = ?').all(interviewId);
+        if (interviews && interviews.length > 0) {
+          job_id = interviews[0].job_id;
+        }
+      } else {
+        const interview = inMemoryStore.interviews[interviewId];
+        if (interview) {
+          job_id = interview.job_id;
+        }
+      }
+
+      if (job_id) {
+        const job = await jobLibraryService.getJobById(job_id);
         if (job) {
           const skills = typeof job.skills === 'string' ? JSON.parse(job.skills) : job.skills;
           const questionsData = typeof job.questions_by_skill === 'string' ? JSON.parse(job.questions_by_skill) : job.questions_by_skill;
 
-          let skillIndex = interview.current_skill_index || 0;
-          let questionIndex = (interview.current_question_index || 0) + 1;
+          const state = inMemoryStore.interviewStates[interviewId];
+          let skillIndex = (state && state.current_skill_index) || 0;
+          let questionIndex = (state && state.current_question_index) || 0;
+
+          // Move to next question
+          questionIndex++;
 
           // Check if need to move to next skill
           if (questionsData[skills[skillIndex]] && questionIndex >= questionsData[skills[skillIndex]].length) {
@@ -320,8 +338,10 @@ router.post('/:interviewId/message', async (req, res, next) => {
           }
 
           // Update state
-          interview.current_skill_index = skillIndex;
-          interview.current_question_index = questionIndex;
+          if (state) {
+            state.current_skill_index = skillIndex;
+            state.current_question_index = questionIndex;
+          }
         }
       }
     } catch (e) {
