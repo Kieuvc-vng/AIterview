@@ -383,35 +383,11 @@ const InterviewPage = {
         content: data.ai_response
       });
 
-      // Update state
+      // Update state from API response
       if (data.interview_complete) {
         this.interviewComplete = true;
-      } else {
-        // Move to next question
-        this.currentQuestionIndex++;
-
-        // Check if need to move to next skill
-        const currentSkillQuestions = this.questionsBySkill[this.skills[this.currentSkillIndex]] || [];
-        if (this.currentQuestionIndex >= currentSkillQuestions.length) {
-          this.currentSkillIndex++;
-          this.currentQuestionIndex = 0;
-
-          // Check if all skills done
-          if (this.currentSkillIndex >= this.skills.length) {
-            this.interviewComplete = true;
-          }
-        }
-
-        // Update current question
-        if (!this.interviewComplete && this.skills.length > 0) {
-          const nextQuestion = this.questionsBySkill[this.skills[this.currentSkillIndex]][this.currentQuestionIndex];
-          if (nextQuestion) {
-            this.currentQuestion = {
-              skill: this.skills[this.currentSkillIndex],
-              question_text: nextQuestion
-            };
-          }
-        }
+      } else if (data.next_question) {
+        this.currentQuestion = data.next_question;
       }
 
       // Re-render

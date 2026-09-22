@@ -288,12 +288,52 @@ router.post('/:interviewId/message', async (req, res, next) => {
       inMemoryStore.messages[interviewId].push(aiMessageRecord);
     }
 
+    // Get job details to find next question
+    let nextQuestion = null;
+    let interviewComplete = false;
+
+    try {
+      const interview = inMemoryStore.interviewStates[interviewId];
+      if (interview) {
+        const job = await jobLibraryService.getJobById(interview.job_id);
+        if (job) {
+          const skills = typeof job.skills === 'string' ? JSON.parse(job.skills) : job.skills;
+          const questionsData = typeof job.questions_by_skill === 'string' ? JSON.parse(job.questions_by_skill) : job.questions_by_skill;
+
+          let skillIndex = interview.current_skill_index || 0;
+          let questionIndex = (interview.current_question_index || 0) + 1;
+
+          // Check if need to move to next skill
+          if (questionsData[skills[skillIndex]] && questionIndex >= questionsData[skills[skillIndex]].length) {
+            skillIndex++;
+            questionIndex = 0;
+          }
+
+          // Check if interview complete
+          if (skillIndex >= skills.length) {
+            interviewComplete = true;
+          } else if (questionsData[skills[skillIndex]] && questionsData[skills[skillIndex]][questionIndex]) {
+            nextQuestion = {
+              skill: skills[skillIndex],
+              question_text: questionsData[skills[skillIndex]][questionIndex]
+            };
+          }
+
+          // Update state
+          interview.current_skill_index = skillIndex;
+          interview.current_question_index = questionIndex;
+        }
+      }
+    } catch (e) {
+      console.error('Error calculating next question:', e.message);
+    }
+
     res.json({
       ai_response,
       answer_good: true,
       next_action: 'next_question',
-      next_question: null,
-      interview_complete: false
+      next_question: nextQuestion,
+      interview_complete: interviewComplete
     });
   } catch (error) {
     next({ status: 500, message: error.message });
