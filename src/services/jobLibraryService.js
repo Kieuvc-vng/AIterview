@@ -258,7 +258,7 @@ const jobLibraryService = {
         db = await dbModule.getDb();
       }
       if (!db) throw new Error('Database not available');
-      const pathOnly = `/interview.html?job=${jobId}&candidate=${candidateId}`;
+      const pathOnly = `/interview.html?job_id=${jobId}&candidate=${candidateId}`;
       const interviewLink = baseUrl ? `${baseUrl}${pathOnly}` : pathOnly;
 
       const result = await db.prepare(

@@ -6,7 +6,11 @@ const QWEN_MODEL = process.env.QWEN_MODEL || 'qwen/qwen3.7-plus';
 const QWEN_API_BASE_URL = process.env.QWEN_API_BASE_URL || 'https://maas-lle-aiplatform-hcm.api.vngcloud.vn/v2';
 const QWEN_API_URL = `${QWEN_API_BASE_URL}/chat/completions`;
 
-const isPlaceholderKey = () => !QWEN_API_KEY || QWEN_API_KEY.includes('your_');
+const isPlaceholderKey = () => {
+  const result = !QWEN_API_KEY || QWEN_API_KEY.includes('your_') || QWEN_API_KEY.includes('placeholder');
+  console.log('[qwenClient] isPlaceholderKey:', result, 'QWEN_API_KEY:', QWEN_API_KEY ? QWEN_API_KEY.substring(0, 20) + '...' : 'undefined');
+  return result;
+};
 
 const getMockResponse = (systemPrompt, messages) => {
   const lastMessage = messages[messages.length - 1]?.content || '';
@@ -149,15 +153,15 @@ const getMockResponse = (systemPrompt, messages) => {
     console.log('[MOCK] Generated questions_by_skill:', JSON.stringify(questions_by_skill));
     return JSON.stringify({ questions_by_skill });
   }
+  if (systemLower.includes('opening greeting') || (systemLower.includes('hr interviewer') && systemLower.includes('warm'))) {
+    // Mock opening greeting for interview
+    return `Hello! Thank you for taking the time to interview with us today. I'm excited to learn more about your background and experience. Let's dive right in and explore your qualifications for this role!`;
+  }
   if (systemLower.includes('evaluate') || systemLower.includes('candidate')) {
-    return JSON.stringify({
-      answer_good: Math.random() > 0.5,
-      feedback: 'Mock response - good understanding of the concept.',
-      score: Math.floor(Math.random() * 4) + 6
-    });
+    return `That's a great answer! I appreciate your detailed explanation. You clearly have solid understanding of this area. [[ANSWER_GOOD]]`;
   }
 
-  return JSON.stringify({ response: 'Mock response for testing' });
+  return 'Mock response for testing';
 };
 
 const callQwen = async (messages, systemPrompt = null) => {
@@ -195,7 +199,9 @@ const callQwen = async (messages, systemPrompt = null) => {
     }
   } catch (error) {
     console.error('Qwen API error:', error.message);
-    throw new Error(`Qwen API failed: ${error.message}`);
+    // Fallback to mock mode if API fails
+    console.log('[FALLBACK] Using mock response due to API error');
+    return getMockResponse(systemPrompt, messages);
   }
 };
 

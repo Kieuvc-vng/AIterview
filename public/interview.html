@@ -19,7 +19,7 @@
     // Parse URL parameters for candidate interview
     document.addEventListener('DOMContentLoaded', async () => {
       const params = new URLSearchParams(window.location.search);
-      const jobId = params.get('job');
+      const jobId = params.get('job_id') || params.get('job');
       const candidateId = params.get('candidate');
 
       if (jobId && candidateId) {
