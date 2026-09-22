@@ -12,6 +12,10 @@ const InterviewPage = {
   messages: [],
   interviewStarted: false,
   interviewComplete: false,
+  questionsBySkill: {},
+  skills: [],
+  currentSkillIndex: 0,
+  currentQuestionIndex: 0,
 
   /**
    * Initialize interview page - accept job_id
@@ -23,6 +27,8 @@ const InterviewPage = {
 
     // Check if we have INTERVIEW_ID in localStorage (resume case)
     const storedInterviewId = localStorage.getItem('current_interview_id');
+    const storedQuestionsBySkill = localStorage.getItem('current_questions_by_skill');
+    const storedSkills = localStorage.getItem('current_skills');
 
     if (storedInterviewId) {
       // Try to resume existing interview
@@ -34,7 +40,26 @@ const InterviewPage = {
           this.messages = data.messages || [];
           this.interviewStarted = data.interview && data.interview.status === 'active' || this.messages.length > 0;
 
+          // Restore questions from localStorage
+          if (storedQuestionsBySkill) {
+            this.questionsBySkill = JSON.parse(storedQuestionsBySkill);
+          }
+          if (storedSkills) {
+            this.skills = JSON.parse(storedSkills);
+          }
+
           if (this.interviewStarted) {
+            // Get current question based on skill/question index
+            if (this.skills.length > 0 && this.questionsBySkill[this.skills[this.currentSkillIndex]]) {
+              const question = this.questionsBySkill[this.skills[this.currentSkillIndex]][this.currentQuestionIndex];
+              if (question) {
+                this.currentQuestion = {
+                  skill: this.skills[this.currentSkillIndex],
+                  question_text: question
+                };
+              }
+            }
+
             // Render with loaded data
             this.render(container, {
               interviewId: storedInterviewId,
@@ -285,10 +310,22 @@ const InterviewPage = {
 
       const data = await response.json();
       this.interviewId = data.interview_id;
-      this.currentQuestion = data.current_question;
+      this.questionsBySkill = data.questions_by_skill || {};
+      this.skills = data.skills || [];
+
+      // Get first question from questions_by_skill
+      if (this.skills.length > 0 && this.questionsBySkill[this.skills[0]]) {
+        const firstQuestion = this.questionsBySkill[this.skills[0]][0];
+        this.currentQuestion = {
+          skill: this.skills[0],
+          question_text: firstQuestion
+        };
+      }
 
       // Store interview_id in localStorage for resume
       localStorage.setItem('current_interview_id', this.interviewId);
+      localStorage.setItem('current_questions_by_skill', JSON.stringify(this.questionsBySkill));
+      localStorage.setItem('current_skills', JSON.stringify(this.skills));
 
       // Add opening message to messages
       this.messages = [{
@@ -348,8 +385,32 @@ const InterviewPage = {
       // Update state
       if (data.interview_complete) {
         this.interviewComplete = true;
-      } else if (data.next_question) {
-        this.currentQuestion = data.next_question;
+      } else {
+        // Move to next question
+        this.currentQuestionIndex++;
+
+        // Check if need to move to next skill
+        const currentSkillQuestions = this.questionsBySkill[this.skills[this.currentSkillIndex]] || [];
+        if (this.currentQuestionIndex >= currentSkillQuestions.length) {
+          this.currentSkillIndex++;
+          this.currentQuestionIndex = 0;
+
+          // Check if all skills done
+          if (this.currentSkillIndex >= this.skills.length) {
+            this.interviewComplete = true;
+          }
+        }
+
+        // Update current question
+        if (!this.interviewComplete && this.skills.length > 0) {
+          const nextQuestion = this.questionsBySkill[this.skills[this.currentSkillIndex]][this.currentQuestionIndex];
+          if (nextQuestion) {
+            this.currentQuestion = {
+              skill: this.skills[this.currentSkillIndex],
+              question_text: nextQuestion
+            };
+          }
+        }
       }
 
       // Re-render
