@@ -348,6 +348,8 @@ router.post('/:interviewId/message', async (req, res, next) => {
       console.error('Error calculating next question:', e.message);
     }
 
+    console.log('[message] Returning next_question:', nextQuestion, 'complete:', interviewComplete);
+
     res.json({
       ai_response,
       answer_good: true,
