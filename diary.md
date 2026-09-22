@@ -91,3 +91,38 @@ _Các entry thật bắt đầu từ đây._
 - Task 18: jest.config.js + tests/setup.js + setupRoutes.test.js (test suite for API routes)
 - Task 19: public/README.md (architecture, page flows, API endpoints, CSS classes)
 - Task 20: npm install works, jest tests ready, full build verified
+
+## 22/09 — Kiểu + Tiến (Afternoon - Phase 3 Integration)
+
+**Nhờ làm:** thay thế phần results display từ Source 2 (feature/job-library-phase3-frontend) vào Source 1
+
+**Claude làm:**
+
+**Phần 1 - So sánh 2 source:**
+- Source 1 (feature/job-library-schema): schema SESSIONS, basic review page
+- Source 2 (feature/job-library-phase3-frontend): schema JOBS/CANDIDATES/INTERVIEWS, full results with summaries
+- Phát hiện: 2 schema hoàn toàn khác nhau → cần Plan C (dùng Phase 3 schema + giữ interview logic)
+
+**Phần 2 - Triển khai Plan C:**
+- Update schema.sql: SESSIONS → JOBS/CANDIDATES/INTERVIEWS/SUMMARIES (Phase 3 schema)
+- Update setupRoutes: gọi jobLibraryService.createJob() thay vì sessionManager.createSession()
+- Rewrite interviewRoutes: tạo CANDIDATE+INTERVIEW động, lưu vào INTERVIEWS table
+- Rewrite reviewRoutes: lấy dữ liệu từ INTERVIEWS thay SESSIONS
+- Copy jobLibraryService.js từ Phase 3
+- Update db/init.js: export getDb() function để services có thể gọi
+
+**Phần 3 - Frontend updates:**
+- app.js: support cả jobId + interviewId
+- setupPage.js: pass job_id to InterviewPage (thay vì session_id)
+- interviewPage.js: nhận job_id → gọi /api/interview/start → get interview_id
+- reviewPage.js: dùng interview_id thay sessionId
+- Tất cả API calls updated để dùng INTERVIEWS table
+
+**Phần 4 - Testing:**
+- Start server trên port 3001 ✓
+- Setup page render đúng ✓
+- Parse-jd endpoint hoạt động ✓
+- App initialized without errors ✓
+
+**Bước:** 3 — Spec → Build (xong implementation, cần test end-to-end)
+**Chưa hiểu:** chưa test full flow từ setup → interview → review để xác nhận tất cả hoạt động
