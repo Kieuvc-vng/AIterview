@@ -11,6 +11,14 @@ const ReviewPage = {
   rubricSummary: null,
 
   /**
+   * Initialize review page with session ID
+   */
+  init(sessionId) {
+    this.sessionId = sessionId;
+    this.render(document.getElementById('app'));
+  },
+
+  /**
    * Render the review page
    */
   render(container, data = {}) {
@@ -96,8 +104,8 @@ const ReviewPage = {
           </div>
 
           <div class="button-group" style="margin-top: 32px;">
-            <button type="button" class="btn-secondary" id="btn-back-to-setup">
-              Back to Setup
+            <button type="button" class="btn-secondary" id="btn-back-to-library">
+              Back to Job Library
             </button>
           </div>
         </div>
@@ -180,9 +188,9 @@ const ReviewPage = {
         <tbody>
           ${this.rubric.map(item => `
             <tr>
-              <td><strong>${this.escapeHtml(item.skill)}</strong></td>
-              <td class="score-cell">${item.score}</td>
-              <td class="evidence-cell">${this.escapeHtml(item.evidence)}</td>
+              <td><strong>${this.escapeHtml(item.skill_name || item.skill || 'N/A')}</strong></td>
+              <td class="score-cell">${item.score || '—'}</td>
+              <td class="evidence-cell">${Array.isArray(item.evidence) ? item.evidence.join('; ') : this.escapeHtml(item.evidence || '—')}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -233,7 +241,7 @@ const ReviewPage = {
   attachEventListeners() {
     const exportPdfBtn = document.getElementById('btn-export-pdf');
     const exportCsvBtn = document.getElementById('btn-export-csv');
-    const backBtn = document.getElementById('btn-back-to-setup');
+    const backBtn = document.getElementById('btn-back-to-library');
 
     if (exportPdfBtn) {
       exportPdfBtn.addEventListener('click', async () => {
@@ -249,7 +257,7 @@ const ReviewPage = {
 
     if (backBtn) {
       backBtn.addEventListener('click', () => {
-        App.goToPage('setup');
+        App.goToPage('job-library');
       });
     }
   },

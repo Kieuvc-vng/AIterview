@@ -1,9 +1,9 @@
-# Vibe-Code Workshop — Starter Kit
+# AIterview — AI-Powered Interview Platform
 
-Bộ file khởi động cho các nhóm tham gia workshop vibe-code: build một app nhỏ bằng cách "nói chuyện" với Claude Code, không cần biết code.
+App để HR phỏng vấn ứng viên bằng AI, quản lý kỹ năng, và đánh giá tự động.
 
-**Nhóm:** _(điền tên 2 người)_
-**Project:** _(một câu: app này làm gì)_
+**Nhóm:** Kiểu + Tiến
+**Project:** Platform phỏng vấn tương tác với AI, cho phép HR tạo job, quản lý ứng viên, và sinh báo cáo đánh giá
 
 ---
 
@@ -15,6 +15,38 @@ Bộ file khởi động cho các nhóm tham gia workshop vibe-code: build một
 | `diary.md` | Nhật ký làm việc. Mỗi ngày có làm thì ghi một entry. Đây là thứ Alex và Triết đọc ở buổi checkpoint. |
 | `README.md` | File bạn đang đọc: cách bắt đầu và cách làm việc. |
 | `.gitignore` | Danh sách file **không** đưa lên GitHub (quan trọng nhất: `.env` chứa API key). |
+
+---
+
+## Tính năng đã làm
+
+### ✅ Job Library Management
+- **Tạo Job mới:** HR điền JD → hệ thống extract fields tự động (title, level, company)
+- **Quản lý kỹ năng:** AI detect skills từ nội dung JD (25+ keywords: Python, React, AWS, Leadership, etc.)
+- **Sinh câu hỏi:** Tự động tạo 3 câu hỏi cho từng skill
+- **Edit job:** Sửa thông tin job sau khi tạo, dữ liệu được giữ nguyên (không re-detect)
+- **Delete job:** Xoá job với confirmation modal, cascade delete candidates
+
+### ✅ Candidate Management
+- **Thêm ứng viên:** Nhập tên, email, điện thoại cho từng job
+- **Generate link:** Tạo interview link duy nhất cho mỗi candidate
+- **Copy link:** Copy to clipboard để gửi email/chat
+
+### ✅ Interview Engine
+- **Start interview:** Candidate vào link → phỏng vấn với AI
+- **3-pass evaluation:** Hệ thống hỏi 3 lần mỗi skill, theo dõi tiến độ
+- **Real-time feedback:** AI đánh giá từng câu trả lời, gợi ý follow-up questions
+
+### ✅ Review & Export
+- **Rubric scoring:** Tự động tính điểm 0-10 mỗi skill dựa trên chat
+- **PDF report:** Export báo cáo phỏng vấn (kỹ năng, điểm, chứng cứ)
+- **CSV export:** Xuất dữ liệu candidate cho phân tích
+
+### ✅ UI/UX
+- **Landing page:** Thư Viện Job (default khi mở app)
+- **Multi-step form:** Setup page 5 bước (JD → Details → Skills → Questions → Create)
+- **Job cards:** Hiển thị job info, 4 action buttons (View candidates, Add candidate, Edit, Delete)
+- **Modal popups:** Job detail view, delete confirmation, candidate list
 
 ---
 

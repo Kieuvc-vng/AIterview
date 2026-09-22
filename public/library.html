@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Job Library | AIterview</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; }
+    header { background: white; padding: 1rem 2rem; border-bottom: 1px solid #eee; }
+    .container { max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+    .job-card { background: white; padding: 1.5rem; margin: 1rem 0; border-radius: 8px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+    .job-info h3 { margin-bottom: 0.5rem; }
+    .job-info p { color: #666; font-size: 14px; }
+    .actions { display: flex; gap: 0.5rem; }
+    button { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+    .btn-primary { background: #2196f3; color: white; }
+    .btn-secondary { background: #f5f5f5; color: #333; border: 1px solid #ddd; }
+    .btn-danger { background: #dc3545; color: white; }
+    .btn-create { background: #4caf50; color: white; padding: 0.7rem 1.5rem; font-size: 16px; margin-top: 2rem; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+    .modal.active { display: flex; }
+    .modal-content { background: white; padding: 2rem; border-radius: 8px; max-width: 400px; width: 90%; }
+    .modal-content h2 { margin-bottom: 1rem; }
+    .modal-content input { width: 100%; padding: 0.7rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+    .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+    .link-section { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .link-info { color: #4caf50; font-weight: 500; margin: 0; }
+    .link-display { display: flex; gap: 10px; }
+    .link-input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; }
+    .btn-small { padding: 6px 12px; font-size: 12px; }
+    .send-email-btn { background: #ff9800; color: white; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📚 Thư Viện Job</h1>
+  </header>
+
+  <div class="container">
+    <div id="jobsList"></div>
+    <button class="btn-create" onclick="showCreateJobForm()">+ Tạo Job Mới</button>
+  </div>
+
+  <div id="editJobModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+      <h2>Chi Tiết Job</h2>
+      <div id="editJobContent" style="max-height: 500px; overflow-y: auto;">
+        <!-- Job details will be populated here -->
+      </div>
+      <div class="modal-actions" style="margin-top: 1rem;">
+        <button class="btn-secondary" onclick="closeEditJobModal()">Đóng</button>
+        <button class="btn-primary" id="editJobBtn" onclick="editJobSetup()">Chỉnh Sửa</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="candidatesModal" class="modal">
+    <div class="modal-content" style="max-width: 600px; max-height: 600px; overflow-y: auto;">
+      <h2>Danh Sách Ứng Viên</h2>
+      <div id="candidatesList" style="margin: 1rem 0;"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeCandidatesModal()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="sendModal" class="modal">
+    <div class="modal-content">
+      <h2>Gửi cho Ứng Viên</h2>
+      <div id="formSection">
+        <input type="text" id="candidateName" placeholder="Tên ứng viên" />
+        <input type="email" id="candidateEmail" placeholder="Email" />
+        <input type="tel" id="candidatePhone" placeholder="Số điện thoại" />
+        <div class="modal-actions">
+          <button class="btn-secondary" onclick="closeSendModal()">Hủy</button>
+          <button class="btn-primary" onclick="generateLink()">Tạo Link</button>
+        </div>
+      </div>
+      <div id="linkSection" class="link-section" style="display: none;">
+        <p class="link-info">✓ Link tạo thành công</p>
+        <div class="link-display">
+          <input type="text" id="generatedLink" class="link-input" readonly />
+          <button class="btn btn-primary btn-small copy-link-btn">Copy</button>
+        </div>
+        <button class="btn btn-secondary" onclick="closeSendModal()" style="margin-top: 5px;">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="deleteConfirmModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <h2>Xóa Job</h2>
+      <p id="deleteMessage" style="margin: 1rem 0; color: #333;">Bạn có chắc muốn xóa job này? Tất cả ứng viên sẽ bị xóa theo. <strong>Không thể hoàn tác.</strong></p>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeDeleteConfirm()">Hủy</button>
+        <button class="btn-danger" onclick="confirmDelete()">Xóa</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentJobId = null;
+    let currentCandidateData = null;
+
+    // Load jobs on page load
+    document.addEventListener('DOMContentLoaded', loadJobs);
+
+    function loadJobs() {
+      // Get hr_email from localStorage
+      const hrEmail = localStorage.getItem('hr_email') || 'default@company.com';
+
+      fetch(`/api/job-library/jobs?hr_email=${encodeURIComponent(hrEmail)}`)
+        .then(r => r.json())
+        .then(jobs => {
+          const list = document.getElementById('jobsList');
+          if (jobs.length === 0) {
+            list.innerHTML = '<p style="text-align: center; color: #666;">Chưa có job nào. Tạo job mới!</p>';
+            return;
+          }
+          list.innerHTML = jobs.map(job => `
+            <div class="job-card">
+              <div class="job-info">
+                <h3>${job.job_title} (${job.level})</h3>
+                <p>${job.company} · ${JSON.parse(job.skills || '[]').length} skills</p>
+              </div>
+              <div class="actions">
+                <button class="btn-primary" onclick="openCandidatesModal('${job.id}')">Xem Ứng Viên</button>
+                <button class="btn-secondary" onclick="openSendModal('${job.id}')">Tạo Ứng Viên</button>
+                <button class="btn-secondary" onclick="openJobDetail('${job.id}')">Chỉnh Sửa</button>
+                <button class="btn-danger" onclick="showDeleteConfirm('${job.id}', '${job.job_title}')">Xóa</button>
+              </div>
+            </div>
+          `).join('');
+        });
+    }
+
+    function openSendModal(jobId) {
+      currentJobId = jobId;
+      document.getElementById('sendModal').classList.add('active');
+      document.getElementById('formSection').style.display = 'block';
+      document.getElementById('linkSection').style.display = 'none';
+      document.getElementById('candidateName').value = '';
+      document.getElementById('candidateEmail').value = '';
+      document.getElementById('candidatePhone').value = '';
+    }
+
+    function closeSendModal() {
+      document.getElementById('sendModal').classList.remove('active');
+      currentCandidateData = null;
+    }
+
+    function openCandidatesModal(jobId) {
+      currentJobId = jobId;
+      document.getElementById('candidatesModal').classList.add('active');
+      loadAndDisplayCandidates(jobId);
+    }
+
+    function closeCandidatesModal() {
+      document.getElementById('candidatesModal').classList.remove('active');
+    }
+
+    function loadAndDisplayCandidates(jobId) {
+      fetch(`/api/job-library/jobs/${jobId}`)
+        .then(r => r.json())
+        .then(data => {
+          const { candidates } = data;
+          const listDiv = document.getElementById('candidatesList');
+
+          if (!candidates || candidates.length === 0) {
+            listDiv.innerHTML = '<p style="text-align: center; color: #999;">Chưa có ứng viên nào</p>';
+            return;
+          }
+
+          listDiv.innerHTML = candidates.map(c => {
+            const link = c.interview_link ? (
+              c.interview_link.startsWith('http://') || c.interview_link.startsWith('https://')
+                ? c.interview_link
+                : `${window.location.origin}${c.interview_link}`
+            ) : 'Chưa tạo link';
+            const linkHtml = c.interview_link ? `
+              <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <input type="text" value="${link}" readonly style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
+                <button class="btn btn-primary btn-small copy-candidate-link" data-link="${link}">Copy</button>
+                <button class="btn btn-danger btn-small delete-candidate-btn" data-candidate-id="${c.id}" data-candidate-name="${c.name}">Xóa</button>
+              </div>
+            ` : '<p style="color: #ff9800; font-size: 13px;">Link chưa được tạo</p>';
+
+            return `
+              <div style="padding: 12px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <h4 style="margin: 0 0 4px 0;">${c.name}</h4>
+                    <p style="margin: 0; color: #666; font-size: 13px;">${c.email} • ${c.phone}</p>
+                    <p style="margin: 4px 0 0 0; color: #999; font-size: 12px;">Trạng thái: ${c.interview_status || 'Chờ'}</p>
+                  </div>
+                </div>
+                ${linkHtml}
+              </div>
+            `;
+          }).join('');
+
+          // Add copy button handlers
+          document.querySelectorAll('.copy-candidate-link').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const link = e.target.dataset.link;
+              navigator.clipboard.writeText(link).then(() => {
+                e.target.textContent = '✓ Đã Copy';
+                e.target.style.background = '#4caf50';
+                setTimeout(() => {
+                  e.target.textContent = 'Copy';
+                  e.target.style.background = '';
+                }, 2000);
+              }).catch(() => {
+                alert('Không thể copy link');
+              });
+            });
+          });
+
+          // Add delete button handlers
+          document.querySelectorAll('.delete-candidate-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const candidateId = e.target.dataset.candidateId;
+              const candidateName = e.target.dataset.candidateName;
+
+              if (confirm(`Bạn có chắc muốn xóa ứng viên "${candidateName}"? Không thể hoàn tác.`)) {
+                fetch(`/api/job-library/candidates/${candidateId}`, { method: 'DELETE' })
+                  .then(r => {
+                    if (!r.ok) throw new Error('Xóa không thành công');
+                    // Remove from UI
+                    e.target.closest('[style*="padding: 12px"]').remove();
+                  })
+                  .catch(err => alert('Lỗi: ' + err.message));
+              }
+            });
+          });
+        })
+        .catch(err => {
+          document.getElementById('candidatesList').innerHTML = '<p style="color: red;">Lỗi: ' + err.message + '</p>';
+        });
+    }
+
+    function generateLink() {
+      const name = document.getElementById('candidateName').value;
+      const email = document.getElementById('candidateEmail').value;
+      const phone = document.getElementById('candidatePhone').value;
+
+      if (!name || !email || !phone) {
+        alert('Điền đầy đủ thông tin!');
+        return;
+      }
+
+      fetch(`/api/job-library/jobs/${currentJobId}/candidates`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone })
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.candidate_id) {
+            // Generate interview link by calling the generate-link endpoint
+            return fetch(`/api/job-library/candidates/${data.candidate_id}/generate-link`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ jobId: currentJobId })
+            }).then(r => r.json()).then(linkData => {
+              const interviewLink = linkData.interview_link || `${window.location.origin}/interview?token=${data.candidate_id}`;
+
+              // Store candidate data for email functionality
+              currentCandidateData = { name, email, interviewLink };
+
+              // Display link section
+              document.getElementById('generatedLink').value = interviewLink;
+              document.getElementById('formSection').style.display = 'none';
+              document.getElementById('linkSection').style.display = 'flex';
+            });
+          } else {
+            alert('Lỗi: không thể tạo ứng viên');
+          }
+        })
+        .catch(err => {
+          alert('Lỗi: ' + err.message);
+        });
+    }
+
+    function showCreateJobForm() {
+      window.location.href = '/index.html';
+    }
+
+    function openJobDetail(jobId) {
+      currentJobId = jobId;
+      fetch(`/api/job-library/jobs/${jobId}`)
+        .then(r => r.json())
+        .then(data => {
+          const { job, candidates } = data;
+          const skillsArray = Array.isArray(job.skills) ? job.skills : JSON.parse(job.skills || '[]');
+          const questionsBySkill = typeof job.questions_by_skill === 'string'
+            ? JSON.parse(job.questions_by_skill || '{}')
+            : job.questions_by_skill;
+
+          let html = `
+            <div style="margin-bottom: 1rem;">
+              <h3>${job.job_title}</h3>
+              <p><strong>Level:</strong> ${job.level}</p>
+              <p><strong>Company:</strong> ${job.company}</p>
+              <p><strong>Số ứng viên:</strong> ${candidates.length}</p>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <h4>Job Description</h4>
+              <p style="font-size: 13px; color: #666; max-height: 150px; overflow-y: auto; padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                ${job.jd_text}
+              </p>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <h4>Kỹ Năng Yêu Cầu</h4>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${skillsArray.map(skill => `<span style="background: #e3f2fd; color: #1976d2; padding: 4px 12px; border-radius: 16px; font-size: 13px;">${skill}</span>`).join('')}
+              </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+              <h4>Các Câu Hỏi</h4>
+              ${Object.entries(questionsBySkill).map(([skill, questions]) => `
+                <div style="margin-bottom: 12px; padding: 8px; background: #f5f5f5; border-radius: 4px;">
+                  <strong style="color: #333;">${skill}</strong>
+                  <ul style="margin: 8px 0 0 20px; font-size: 13px;">
+                    ${questions.map(q => `<li>${q}</li>`).join('')}
+                  </ul>
+                </div>
+              `).join('')}
+            </div>
+          `;
+
+          document.getElementById('editJobContent').innerHTML = html;
+          document.getElementById('editJobModal').classList.add('active');
+        })
+        .catch(err => alert('Lỗi khi load job details: ' + err.message));
+    }
+
+    function closeEditJobModal() {
+      document.getElementById('editJobModal').classList.remove('active');
+    }
+
+    function editJobSetup() {
+      const jobId = currentJobId;
+      if (jobId) {
+        window.location.href = `/index.html?edit=${jobId}`;
+      }
+    }
+
+    // Copy link button handler
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('copy-link-btn')) {
+        const link = document.getElementById('generatedLink').value;
+        const originalText = e.target.textContent;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(link).then(() => {
+            e.target.textContent = '✓ Đã Copy';
+            e.target.style.background = '#4caf50';
+            setTimeout(() => {
+              e.target.textContent = originalText;
+              e.target.style.background = '';
+            }, 2000);
+          }).catch(err => {
+            // Fallback: use older method
+            fallbackCopyToClipboard(link, e.target, originalText);
+          });
+        } else {
+          fallbackCopyToClipboard(link, e.target, originalText);
+        }
+      }
+    });
+
+    // Fallback copy function
+    function fallbackCopyToClipboard(text, btn, originalText) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        btn.textContent = '✓ Đã Copy';
+        btn.style.background = '#4caf50';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.style.background = '';
+        }, 2000);
+      } catch (err) {
+        alert('Không thể copy link. Vui lòng copy thủ công.');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // Delete job functions
+    let deleteJobContext = { jobId: null, jobTitle: null };
+
+    function showDeleteConfirm(jobId, jobTitle) {
+      deleteJobContext = { jobId, jobTitle };
+      const modal = document.getElementById('deleteConfirmModal');
+      const message = document.getElementById('deleteMessage');
+      message.innerHTML = `Bạn có chắc muốn xóa job <strong>"${jobTitle}"</strong>? Tất cả ứng viên sẽ bị xóa theo. <strong>Không thể hoàn tác.</strong>`;
+      modal.classList.add('active');
+    }
+
+    function closeDeleteConfirm() {
+      document.getElementById('deleteConfirmModal').classList.remove('active');
+      deleteJobContext = { jobId: null, jobTitle: null };
+    }
+
+    function confirmDelete() {
+      const { jobId, jobTitle } = deleteJobContext;
+      if (!jobId) return;
+
+      fetch(`/api/job-library/jobs/${jobId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      })
+        .then(r => {
+          if (!r.ok) throw new Error('Failed to delete job');
+          return r.json();
+        })
+        .then(data => {
+          closeDeleteConfirm();
+          alert(`✓ Đã xóa job "${jobTitle}" thành công`);
+          loadJobs();
+        })
+        .catch(err => {
+          alert('Lỗi khi xóa job: ' + err.message);
+        });
+    }
+  </script>
+</body>
+</html>

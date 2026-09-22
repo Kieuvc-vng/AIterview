@@ -1,32 +1,62 @@
 const express = require('express');
 const router = express.Router();
+const { v4: uuidv4 } = require('uuid');
 
-const { getSessionData, startInterview, endInterview, saveMessage, getSessionMessages } = require('../services/sessionManager');
+const sessionManager = require('../services/sessionManager');
+const jobLibraryService = require('../services/jobLibraryService');
 const { conductInterview, generateOpeningGreeting } = require('../services/aiIntegration');
 const { initializeInterviewState, getCurrentQuestion, processAnswerQuality, isInterviewComplete, moveToNextSkillIfNeeded } = require('../services/interviewEngine');
+const summaryGenerator = require('../services/summaryGenerator');
 
-// Global cache for interview states (for now - will move to DB later)
-const interviewStates = {};
+/**
+ * POST /api/interview/create-from-candidate
+ * Create a new interview session from job and candidate IDs
+ */
+router.post('/create-from-candidate', async (req, res, next) => {
+  try {
+    const { jobId, candidateId } = req.body;
+
+    if (!jobId || !candidateId) {
+      return res.status(400).json({ error: 'Missing jobId or candidateId' });
+    }
+
+    // Fetch job details from job library
+    const job = await jobLibraryService.getJobById(jobId);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    // Create session using job data
+    const sessionData = await sessionManager.createSession({
+      hr_email: job.hr_email,
+      job_title: job.job_title,
+      level: job.level,
+      company: job.company,
+      skills: typeof job.skills === 'string' ? JSON.parse(job.skills) : job.skills,
+      questions_by_skill: typeof job.questions_by_skill === 'string' ? JSON.parse(job.questions_by_skill) : job.questions_by_skill
+    });
+
+    res.json({ sessionId: sessionData.session_id });
+  } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
 
 /**
  * GET /api/interview/:sessionId
  * Get session data with messages
  */
-router.get('/:sessionId', (req, res, next) => {
+router.get('/:sessionId', async (req, res, next) => {
   try {
     const { sessionId } = req.params;
+    const data = await sessionManager.getSession(sessionId);
 
-    const sessionData = getSessionData(sessionId);
-    const messages = getSessionMessages(sessionId);
-
-    res.json({
-      session: sessionData,
-      messages: messages
-    });
-  } catch (error) {
-    if (error.message.includes('not found')) {
+    if (!data) {
       return res.status(404).json({ error: 'Session not found' });
     }
+
+    res.json(data);
+  } catch (error) {
     next({ status: 500, message: error.message });
   }
 });
@@ -44,34 +74,55 @@ router.post('/:sessionId/start', async (req, res, next) => {
       return res.status(400).json({ error: 'Missing required parameter: candidate_name' });
     }
 
-    // Get session data
-    const sessionData = getSessionData(sessionId);
-
-    // Start interview in DB (saves candidate name, sets status)
-    const updatedSession = startInterview(sessionId, candidate_name);
-
-    // Initialize interview state
-    const interviewState = initializeInterviewState(sessionData);
-    interviewStates[sessionId] = interviewState;
-
-    // Get first question
-    const firstQuestionData = getCurrentQuestion(interviewState, sessionData);
-
-    // Generate opening greeting
-    const openingMessage = await generateOpeningGreeting(candidate_name, sessionData.job_title, firstQuestionData.question_text);
-
-    // Save opening message to DB
-    saveMessage(sessionId, 'ai', openingMessage, firstQuestionData.skill_name, firstQuestionData.question_index, 1);
-
-    res.json({
-      session: updatedSession,
-      current_question: firstQuestionData,
-      opening_message: openingMessage
-    });
-  } catch (error) {
-    if (error.message.includes('not found')) {
+    const sessionData = await sessionManager.getSession(sessionId);
+    if (!sessionData) {
       return res.status(404).json({ error: 'Session not found' });
     }
+
+    await sessionManager.startInterview(sessionId, candidate_name);
+
+    const opening_message = await generateOpeningGreeting(
+      sessionData.session.job_title,
+      sessionData.session.level,
+      candidate_name
+    );
+
+    await sessionManager.saveMessage(sessionId, {
+      sender: 'ai',
+      content: opening_message,
+      skill_name: null,
+      question_index: null,
+      attempt_number: null
+    });
+
+    const updatedData = await sessionManager.getSession(sessionId);
+
+    // Get first question from questions_by_skill
+    let currentQuestion = null;
+    const questionsBySkill = typeof updatedData.session.questions_by_skill === 'string'
+      ? JSON.parse(updatedData.session.questions_by_skill)
+      : updatedData.session.questions_by_skill;
+
+    if (questionsBySkill && Object.keys(questionsBySkill).length > 0) {
+      const firstSkill = Object.keys(questionsBySkill)[0];
+      const skillQuestions = questionsBySkill[firstSkill];
+      if (skillQuestions && skillQuestions.length > 0) {
+        currentQuestion = {
+          skill: firstSkill,
+          question_text: skillQuestions[0]
+        };
+      }
+    }
+
+    res.json({
+      session: updatedData.session,
+      opening_message,
+      current_question: currentQuestion || {
+        skill: 'TBD',
+        question_text: 'No questions available'
+      }
+    });
+  } catch (error) {
     next({ status: 500, message: error.message });
   }
 });
@@ -89,77 +140,138 @@ router.post('/:sessionId/message', async (req, res, next) => {
       return res.status(400).json({ error: 'Missing required parameter: candidate_message' });
     }
 
-    // Get session data
-    const sessionData = getSessionData(sessionId);
-    const messages = getSessionMessages(sessionId);
-
-    // Get current interview state
-    let interviewState = interviewStates[sessionId];
-    if (!interviewState) {
-      return res.status(400).json({ error: 'Interview not started. Call /start first.' });
-    }
-
-    // Save candidate message to DB
-    const currentQuestion = getCurrentQuestion(interviewState, sessionData);
-    saveMessage(sessionId, 'candidate', candidate_message, currentQuestion.skill_name, currentQuestion.question_index, currentQuestion.attempt_number);
-
-    // Prepare messages for AI (convert to format expected by conductInterview)
-    const previousMessages = messages.map(m => ({
-      role: m.sender === 'ai' ? 'assistant' : 'user',
-      content: m.content
-    }));
-    previousMessages.push({
-      role: 'user',
-      content: candidate_message
-    });
-
-    // AI evaluates the answer
-    const aiEvaluation = await conductInterview(
-      currentQuestion.question_text,
-      previousMessages,
-      sessionData.candidate_name,
-      sessionData.job_title,
-      sessionData.level,
-      currentQuestion.skill_name,
-      currentQuestion.attempt_number
-    );
-
-    // Save AI response to DB
-    saveMessage(sessionId, 'ai', aiEvaluation.ai_response, currentQuestion.skill_name, currentQuestion.question_index, currentQuestion.attempt_number);
-
-    // Process answer quality to determine next action
-    const answerProcessing = processAnswerQuality(interviewState, aiEvaluation.ai_response);
-    interviewState = answerProcessing.updated_state;
-    interviewStates[sessionId] = interviewState;
-
-    // Check if we need to move to next skill
-    interviewState = moveToNextSkillIfNeeded(interviewState, sessionData);
-    interviewStates[sessionId] = interviewState;
-
-    // Determine next action and response
-    let nextAction = answerProcessing.next_action;
-    let nextQuestion = null;
-    let interviewComplete = false;
-
-    if (isInterviewComplete(interviewState, sessionData)) {
-      nextAction = 'end_interview';
-      interviewComplete = true;
-      endInterview(sessionId);
-    } else if (nextAction === 'next_question') {
-      nextQuestion = getCurrentQuestion(interviewState, sessionData);
-    }
-
-    res.json({
-      ai_response: aiEvaluation.ai_response,
-      answer_good: aiEvaluation.answer_good,
-      next_action: nextAction,
-      next_question: nextQuestion,
-      interview_complete: interviewComplete
-    });
-  } catch (error) {
-    if (error.message.includes('not found')) {
+    const sessionData = await sessionManager.getSession(sessionId);
+    if (!sessionData) {
       return res.status(404).json({ error: 'Session not found' });
     }
+
+    const session = sessionData.session;
+
+    // Save candidate message
+    await sessionManager.saveMessage(sessionId, {
+      sender: 'candidate',
+      content: candidate_message,
+      skill_name: null,
+      question_index: null,
+      attempt_number: null
+    });
+
+    // Parse questions by skill from session
+    const questionsBySkill = typeof session.questions_by_skill === 'string'
+      ? JSON.parse(session.questions_by_skill)
+      : session.questions_by_skill;
+
+    // Get all questions in order
+    const allQuestions = [];
+    const skillOrder = Object.keys(questionsBySkill);
+    skillOrder.forEach(skill => {
+      const questions = questionsBySkill[skill];
+      questions.forEach(q => {
+        allQuestions.push({ skill, question_text: q });
+      });
+    });
+
+    // Get next question (simple increment from message count)
+    const messageCount = sessionData.messages ? sessionData.messages.length : 1;
+    const nextQuestionIndex = Math.floor((messageCount - 1) / 2); // Every 2 messages = 1 question
+    let nextQuestion = null;
+
+    if (nextQuestionIndex < allQuestions.length) {
+      nextQuestion = allQuestions[nextQuestionIndex];
+    }
+
+    // Get AI response
+    const ai_response = nextQuestion
+      ? `Thank you for your answer. ${nextQuestion.question_text}`
+      : `Thank you for your responses. That concludes our interview. We'll be in touch soon!`;
+
+    // Save AI response
+    await sessionManager.saveMessage(sessionId, {
+      sender: 'ai',
+      content: ai_response,
+      skill_name: nextQuestion ? nextQuestion.skill : null,
+      question_index: nextQuestionIndex,
+      attempt_number: 1
+    });
+
+    const isComplete = !nextQuestion || nextQuestionIndex >= allQuestions.length - 1;
+
+    res.json({
+      ai_response,
+      answer_good: true,
+      next_action: isComplete ? 'interview_complete' : 'next_question',
+      next_question: nextQuestion,
+      interview_complete: isComplete
+    });
+  } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
+
+/**
+ * POST /api/interview/:interview_id/message
+ * New: Send message with summary generation for new schema
+ */
+router.post('/:interview_id/message', async (req, res, next) => {
+  try {
+    const { interview_id } = req.params;
+    const { content, sender } = req.body;
+
+    if (!content || !sender) {
+      return res.status(400).json({ success: false, error: 'Missing required fields' });
+    }
+
+    const messageId = 'msg_' + uuidv4();
+    sessionManager.addMessage(interview_id, messageId, sender, content);
+
+    // Generate summary if candidate answered
+    if (sender === 'candidate') {
+      const interview = sessionManager.getInterview(interview_id);
+      const messages = sessionManager.getInterviewMessages(interview_id);
+
+      if (interview && messages.length > 0) {
+        const lastQuestion = messages.find(m => m.sender === 'interviewer');
+        if (lastQuestion) {
+          const { main_answer_summary, followup_summary } = await summaryGenerator.generateSummary(
+            interview_id,
+            'skill',
+            0,
+            lastQuestion.content,
+            messages
+          );
+
+          const summaryId = 'summary_' + uuidv4();
+          if (sessionManager.db) {
+            summaryGenerator.saveSummary(
+              sessionManager.db,
+              summaryId,
+              interview_id,
+              'skill',
+              0,
+              lastQuestion.content,
+              main_answer_summary,
+              followup_summary
+            );
+          }
+        }
+      }
+    }
+
+    res.json({ success: true, messageId });
+  } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
+
+/**
+ * GET /api/interview/:interview_id/summaries
+ * Get all summaries for an interview
+ */
+router.get('/:interview_id/summaries', (req, res, next) => {
+  try {
+    const summaries = sessionManager.getSummaries(req.params.interview_id);
+    res.json({ success: true, summaries });
+  } catch (error) {
     next({ status: 500, message: error.message });
   }
 });

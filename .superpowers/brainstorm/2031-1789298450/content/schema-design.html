@@ -1,0 +1,77 @@
+<h2>Schema Mới — Approach B</h2>
+<p class="subtitle">Cách lưu trữ job + candidates + interviews + summaries</p>
+
+<div class="mockup">
+  <div class="mockup-header">Database Schema</div>
+  <div class="mockup-body" style="font-family: monospace; font-size: 12px; line-height: 1.6;">
+    <div style="margin-bottom: 1.5rem;">
+      <strong style="color: #0066cc;">📋 JOBS (Job Templates)</strong>
+      <div style="background: #f0f0f0; padding: 8px; border-radius: 4px; margin-top: 4px;">
+        job_id (PK)<br>
+        job_title<br>
+        level<br>
+        company<br>
+        skills (JSON: ["Python", "SQL", ...])<br>
+        questions_by_skill (JSON: {Python: [q1, q2, ...], ...})<br>
+        created_by (HR email)<br>
+        created_at
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <strong style="color: #0066cc;">👤 CANDIDATES (Ứng viên)</strong>
+      <div style="background: #f0f0f0; padding: 8px; border-radius: 4px; margin-top: 4px;">
+        candidate_id (PK)<br>
+        job_id (FK → JOBS)<br>
+        name<br>
+        email<br>
+        phone<br>
+        created_at
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <strong style="color: #0066cc;">🎬 INTERVIEWS (Phiên phỏng vấn)</strong>
+      <div style="background: #f0f0f0; padding: 8px; border-radius: 4px; margin-time: 4px;">
+        interview_id (PK)<br>
+        job_id (FK → JOBS)<br>
+        candidate_id (FK → CANDIDATES)<br>
+        status (setup / active / completed)<br>
+        started_at<br>
+        completed_at
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <strong style="color: #0066cc;">💬 MESSAGES (Tin nhắn)</strong>
+      <div style="background: #f0f0f0; padding: 8px; border-radius: 4px; margin-top: 4px;">
+        message_id (PK)<br>
+        interview_id (FK → INTERVIEWS)<br>
+        sender (candidate / interviewer)<br>
+        content<br>
+        skill_name<br>
+        question_index<br>
+        attempt_number<br>
+        created_at
+      </div>
+    </div>
+
+    <div style="margin-bottom: 1.5rem;">
+      <strong style="color: #0066cc;">📝 SUMMARIES (Tóm tắt)</strong>
+      <div style="background: #f0f0f0; padding: 8px; border-radius: 4px; margin-top: 4px;">
+        summary_id (PK)<br>
+        interview_id (FK → INTERVIEWS)<br>
+        skill_name<br>
+        question_index<br>
+        question_text<br>
+        main_answer_summary (tóm tắt câu chính)<br>
+        followup_summary (tóm tắt follow-up)<br>
+        created_at
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 2rem; padding: 1rem; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ff9800;">
+  <p style="margin: 0;"><strong>Lưu ý:</strong> Bảng SESSIONS cũ sẽ được archive hoặc migrate sang INTERVIEWS. RUBRICS sẽ được thay bằng SUMMARIES (không chấm điểm nữa).</p>
+</div>

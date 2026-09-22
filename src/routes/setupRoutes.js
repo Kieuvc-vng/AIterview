@@ -4,7 +4,8 @@ const router = express.Router();
 const { parseJD } = require('../services/jdParser');
 const { suggestSkills } = require('../services/skillsSuggester');
 const { generateQuestions } = require('../services/questionGenerator');
-const { createNewSession } = require('../services/sessionManager');
+const sessionManager = require('../services/sessionManager');
+const jobLibraryService = require('../services/jobLibraryService');
 
 /**
  * POST /api/setup/parse-jd
@@ -69,20 +70,45 @@ router.post('/suggest-questions', async (req, res, next) => {
 
 /**
  * POST /api/setup/create-session
- * Create new interview session
+ * Save job to library and create new interview session
  */
 router.post('/create-session', async (req, res, next) => {
   try {
-    const { hr_email, job_title, level, company, skills, questions_by_skill } = req.body;
+    const { hr_email, job_title, level, company, skills, questions_by_skill, jd_text } = req.body;
 
-    if (!hr_email || !job_title || !level || !company || !skills || !questions_by_skill) {
+    if (!hr_email || !job_title || !level || !company || !skills) {
       return res.status(400).json({
-        error: 'Missing required parameters: hr_email, job_title, level, company, skills, questions_by_skill'
+        error: 'Missing required parameters: hr_email, job_title, level, company, skills'
       });
     }
 
-    const result = createNewSession(hr_email, job_title, level, company, skills, questions_by_skill);
-    res.json(result);
+    // Save job to library
+    const jobId = await jobLibraryService.createJob({
+      hr_email,
+      job_title,
+      level,
+      company,
+      skills,
+      questions_by_skill,
+      jd_text
+    });
+
+    // Also create session for interview flow
+    const result = await sessionManager.createSession({
+      hr_email,
+      job_title,
+      level,
+      company,
+      skills,
+      questions_by_skill
+    });
+
+    res.json({
+      job_id: jobId,
+      session_id: result.session_id,
+      interview_link: `/interview/${result.session_id}`,
+      redirect: '/job-library'
+    });
   } catch (error) {
     next({ status: 500, message: error.message });
   }
