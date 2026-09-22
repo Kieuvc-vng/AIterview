@@ -25,11 +25,9 @@ const getMockResponse = (systemPrompt, messages) => {
   }
   if (systemLower.includes('generate interview questions') || systemLower.includes('questions')) {
     return JSON.stringify({
-      questions_by_skill: {
-        'Python': ['Explain list comprehensions', 'What are decorators?'],
-        'SQL': ['Optimize a slow query', 'Explain JOIN types'],
-        'Data Pipelines': ['Design a data pipeline', 'Handle data quality issues']
-      }
+      'Python': ['Explain list comprehensions', 'What are decorators?'],
+      'SQL': ['Optimize a slow query', 'Explain JOIN types'],
+      'Data Pipelines': ['Design a data pipeline', 'Handle data quality issues']
     });
   }
   if (systemLower.includes('evaluate') || systemLower.includes('candidate')) {

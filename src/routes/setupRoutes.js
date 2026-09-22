@@ -61,12 +61,10 @@ router.post('/suggest-questions', async (req, res, next) => {
     }
 
     const result = await generateQuestions(jd_text, skills, job_title, level);
-    // Flatten if needed
-    let questions = result.questions_by_skill || result;
-    if (questions && questions.questions_by_skill) {
-      questions = questions.questions_by_skill;
-    }
-    res.json({ questions_by_skill: questions });
+    // generateQuestions returns {questions_by_skill: {...}}
+    // We want to return just the inner object
+    const questions_by_skill = result.questions_by_skill || result;
+    res.json({ questions_by_skill });
   } catch (error) {
     next({ status: 500, message: error.message });
   }
