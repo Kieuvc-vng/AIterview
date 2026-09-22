@@ -60,8 +60,13 @@ router.post('/suggest-questions', async (req, res, next) => {
       });
     }
 
-    const questions_by_skill = await generateQuestions(jd_text, skills, job_title, level);
-    res.json({ questions_by_skill });
+    const result = await generateQuestions(jd_text, skills, job_title, level);
+    // Flatten if needed
+    let questions = result.questions_by_skill || result;
+    if (questions && questions.questions_by_skill) {
+      questions = questions.questions_by_skill;
+    }
+    res.json({ questions_by_skill: questions });
   } catch (error) {
     next({ status: 500, message: error.message });
   }
