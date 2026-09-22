@@ -84,7 +84,7 @@ router.post('/create-session', async (req, res, next) => {
       });
     }
 
-    const result = await jobLibraryService.createJob({
+    const job_id = await jobLibraryService.createJob({
       hr_email,
       job_title,
       level,
@@ -95,8 +95,8 @@ router.post('/create-session', async (req, res, next) => {
     });
 
     res.json({
-      job_id: result.id,
-      interview_link: `/interview.html?job_id=${result.id}`
+      job_id: job_id,
+      interview_link: `/interview.html?job_id=${job_id}`
     });
   } catch (error) {
     next({ status: 500, message: error.message });
