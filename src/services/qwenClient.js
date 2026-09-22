@@ -24,11 +24,45 @@ const getMockResponse = (systemPrompt, messages) => {
     });
   }
   if (systemLower.includes('generate interview questions') || systemLower.includes('questions')) {
-    return JSON.stringify({
+    // Extract skills from the message (API sends JSON with skills array)
+    let selectedSkills = [];
+    try {
+      // Try to parse the message content to extract skills
+      const msgContent = messages[messages.length - 1]?.content || '';
+      if (msgContent.includes('Skills to evaluate:')) {
+        const skillsMatch = msgContent.match(/Skills to evaluate: (.+?)\n/);
+        if (skillsMatch) {
+          selectedSkills = skillsMatch[1].split(', ').map(s => s.trim());
+        }
+      }
+    } catch (e) {
+      // Fall back to default skills if parsing fails
+      selectedSkills = [];
+    }
+
+    // If no skills extracted, use defaults
+    if (selectedSkills.length === 0) {
+      selectedSkills = ['Python', 'SQL', 'Data Pipelines'];
+    }
+
+    // Generate questions for selected skills
+    const allQuestions = {
       'Python': ['Explain list comprehensions', 'What are decorators?'],
       'SQL': ['Optimize a slow query', 'Explain JOIN types'],
-      'Data Pipelines': ['Design a data pipeline', 'Handle data quality issues']
+      'Data Pipelines': ['Design a data pipeline', 'Handle data quality issues'],
+      'Technical Skills': ['Describe your technical background', 'What tools have you used?'],
+      'Communication': ['How do you explain technical concepts?', 'Describe a conflict resolution'],
+      'Chinese': ['请介绍你自己', '你有什么问题要问我们?'],
+      'Apache Spark': ['What is RDD?', 'Explain Spark SQL'],
+      'System Design': ['Design a cache system', 'Design a messaging queue']
+    };
+
+    const result = {};
+    selectedSkills.forEach(skill => {
+      result[skill] = allQuestions[skill] || [`Tell me about your ${skill} skills`, `How do you apply ${skill}?`];
     });
+
+    return JSON.stringify(result);
   }
   if (systemLower.includes('evaluate') || systemLower.includes('candidate')) {
     return JSON.stringify({
