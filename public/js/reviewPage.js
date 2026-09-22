@@ -104,8 +104,8 @@ const ReviewPage = {
           </div>
 
           <div class="button-group" style="margin-top: 32px;">
-            <button type="button" class="btn-secondary" id="btn-back-to-setup">
-              Back to Setup
+            <button type="button" class="btn-secondary" id="btn-back-to-library">
+              Back to Job Library
             </button>
           </div>
         </div>
@@ -241,7 +241,7 @@ const ReviewPage = {
   attachEventListeners() {
     const exportPdfBtn = document.getElementById('btn-export-pdf');
     const exportCsvBtn = document.getElementById('btn-export-csv');
-    const backBtn = document.getElementById('btn-back-to-setup');
+    const backBtn = document.getElementById('btn-back-to-library');
 
     if (exportPdfBtn) {
       exportPdfBtn.addEventListener('click', async () => {
@@ -257,7 +257,7 @@ const ReviewPage = {
 
     if (backBtn) {
       backBtn.addEventListener('click', () => {
-        App.goToPage('setup');
+        App.goToPage('job-library');
       });
     }
   },
