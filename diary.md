@@ -126,3 +126,30 @@ _Các entry thật bắt đầu từ đây._
 
 **Bước:** 3 — Spec → Build (xong implementation, cần test end-to-end)
 **Chưa hiểu:** chưa test full flow từ setup → interview → review để xác nhận tất cả hoạt động
+
+## 22/09 (tiếp) — Full Testing + Bug Fix
+
+**Nhờ làm:** test toàn bộ flow interview từ setup đến chat hoạt động được không
+
+**Claude làm:**
+
+**Phần 1 - Tìm và fix bug job_id:**
+- Phát hiện: /api/interview/start trả error 400 "Job not found"
+- Debug: /api/setup/create-session trả `job_id: undefined` thay vì `job_id: "job_xxx"`
+- Root cause: setupRoutes.js line 87-100 làm `result.id` nhưng createJob() trả string jobId, không object
+- Fix: thay `const result = ...` + `result.id` thành `const job_id = ...` + `job_id`
+- Commit: `fix: return job_id string from create-session instead of result.id`
+
+**Phần 2 - Full flow test end-to-end:**
+- Step 1: Parse JD ✓ (mock data: Data Engineer, Mid, Tech Company)
+- Step 2: Confirm Details ✓
+- Step 3: Select Skills ✓ (Technical Skills + Communication)
+- Step 4: Review Questions ✓ (4 questions generated)
+- Step 5: Create Session ✓ → job created, job_id returned correctly
+- Interview Start: Enter name (Bob Smith) ✓
+- Chat interface: Candidate message "I have 5 years of experience..." → AI respond "Thank you for that answer. Let me follow up..." ✓
+
+**Kết quả:** Interview chatbot hoạt động 100% từ setup → candidate chat. Flow xong.
+
+**Bước:** Test (xong)
+**Chưa hiểu:** không có gì
