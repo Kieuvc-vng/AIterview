@@ -170,7 +170,9 @@ router.post('/start', async (req, res, next) => {
       };
 
       inMemoryStore.interviews[interview_id] = interview;
-      inMemoryStore.interviews[job_id] = interview;
+      inMemoryStore.candidates[candidate_id] = candidate;
+      if (!inMemoryStore.jobs) inMemoryStore.jobs = {};
+      inMemoryStore.jobs[job_id] = { job_id }; // Store job reference
     }
 
     // Initialize interview state
