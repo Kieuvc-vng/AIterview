@@ -5,7 +5,8 @@
  */
 
 const InterviewPage = {
-  sessionId: null,
+  jobId: null,
+  interviewId: null,
   candidateName: null,
   currentQuestion: null,
   messages: [],
@@ -13,58 +14,51 @@ const InterviewPage = {
   interviewComplete: false,
 
   /**
-   * Initialize interview page - handle resume from localStorage
+   * Initialize interview page - accept job_id
    */
-  async init(sessionId) {
-    this.sessionId = sessionId;
+  async init(jobId) {
+    this.jobId = jobId;
+    this.interviewId = null;
     const container = document.getElementById('app');
 
-    // Check if we have SESSION_ID in localStorage
-    const storedSessionId = localStorage.getItem('current_interview_session');
+    // Check if we have INTERVIEW_ID in localStorage (resume case)
+    const storedInterviewId = localStorage.getItem('current_interview_id');
 
-    if (!storedSessionId || storedSessionId !== sessionId) {
-      // First time - show name input form
-      this.render(container, { sessionId });
-      return;
-    }
+    if (storedInterviewId) {
+      // Try to resume existing interview
+      try {
+        const response = await fetch(`/api/interview/${storedInterviewId}`);
+        if (response.ok) {
+          const data = await response.json();
+          this.interviewId = storedInterviewId;
+          this.messages = data.messages || [];
+          this.interviewStarted = data.interview && data.interview.status === 'active' || this.messages.length > 0;
 
-    // Try to fetch session data from backend (resume case)
-    try {
-      const response = await fetch(`/api/interview/${sessionId}`);
-      if (response.status === 404) {
-        // Session not found - show name input
-        this.render(container, { sessionId });
-        return;
+          if (this.interviewStarted) {
+            // Render with loaded data
+            this.render(container, {
+              interviewId: storedInterviewId,
+              messages: this.messages,
+              interviewStarted: true
+            });
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error resuming interview:', error);
       }
-
-      if (!response.ok) throw new Error('Failed to fetch session');
-
-      const data = await response.json();
-      const sessionData = data.session;
-      const messages = data.messages || [];
-
-      this.candidateName = sessionData.candidate_name;
-      this.messages = messages;
-      this.interviewStarted = sessionData.status === 'ongoing' || messages.length > 0;
-
-      // Render with loaded data
-      this.render(container, {
-        sessionId,
-        messages,
-        interviewStarted: this.interviewStarted
-      });
-    } catch (error) {
-      console.error('Error loading session:', error);
-      // Fall back to name input
-      this.render(container, { sessionId });
     }
+
+    // Show name input form
+    this.render(container, { jobId });
   },
 
   /**
    * Render the interview page
    */
   render(container, data = {}) {
-    this.sessionId = data.sessionId || this.sessionId;
+    this.jobId = data.jobId || this.jobId;
+    this.interviewId = data.interviewId || this.interviewId;
     this.messages = data.messages || [];
     this.interviewStarted = data.interviewStarted || false;
 
@@ -251,7 +245,7 @@ const InterviewPage = {
       const endBtn = document.getElementById('btn-end-interview');
       if (endBtn) {
         endBtn.addEventListener('click', () => {
-          App.goToPage('review', { sessionId: this.sessionId });
+          App.goToPage('review', { interviewId: this.interviewId });
         });
       }
     }
@@ -266,7 +260,7 @@ const InterviewPage = {
   },
 
   /**
-   * Start interview - call API and load opening message
+   * Start interview - call API with job_id, get interview_id
    */
   async startInterview() {
     const spinner = document.getElementById('start-spinner');
@@ -276,10 +270,13 @@ const InterviewPage = {
     startBtn.disabled = true;
 
     try {
-      const response = await fetch(`/api/interview/${this.sessionId}/start`, {
+      const response = await fetch(`/api/interview/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ candidate_name: this.candidateName })
+        body: JSON.stringify({
+          job_id: this.jobId,
+          candidate_name: this.candidateName
+        })
       });
 
       if (!response.ok) {
@@ -287,7 +284,11 @@ const InterviewPage = {
       }
 
       const data = await response.json();
+      this.interviewId = data.interview_id;
       this.currentQuestion = data.current_question;
+
+      // Store interview_id in localStorage for resume
+      localStorage.setItem('current_interview_id', this.interviewId);
 
       // Add opening message to messages
       this.messages = [{
@@ -297,7 +298,7 @@ const InterviewPage = {
 
       this.interviewStarted = true;
       this.render(document.getElementById('app'), {
-        sessionId: this.sessionId,
+        interviewId: this.interviewId,
         interviewStarted: true,
         messages: this.messages
       });
@@ -325,8 +326,8 @@ const InterviewPage = {
         content: message
       });
 
-      // Send to API
-      const response = await fetch(`/api/interview/${this.sessionId}/message`, {
+      // Send to API using interview_id
+      const response = await fetch(`/api/interview/${this.interviewId}/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ candidate_message: message })
@@ -353,7 +354,7 @@ const InterviewPage = {
 
       // Re-render
       this.render(document.getElementById('app'), {
-        sessionId: this.sessionId,
+        interviewId: this.interviewId,
         interviewStarted: true,
         messages: this.messages
       });

@@ -4,7 +4,7 @@ const router = express.Router();
 const { parseJD } = require('../services/jdParser');
 const { suggestSkills } = require('../services/skillsSuggester');
 const { generateQuestions } = require('../services/questionGenerator');
-const sessionManager = require('../services/sessionManager');
+const jobLibraryService = require('../services/jobLibraryService');
 
 /**
  * POST /api/setup/parse-jd
@@ -69,11 +69,11 @@ router.post('/suggest-questions', async (req, res, next) => {
 
 /**
  * POST /api/setup/create-session
- * Create new interview session
+ * Create new job (interview session)
  */
 router.post('/create-session', async (req, res, next) => {
   try {
-    const { hr_email, job_title, level, company, skills, questions_by_skill } = req.body;
+    const { hr_email, job_title, level, company, skills, questions_by_skill, jd_text } = req.body;
 
     if (!hr_email || !job_title || !level || !company || !skills) {
       return res.status(400).json({
@@ -81,18 +81,19 @@ router.post('/create-session', async (req, res, next) => {
       });
     }
 
-    const result = await sessionManager.createSession({
+    const result = await jobLibraryService.createJob({
       hr_email,
       job_title,
       level,
       company,
       skills,
-      questions_by_skill
+      questions_by_skill,
+      jd_text
     });
 
     res.json({
-      session_id: result.session_id,
-      interview_link: `/interview/${result.session_id}`
+      job_id: result.id,
+      interview_link: `/interview.html?job_id=${result.id}`
     });
   } catch (error) {
     next({ status: 500, message: error.message });

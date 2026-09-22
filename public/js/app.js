@@ -27,15 +27,17 @@ const App = {
         SetupPage.render(this.appElement, data);
         break;
       case 'interview':
-        if (data.sessionId) {
-          InterviewPage.init(data.sessionId);
+        if (data.jobId) {
+          InterviewPage.init(data.jobId);
+        } else if (data.interviewId) {
+          InterviewPage.init(data.interviewId);
         } else {
           InterviewPage.render(this.appElement, data);
         }
         break;
       case 'review':
-        if (data.sessionId) {
-          ReviewPage.init(data.sessionId);
+        if (data.interviewId) {
+          ReviewPage.init(data.interviewId);
         } else {
           ReviewPage.render(this.appElement, data);
         }

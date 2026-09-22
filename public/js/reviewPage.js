@@ -4,17 +4,17 @@
  */
 
 const ReviewPage = {
-  sessionId: null,
-  sessionData: null,
+  interviewId: null,
+  interviewData: null,
   messages: [],
   rubric: [],
   rubricSummary: null,
 
   /**
-   * Initialize review page with session ID
+   * Initialize review page with interview ID
    */
-  init(sessionId) {
-    this.sessionId = sessionId;
+  init(interviewId) {
+    this.interviewId = interviewId;
     this.render(document.getElementById('app'));
   },
 
@@ -22,8 +22,8 @@ const ReviewPage = {
    * Render the review page
    */
   render(container, data = {}) {
-    this.sessionId = data.sessionId || this.sessionId;
-    this.sessionData = data.sessionData || this.sessionData;
+    this.interviewId = data.interviewId || this.interviewId;
+    this.interviewData = data.interviewData || this.interviewData;
     this.messages = data.messages || [];
     this.rubric = data.rubric || [];
     this.rubricSummary = data.rubricSummary || {};
@@ -118,14 +118,14 @@ const ReviewPage = {
    */
   async loadReviewData() {
     try {
-      const response = await fetch(`/api/review/${this.sessionId}`);
+      const response = await fetch(`/api/review/${this.interviewId}`);
 
       if (!response.ok) {
         throw new Error('Failed to load review data');
       }
 
       const data = await response.json();
-      this.sessionData = data.session;
+      this.interviewData = data.interview;
       this.messages = data.messages;
       this.rubric = data.rubric;
       this.rubricSummary = data.rubric_summary;
@@ -144,18 +144,18 @@ const ReviewPage = {
     document.getElementById('review-loading').style.display = 'none';
     document.getElementById('review-content').style.display = 'block';
 
-    // Fill session info
+    // Fill interview info
     document.getElementById('review-candidate').textContent = this.escapeHtml(
-      this.sessionData?.candidate_name || 'N/A'
+      this.interviewData?.candidate_name || 'N/A'
     );
     document.getElementById('review-job-title').textContent = this.escapeHtml(
-      this.sessionData?.job_title || 'N/A'
+      this.interviewData?.job_title || 'N/A'
     );
     document.getElementById('review-level').textContent = this.escapeHtml(
-      this.sessionData?.level || 'N/A'
+      this.interviewData?.level || 'N/A'
     );
     document.getElementById('review-company').textContent = this.escapeHtml(
-      this.sessionData?.company || 'N/A'
+      this.interviewData?.company || 'N/A'
     );
 
     // Display rubric
@@ -274,7 +274,7 @@ const ReviewPage = {
     btn.disabled = true;
 
     try {
-      const response = await fetch(`/api/review/${this.sessionId}/export`, {
+      const response = await fetch(`/api/review/${this.interviewId}/export`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ format: format })
