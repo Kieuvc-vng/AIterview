@@ -149,7 +149,17 @@ _Các entry thật bắt đầu từ đây._
 - Interview Start: Enter name (Bob Smith) ✓
 - Chat interface: Candidate message "I have 5 years of experience..." → AI respond "Thank you for that answer. Let me follow up..." ✓
 
-**Kết quả:** Interview chatbot hoạt động 100% từ setup → candidate chat. Flow xong.
+**Phần 3 - Fix câu hỏi không hiển thị:**
+- Phát hiện: Màn hình phỏng vấn không hiển thị câu hỏi từ setup, chỉ trống
+- Root cause: Frontend không lưu questions_by_skill từ API, không có logic để lấy/hiển thị câu hỏi
+- Fix: Update interviewPage.js để lưu questions_by_skill, theo dõi skill_index/question_index, chuyển câu hỏi mỗi khi trả lời
+- Test end-to-end:
+  - Q1 (Technical Skills): "Describe your technical background" ✓
+  - Q2 (Technical Skills): "What tools have you used?" ✓
+  - Q3 (Communication): "How do you explain technical concepts?" ✓
+  - Flow đúng, không bị mất câu hỏi
+
+**Kết quả:** Full flow xong, câu hỏi hiển thị & chuyển đúng. Sẵn sàng push.
 
 **Bước:** Test (xong)
 **Chưa hiểu:** không có gì
