@@ -96,6 +96,23 @@ class SessionManager {
     return null;
   }
 
+  async updateInterview(sessionId, updates) {
+    if (dbAvailable && db) {
+      try {
+        const setClause = Object.keys(updates).map(k => `${k} = ?`).join(', ');
+        const values = [...Object.values(updates), sessionId];
+        const stmt = db.prepare(`UPDATE sessions SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE session_id = ?`);
+        await stmt.run(...values);
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    } else {
+      if (inMemoryStore.sessions[sessionId]) {
+        Object.assign(inMemoryStore.sessions[sessionId], updates);
+      }
+    }
+  }
+
   async startInterview(sessionId, candidateName) {
     if (dbAvailable && db) {
       try {

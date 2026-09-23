@@ -1,7 +1,22 @@
 -- Job Library & Summarization Schema
 -- Created: 2026-09-13
 
--- 1. JOBS Table (Job Templates)
+-- 1. SESSIONS Table (Interview Sessions)
+CREATE TABLE IF NOT EXISTS sessions (
+  session_id TEXT PRIMARY KEY,
+  hr_email TEXT NOT NULL,
+  job_title TEXT NOT NULL,
+  level TEXT NOT NULL,
+  company TEXT NOT NULL,
+  skills TEXT NOT NULL,
+  questions_by_skill TEXT NOT NULL,
+  candidate_name TEXT,
+  status TEXT DEFAULT 'setup',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. JOBS Table (Job Templates)
 CREATE TABLE IF NOT EXISTS jobs (
   id TEXT PRIMARY KEY,
   hr_email TEXT NOT NULL,
