@@ -321,7 +321,7 @@
 
               try {
                 // Get candidate info to check interview status
-                const candidateResponse = await fetch(`/api/candidates/${candidateId}`);
+                const candidateResponse = await fetch(`/candidates/${candidateId}`);
                 if (!candidateResponse.ok) throw new Error('Candidate not found');
 
                 const candidateData = await candidateResponse.json();
