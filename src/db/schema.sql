@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS candidates (
   phone TEXT NOT NULL,
   email TEXT NOT NULL,
   link_sent BOOLEAN DEFAULT 0,
+  link_sent_at TIMESTAMP,
   interview_status TEXT DEFAULT 'not_started' CHECK(interview_status IN ('not_started', 'in_progress', 'completed')),
   interview_link TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

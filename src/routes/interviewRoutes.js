@@ -79,6 +79,13 @@ router.post('/:sessionId/start', async (req, res, next) => {
       return res.status(404).json({ error: 'Session not found' });
     }
 
+    // Auto-set started_at timestamp
+    const startedAt = new Date().toISOString();
+    await sessionManager.updateInterview(sessionId, {
+      started_at: startedAt,
+      interview_status: 'in_progress'
+    });
+
     await sessionManager.startInterview(sessionId, candidate_name);
 
     const opening_message = await generateOpeningGreeting(
@@ -271,6 +278,37 @@ router.get('/:interview_id/summaries', (req, res, next) => {
   try {
     const summaries = sessionManager.getSummaries(req.params.interview_id);
     res.json({ success: true, summaries });
+  } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
+
+/**
+ * POST /api/interview/:sessionId/submit
+ * Mark interview as complete - auto-set completed_at timestamp
+ */
+router.post('/:sessionId/submit', async (req, res, next) => {
+  try {
+    const { sessionId } = req.params;
+
+    const sessionData = await sessionManager.getSession(sessionId);
+    if (!sessionData) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    // Auto-set completed_at timestamp and mark as completed
+    const completedAt = new Date().toISOString();
+    await sessionManager.updateInterview(sessionId, {
+      completed_at: completedAt,
+      interview_status: 'completed',
+      status: 'completed'
+    });
+
+    res.json({
+      success: true,
+      message: 'Interview completed',
+      completed_at: completedAt
+    });
   } catch (error) {
     next({ status: 500, message: error.message });
   }

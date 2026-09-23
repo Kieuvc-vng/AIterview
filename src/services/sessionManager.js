@@ -243,13 +243,26 @@ class SessionManager {
   async getCandidate(candidate_id) {
     if (dbAvailable && db) {
       try {
-        const stmt = db.prepare('SELECT * FROM candidates WHERE candidate_id = ?');
+        const stmt = db.prepare('SELECT * FROM candidates WHERE id = ?');
         return await stmt.get(candidate_id);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
     }
     return null;
+  }
+
+  async updateCandidateStatus(candidate_id, updates) {
+    if (dbAvailable && db) {
+      try {
+        const setClause = Object.keys(updates).map(k => `${k} = ?`).join(', ');
+        const values = [...Object.values(updates), candidate_id];
+        const stmt = db.prepare(`UPDATE candidates SET ${setClause} WHERE id = ?`);
+        await stmt.run(...values);
+      } catch (error) {
+        console.error('[SessionManager] DB error:', error.message);
+      }
+    }
   }
 
   async saveCandidate(candidate) {

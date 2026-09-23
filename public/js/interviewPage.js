@@ -347,6 +347,10 @@ const InterviewPage = {
       // Update state
       if (data.interview_complete) {
         this.interviewComplete = true;
+        // Submit interview completion to backend
+        if (window.submitInterviewOnComplete) {
+          window.submitInterviewOnComplete(this.sessionId);
+        }
       } else if (data.next_question) {
         this.currentQuestion = data.next_question;
       }

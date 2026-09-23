@@ -52,4 +52,30 @@ router.get('/:candidate_id', (req, res) => {
   }
 });
 
+// PUT /candidates/:candidate_id/mark-sent - Mark interview link as sent
+router.put('/:candidate_id/mark-sent', (req, res) => {
+  try {
+    const { candidate_id } = req.params;
+    const candidate = sessionManager.getCandidate(candidate_id);
+
+    if (!candidate) {
+      return res.status(404).json({ success: false, error: 'Candidate not found' });
+    }
+
+    const now = new Date().toISOString();
+    sessionManager.updateCandidateStatus(candidate_id, {
+      link_sent: 1,
+      link_sent_at: now
+    });
+
+    res.json({
+      success: true,
+      message: 'Link marked as sent',
+      link_sent_at: now
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;

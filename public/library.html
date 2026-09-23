@@ -15,6 +15,7 @@
     .btn-primary { background: #2196f3; color: white; }
     .btn-secondary { background: #f5f5f5; color: #333; border: 1px solid #ddd; }
     .btn-danger { background: #dc3545; color: white; }
+    .btn-info { background: #17a2b8; color: white; }
     .btn-create { background: #4caf50; color: white; padding: 0.7rem 1.5rem; font-size: 16px; margin-top: 2rem; }
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
     .modal.active { display: flex; }
@@ -158,6 +159,25 @@
       document.getElementById('candidatesModal').classList.remove('active');
     }
 
+    function formatDate(isoString) {
+      if (!isoString) return '—';
+      const date = new Date(isoString);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    function getStatusBadge(status) {
+      const statusMap = {
+        'not_started': { text: 'Chưa bắt đầu', color: '#f0f0f0', textColor: '#666' },
+        'in_progress': { text: 'Đang phỏng vấn', color: '#fff3cd', textColor: '#856404' },
+        'completed': { text: 'Hoàn thành', color: '#d4edda', textColor: '#155724' }
+      };
+      const statusInfo = statusMap[status] || statusMap['not_started'];
+      return `<span style="display: inline-block; padding: 4px 8px; background-color: ${statusInfo.color}; color: ${statusInfo.textColor}; border-radius: 3px; font-size: 12px; font-weight: 500;">${statusInfo.text}</span>`;
+    }
+
     function loadAndDisplayCandidates(jobId) {
       fetch(`/api/job-library/jobs/${jobId}`)
         .then(r => r.json())
@@ -171,11 +191,13 @@
           }
 
           listDiv.innerHTML = candidates.map(c => {
+            const status = c.interview_status || 'not_started';
             const link = c.interview_link ? (
               c.interview_link.startsWith('http://') || c.interview_link.startsWith('https://')
                 ? c.interview_link
                 : `${window.location.origin}${c.interview_link}`
             ) : 'Chưa tạo link';
+
             const linkHtml = c.interview_link ? `
               <div style="display: flex; gap: 8px; margin-top: 8px;">
                 <input type="text" value="${link}" readonly style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
@@ -184,16 +206,27 @@
               </div>
             ` : '<p style="color: #ff9800; font-size: 13px;">Link chưa được tạo</p>';
 
+            const statusDetails = `
+              <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee; font-size: 12px;">
+                <div style="margin-bottom: 8px;"><strong>Trạng thái:</strong> ${getStatusBadge(status)}</div>
+                ${c.link_sent_at ? `<div style="margin-bottom: 8px;">📧 <strong>Link đã gửi:</strong> ${formatDate(c.link_sent_at)}</div>` : ''}
+                <div style="display: flex; gap: 8px; margin-top: 12px;">
+                  <button class="btn btn-primary btn-small mark-sent-btn" data-candidate-id="${c.id}" style="${c.link_sent ? 'opacity: 0.5; cursor: not-allowed;' : ''}">Đã gửi link</button>
+                  <button class="btn btn-info btn-small view-results-btn" data-candidate-id="${c.id}" style="${status !== 'completed' ? 'opacity: 0.5; cursor: not-allowed;' : ''}" ${status !== 'completed' ? 'disabled' : ''}>Xem kết quả</button>
+                </div>
+              </div>
+            `;
+
             return `
               <div style="padding: 12px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <div>
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                  <div style="flex: 1;">
                     <h4 style="margin: 0 0 4px 0;">${c.name}</h4>
                     <p style="margin: 0; color: #666; font-size: 13px;">${c.email} • ${c.phone}</p>
-                    <p style="margin: 4px 0 0 0; color: #999; font-size: 12px;">Trạng thái: ${c.interview_status || 'Chờ'}</p>
                   </div>
                 </div>
                 ${linkHtml}
+                ${statusDetails}
               </div>
             `;
           }).join('');
@@ -229,6 +262,56 @@
                     e.target.closest('[style*="padding: 12px"]').remove();
                   })
                   .catch(err => alert('Lỗi: ' + err.message));
+              }
+            });
+          });
+
+          // Add mark-sent button handlers
+          document.querySelectorAll('.mark-sent-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const candidateId = e.target.dataset.candidateId;
+              if (e.target.style.opacity === '0.5') return; // Already sent
+
+              try {
+                const response = await fetch(`/candidates/${candidateId}/mark-sent`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (!response.ok) throw new Error('Failed to mark as sent');
+                const data = await response.json();
+
+                e.target.textContent = '✓ Đã gửi';
+                e.target.style.opacity = '0.5';
+                e.target.style.cursor = 'not-allowed';
+                e.target.disabled = true;
+              } catch (err) {
+                alert('Lỗi: ' + err.message);
+              }
+            });
+          });
+
+          // Add view-results button handlers
+          document.querySelectorAll('.view-results-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+              const candidateId = e.target.dataset.candidateId;
+              if (e.target.disabled) return;
+
+              try {
+                // Get candidate info to find the interview session
+                const candidateResponse = await fetch(`/api/candidates/${candidateId}`);
+                if (!candidateResponse.ok) throw new Error('Candidate not found');
+
+                // Navigate to review page with session info
+                // For now, we need to find the interview session
+                // Since we don't have direct access, we'll store in localStorage for now
+                localStorage.setItem('current_candidate_id', candidateId);
+                localStorage.setItem('current_job_id', currentJobId);
+
+                // Navigate to review page - need to implement proper session lookup
+                alert('Tính năng xem kết quả sẽ được cập nhật trong bước tiếp theo');
+              } catch (err) {
+                alert('Lỗi: ' + err.message);
               }
             });
           });
