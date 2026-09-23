@@ -124,6 +124,19 @@ async function initializeDatabase() {
         }
       }
 
+      // Apply migrations for existing databases
+      try {
+        // Add link_sent_at column to candidates table if it doesn't exist
+        const tableInfo = await db.all("PRAGMA table_info(candidates)");
+        const hasLinkSentAt = tableInfo.some(col => col.name === 'link_sent_at');
+        if (!hasLinkSentAt) {
+          await db.run('ALTER TABLE candidates ADD COLUMN link_sent_at TIMESTAMP');
+          console.log('Migration: Added link_sent_at column to candidates table');
+        }
+      } catch (migrationError) {
+        console.log('Migration check completed:', migrationError.message);
+      }
+
       console.log('Database initialized:', dbPath);
       return db;
     } catch (error) {
