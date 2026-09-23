@@ -26,7 +26,7 @@ router.post('/', (req, res) => {
 
     const candidate_id = 'candidate_' + uuidv4();
     const candidate = {
-      candidate_id,
+      id: candidate_id,
       job_id,
       name,
       email,

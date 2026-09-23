@@ -286,10 +286,10 @@ class SessionManager {
     if (dbAvailable && db) {
       try {
         const stmt = db.prepare(`
-          INSERT INTO candidates (candidate_id, job_id, name, email, phone, created_at)
+          INSERT INTO candidates (id, job_id, name, email, phone, created_at)
           VALUES (?, ?, ?, ?, ?, ?)
         `);
-        await stmt.run(candidate.candidate_id, candidate.job_id, candidate.name, candidate.email, candidate.phone, candidate.created_at);
+        await stmt.run(candidate.id, candidate.job_id, candidate.name, candidate.email, candidate.phone, candidate.created_at);
       } catch (error) {
         console.error('[SessionManager] DB error:', error.message);
       }
