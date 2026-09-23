@@ -112,6 +112,20 @@
     </div>
   </div>
 
+  <!-- Edit Evaluation Modal -->
+  <div id="editEvaluationModal" class="modal">
+    <div class="modal-content" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
+      <h2>Chỉnh Sửa Đánh Giá</h2>
+      <div id="editEvaluationContent">
+        <!-- Edit form will be populated here -->
+      </div>
+      <div class="modal-actions" style="margin-top: 1.5rem;">
+        <button class="btn-secondary" onclick="closeEditEvaluationModal()">Hủy</button>
+        <button class="btn-primary" onclick="saveEditedEvaluations()">Lưu</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let currentJobId = null;
     let currentCandidateData = null;
@@ -240,7 +254,7 @@
               <div style="padding: 12px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 12px;">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                   <div style="flex: 1;">
-                    <h4 style="margin: 0 0 4px 0;">${c.name}</h4>
+                    <h4 style="margin: 0 0 4px 0;">${c.name} ${status === 'completed' ? '<span style="color: #4caf50; font-weight: bold;">✅ Đã hoàn thành</span>' : '<span style="color: #ff9800; font-weight: bold;">⏳ Chờ phỏng vấn</span>'}</h4>
                     <p style="margin: 0; color: #666; font-size: 13px;">${c.email} • ${c.phone}</p>
                   </div>
                 </div>
@@ -333,52 +347,98 @@
               if (e.target.disabled) return;
 
               try {
-                // Get candidate info to check interview status
-                const candidateResponse = await fetch(`/candidates/${candidateId}`);
-                if (!candidateResponse.ok) throw new Error('Candidate not found');
-
-                const candidateData = await candidateResponse.json();
-                const candidate = candidateData.candidate;
-                const status = candidate?.interview_status || 'not_started';
-
-                // Check if interview is completed
-                if (status !== 'completed') {
-                  alert('Ứng viên chưa hoàn thành phỏng vấn');
-                  return;
+                console.log('Fetching results for candidate:', candidateId);
+                // Fetch interview results
+                const response = await fetch(`/api/interview/results/${candidateId}`);
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  console.error('API Error:', errorText);
+                  throw new Error(`Không tìm thấy kết quả phỏng vấn (${response.status})`);
                 }
+
+                const data = await response.json();
+                console.log('Results data:', data);
+                console.log('evaluation type:', typeof data.evaluation);
+                console.log('evaluation value:', data.evaluation);
+                const interviewId = data.interviewId;
+                const info = data.interview_info;
+                // Handle both old { summaries: [] } and new [] response formats
+                const evaluationArray = Array.isArray(data.evaluation) ? data.evaluation : (data.evaluation?.summaries || []);
+                console.log('evaluationArray:', evaluationArray);
+                const transcript = data.transcript || [];
+
+                // Build evaluation HTML by skill (group by skill_name)
+                const skillsMap = {};
+                evaluationArray.forEach(e => {
+                  if (!skillsMap[e.skill_name]) {
+                    skillsMap[e.skill_name] = { skill_name: e.skill_name, summary: '' };
+                  }
+                  if (e.main_answer_summary) {
+                    skillsMap[e.skill_name].summary = e.main_answer_summary;
+                  }
+                });
+                const uniqueEvaluations = Object.values(skillsMap);
+
+                const evaluationHtml = uniqueEvaluations.length > 0
+                  ? uniqueEvaluations.map(e => `
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9f9f9; border-radius: 4px;">
+                      <h4 style="margin: 0 0 0.5rem 0; color: #2196f3;">${e.skill_name}</h4>
+                      <p style="margin: 0; color: #666;"><strong>Đánh giá:</strong> ${e.summary || 'Chưa có'}</p>
+                    </div>
+                  `).join('')
+                  : '<p style="color: #999;">Chưa có đánh giá</p>';
+
+                // Build transcript HTML
+                const transcriptHtml = transcript.length > 0
+                  ? transcript.map(msg => `
+                    <div style="margin-bottom: 1rem; padding: 0.8rem; background: ${msg.sender === 'candidate' ? '#e3f2fd' : '#fff3e0'}; border-radius: 4px;">
+                      <p style="margin: 0 0 0.3rem 0; font-weight: bold; color: ${msg.sender === 'candidate' ? '#1976d2' : '#f57c00'};">${msg.sender === 'candidate' ? 'Ứng viên' : 'AI Interviewer'}</p>
+                      <p style="margin: 0; color: #333;">${msg.content}</p>
+                    </div>
+                  `).join('')
+                  : '<p style="color: #999;">Chưa có hội thoại</p>';
 
                 // Generate review HTML and show in modal
                 const reviewHTML = `
-                  <div style="padding: 1rem; background: #f9f9f9; border-radius: 4px; margin-bottom: 1rem;">
-                    <p style="color: #666; margin: 0;">Interview completed. Below are the results and evaluation.</p>
+                  <div style="padding: 1rem; background: #f9f9f9; border-radius: 4px; margin-bottom: 1.5rem;">
+                    <p style="color: #4caf50; margin: 0; font-weight: bold;">✓ Phỏng vấn đã hoàn thành</p>
                   </div>
 
                   <div style="margin-bottom: 2rem;">
-                    <h3>Interview Information</h3>
+                    <h3 style="border-bottom: 2px solid #2196f3; padding-bottom: 0.5rem;">Interview Information</h3>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem; background: #f9f9f9; border-radius: 4px;">
                       <div>
-                        <p style="color: #666; margin: 0; font-size: 12px;">Candidate:</p>
-                        <p style="margin: 0; font-weight: bold;">${candidate?.name || 'N/A'}</p>
+                        <p style="color: #666; margin: 0; font-size: 12px;">Ứng viên:</p>
+                        <p style="margin: 0; font-weight: bold;">${info.candidate_name || 'N/A'}</p>
                       </div>
                       <div>
-                        <p style="color: #666; margin: 0; font-size: 12px;">Email:</p>
-                        <p style="margin: 0; font-weight: bold;">${candidate?.email || 'N/A'}</p>
+                        <p style="color: #666; margin: 0; font-size: 12px;">Vị trí:</p>
+                        <p style="margin: 0; font-weight: bold;">${info.job_title || 'N/A'}</p>
                       </div>
                       <div>
-                        <p style="color: #666; margin: 0; font-size: 12px;">Phone:</p>
-                        <p style="margin: 0; font-weight: bold;">${candidate?.phone || 'N/A'}</p>
+                        <p style="color: #666; margin: 0; font-size: 12px;">Level:</p>
+                        <p style="margin: 0; font-weight: bold;">${info.level || 'N/A'}</p>
                       </div>
                       <div>
-                        <p style="color: #666; margin: 0; font-size: 12px;">Status:</p>
-                        <p style="margin: 0; font-weight: bold;">✓ Completed</p>
+                        <p style="color: #666; margin: 0; font-size: 12px;">Công ty:</p>
+                        <p style="margin: 0; font-weight: bold;">${info.company || 'N/A'}</p>
                       </div>
                     </div>
                   </div>
 
+                  <div style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                      <h3 style="border-bottom: 2px solid #ff9800; padding-bottom: 0.5rem; flex: 1; margin: 0;">Evaluation Rubric</h3>
+                      <button class="btn btn-secondary btn-small" onclick="openEditEvaluationModal('${interviewId}', ${JSON.stringify(data.skills || []).replace(/"/g, '&quot;')}, ${JSON.stringify(uniqueEvaluations).replace(/"/g, '&quot;')})">Edit</button>
+                    </div>
+                    ${evaluationHtml}
+                  </div>
+
                   <div>
-                    <h3>Interview Transcript</h3>
-                    <div style="padding: 1rem; background: #f9f9f9; border-radius: 4px; color: #666;">
-                      <p style="margin: 0;">Interview details and evaluation will be displayed here.</p>
+                    <h3 style="border-bottom: 2px solid #9c27b0; padding-bottom: 0.5rem;">Interview Transcript</h3>
+                    <div style="max-height: 400px; overflow-y: auto;">
+                      ${transcriptHtml}
                     </div>
                   </div>
                 `;
@@ -594,6 +654,84 @@
     function showReviewModal(reviewHTML) {
       document.getElementById('reviewContent').innerHTML = reviewHTML;
       document.getElementById('reviewModal').classList.add('active');
+    }
+
+    // Edit evaluation functions
+    let currentEditInterviewId = null;
+    let currentEditSkills = [];
+
+    function openEditEvaluationModal(interviewId, skills, currentEvaluations) {
+      currentEditInterviewId = interviewId;
+      currentEditSkills = skills;
+
+      // Create evaluation map for quick lookup
+      const evalMap = {};
+      currentEvaluations.forEach(e => {
+        evalMap[e.skill_name] = e.summary || '';
+      });
+
+      // Build form for all skills
+      const formHtml = skills.map((skill, idx) => `
+        <div style="margin-bottom: 1.5rem; padding: 1rem; border: 1px solid #ddd; border-radius: 4px;">
+          <label style="display: block; font-weight: bold; margin-bottom: 0.5rem; color: #2196f3;">${skill}</label>
+          <textarea
+            id="skill-eval-${idx}"
+            data-skill="${skill}"
+            placeholder="Nhập đánh giá cho kỹ năng này"
+            style="width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; resize: vertical; min-height: 100px;"
+          >${evalMap[skill] || ''}</textarea>
+        </div>
+      `).join('');
+
+      document.getElementById('editEvaluationContent').innerHTML = formHtml || '<p style="color: #999; padding: 1rem;">Không có kỹ năng để đánh giá</p>';
+      document.getElementById('editEvaluationModal').classList.add('active');
+    }
+
+    function closeEditEvaluationModal() {
+      document.getElementById('editEvaluationModal').classList.remove('active');
+      currentEditInterviewId = null;
+      currentEditSkills = [];
+    }
+
+    async function saveEditedEvaluations() {
+      if (!currentEditInterviewId) return;
+
+      // Collect all edited evaluations
+      const evaluations = {};
+      currentEditSkills.forEach((skill, idx) => {
+        const textarea = document.getElementById(`skill-eval-${idx}`);
+        evaluations[skill] = textarea.value.trim();
+      });
+
+      try {
+        const response = await fetch(`/api/interview/summaries/${currentEditInterviewId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ evaluations })
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('API Error:', errorText);
+          throw new Error('Lỗi khi lưu đánh giá');
+        }
+
+        const data = await response.json();
+        console.log('Evaluations saved:', data);
+
+        // Close modal and reload results
+        closeEditEvaluationModal();
+        alert('✓ Đã lưu đánh giá thành công');
+        closeReviewModal();
+
+        // Reload candidates list to reflect changes
+        if (currentJobId) {
+          loadAndDisplayCandidates(currentJobId);
+        }
+      } catch (err) {
+        console.error('Error saving evaluations:', err);
+        alert('Lỗi: ' + err.message);
+      }
     }
   </script>
 </body>

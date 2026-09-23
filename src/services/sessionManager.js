@@ -289,7 +289,8 @@ class SessionManager {
   }
 
   // Interview methods
-  async createInterview(interview_id, job_id, candidate_id) {
+  async createInterview(job_id, candidate_id) {
+    const interview_id = 'interview_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
     if (dbAvailable && db) {
       try {
         const stmt = db.prepare(`
@@ -301,6 +302,7 @@ class SessionManager {
         console.error('[SessionManager] DB error:', error.message);
       }
     }
+    return interview_id;
   }
 
   async getInterview(interview_id) {
@@ -359,6 +361,28 @@ class SessionManager {
 
   _parseMessage(dbMessage) {
     return { id: dbMessage.id, message_id: dbMessage.id, sender: dbMessage.sender, content: dbMessage.content, skill_name: dbMessage.skill_name, question_index: dbMessage.question_index, attempt_number: dbMessage.attempt_number, created_at: dbMessage.created_at };
+  }
+
+  async updateCandidateInterviewStatus(candidateId, status) {
+    if (dbAvailable && db) {
+      try {
+        await db.run('UPDATE candidates SET interview_status = ? WHERE id = ?', [status, candidateId]);
+        console.log('[SessionManager] Updated candidate interview status:', candidateId, status);
+      } catch (error) {
+        console.error('[SessionManager] DB error updating candidate status:', error.message);
+      }
+    }
+  }
+
+  async updateInterviewStatus(interviewId, status, completedAt) {
+    if (dbAvailable && db) {
+      try {
+        await db.run('UPDATE interviews SET status = ?, completed_at = ? WHERE id = ?', [status, completedAt, interviewId]);
+        console.log('[SessionManager] Updated interview status:', interviewId, status);
+      } catch (error) {
+        console.error('[SessionManager] DB error updating interview status:', error.message);
+      }
+    }
   }
 }
 

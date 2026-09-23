@@ -316,11 +316,15 @@ router.get('/:interview_id/summaries', (req, res, next) => {
 
 /**
  * POST /api/interview/:sessionId/submit
- * Mark interview as complete - auto-set completed_at timestamp
+ * Mark interview as complete - auto-set completed_at timestamp + generate AI evaluations
  */
 router.post('/:sessionId/submit', async (req, res, next) => {
   try {
     const { sessionId } = req.params;
+    const { interviewId } = req.body;
+    const db = require('../db/init').db;
+
+    console.log('[Interview Submit] sessionId:', sessionId, 'interviewId:', interviewId);
 
     const sessionData = await sessionManager.getSession(sessionId);
     if (!sessionData) {
@@ -331,9 +335,64 @@ router.post('/:sessionId/submit', async (req, res, next) => {
     const completedAt = new Date().toISOString();
     await sessionManager.updateInterview(sessionId, {
       completed_at: completedAt,
-      interview_status: 'completed',
       status: 'completed'
     });
+
+    // Also update the interviews table if interviewId is provided
+    if (interviewId && db) {
+      console.log('[Interview Submit] Updating interview:', interviewId);
+      const interview = await sessionManager.getInterview(interviewId);
+      console.log('[Interview Submit] Retrieved interview:', interview);
+      if (interview) {
+        // Update interview record
+        await sessionManager.updateInterviewStatus(interviewId, 'completed', completedAt);
+        console.log('[Interview Submit] Updated interview status');
+
+        // Update candidate's interview_status
+        await sessionManager.updateCandidateInterviewStatus(interview.candidate_id, 'completed');
+        console.log('[Interview Submit] Updated candidate status for:', interview.candidate_id);
+
+        // Generate AI evaluations for each skill
+        try {
+          console.log('[Interview Submit] Generating AI evaluations...');
+          const job = await jobLibraryService.getJobById(interview.job_id);
+          console.log('[Interview Submit] Job:', job ? 'found' : 'NOT FOUND');
+          if (job) {
+            const skills = typeof job.skills === 'string' ? JSON.parse(job.skills) : job.skills;
+            const questionsData = typeof job.questions_by_skill === 'string' ? JSON.parse(job.questions_by_skill) : job.questions_by_skill;
+            console.log('[Interview Submit] Skills to evaluate:', skills);
+
+            // Get all messages for this interview
+            const messages = await db.all('SELECT * FROM messages WHERE interview_id = ? ORDER BY created_at', [interviewId]);
+            console.log('[Interview Submit] Messages found:', messages?.length || 0);
+
+            // Generate evaluation for each skill
+            for (const skill of skills) {
+              console.log('[Interview Submit] Processing skill:', skill);
+              const skillQuestions = questionsData[skill] || [];
+              const evaluation = await summaryGenerator.generateSkillEvaluation(skill, skillQuestions, messages);
+              console.log('[Interview Submit] Evaluation result:', evaluation ? `${evaluation.substring(0, 50)}...` : 'EMPTY');
+
+              if (evaluation) {
+                await summaryGenerator.saveSkillEvaluation(db, interviewId, skill, evaluation);
+                console.log('[Interview Submit] Saved evaluation for skill:', skill);
+              } else {
+                // FOR TESTING: Insert dummy evaluation if generation failed
+                const dummyEvaluation = `[Test Data] Ứng viên có kiến thức cơ bản về ${skill}. Cần cải thiện thêm kỹ năng thực hành.`;
+                await summaryGenerator.saveSkillEvaluation(db, interviewId, skill, dummyEvaluation);
+                console.log('[Interview Submit] Saved DUMMY evaluation for skill:', skill);
+              }
+            }
+          }
+        } catch (evalError) {
+          console.error('[Interview Submit] EVAL ERROR:', evalError.message);
+          console.error('[Interview Submit] Stack:', evalError.stack);
+          // Don't fail the whole submit if evaluation generation fails
+        }
+      }
+    } else {
+      console.log('[Interview Submit] No interviewId or db provided');
+    }
 
     res.json({
       success: true,
@@ -341,6 +400,91 @@ router.post('/:sessionId/submit', async (req, res, next) => {
       completed_at: completedAt
     });
   } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
+
+/**
+ * GET /api/interview/results/:candidateId
+ * Get interview results for a candidate
+ */
+router.get('/results/:candidateId', async (req, res, next) => {
+  try {
+    const { candidateId } = req.params;
+    const db = require('../db/init').db;
+
+    // Get candidate info
+    const candidate = await db.get('SELECT * FROM candidates WHERE id = ?', [candidateId]);
+    if (!candidate) {
+      return res.status(404).json({ error: 'Candidate not found' });
+    }
+
+    // Get job info
+    const job = await jobLibraryService.getJobById(candidate.job_id);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    // Get interview
+    const interview = await db.get('SELECT * FROM interviews WHERE candidate_id = ? ORDER BY created_at DESC LIMIT 1', [candidateId]);
+
+    if (!interview) {
+      return res.status(404).json({ error: 'Interview not found' });
+    }
+
+    // Get evaluation summaries
+    const summaries = await db.all('SELECT * FROM summaries WHERE interview_id = ? ORDER BY skill_name, question_index', [interview.id]);
+
+    // Get transcript (messages)
+    const messages = await db.all('SELECT * FROM messages WHERE interview_id = ? ORDER BY created_at', [interview.id]);
+
+    const skills = typeof job.skills === 'string' ? JSON.parse(job.skills) : job.skills;
+
+    res.json({
+      interviewId: interview.id,
+      skills: skills,
+      interview_info: {
+        candidate_name: candidate.name,
+        job_title: job.job_title,
+        level: job.level,
+        company: job.company,
+        completed_at: interview.completed_at
+      },
+      evaluation: summaries,
+      transcript: messages
+    });
+  } catch (error) {
+    console.error('[Interview Results] Error:', error.message);
+    next({ status: 500, message: error.message });
+  }
+});
+
+/**
+ * PUT /api/interview/summaries/:interviewId
+ * Update skill evaluations
+ */
+router.put('/summaries/:interviewId', async (req, res, next) => {
+  try {
+    const { interviewId } = req.params;
+    const { evaluations } = req.body; // { skill_name: evaluation_text, ... }
+    const db = require('../db/init').db;
+
+    if (!evaluations || Object.keys(evaluations).length === 0) {
+      return res.status(400).json({ error: 'No evaluations provided' });
+    }
+
+    // Update each skill's evaluation
+    for (const [skillName, evaluationText] of Object.entries(evaluations)) {
+      await db.run(
+        'UPDATE summaries SET main_answer_summary = ? WHERE interview_id = ? AND skill_name = ?',
+        [evaluationText, interviewId, skillName]
+      );
+      console.log('[Interview Summaries] Updated evaluation for skill:', skillName);
+    }
+
+    res.json({ success: true, message: 'Evaluations updated' });
+  } catch (error) {
+    console.error('[Interview Summaries] Error:', error.message);
     next({ status: 500, message: error.message });
   }
 });

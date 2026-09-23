@@ -52,6 +52,42 @@ const summarizeText = async (question, answer) => {
   return response.trim();
 };
 
+const generateSkillEvaluation = async (skill_name, skill_questions, candidate_messages) => {
+  try {
+    // Get all candidate messages (don't filter by skill_name as they may not be set)
+    const candidateAnswers = candidate_messages.filter(m => m.sender === 'candidate');
+
+    if (candidateAnswers.length === 0) {
+      return '';
+    }
+
+    // Concatenate all candidate answers for evaluation
+    const allAnswers = candidateAnswers.map(m => m.content).join('\n\n');
+
+    // Build evaluation prompt
+    const questionsText = skill_questions.join('\n- ');
+    const systemPrompt = `Đánh giá kỹ năng "${skill_name}" dựa trên câu trả lời của ứng viên. Tóm tắt 2-3 dòng về:
+- Điểm mạnh
+- Điểm cần cải thiện
+- Kết luận về mức độ
+
+Ngắn gọn, trung thực, không quá lạc quan.`;
+
+    const messages = [
+      {
+        role: 'user',
+        content: `Kỹ năng: ${skill_name}\n\nCâu hỏi:\n- ${questionsText}\n\nCâu trả lời của ứng viên:\n${allAnswers}\n\nĐánh giá:`
+      }
+    ];
+
+    const response = await callQwen(messages, systemPrompt);
+    return response.trim();
+  } catch (error) {
+    console.error('Skill evaluation error:', error);
+    return '';
+  }
+};
+
 const saveSummary = (db, summary_id, interview_id, skill_name, question_index, question_text, main_summary, followup_summary) => {
   const stmt = db.prepare(`
     INSERT INTO summaries (id, interview_id, skill_name, question_index, question_text, main_answer_summary, followup_summary)
@@ -60,8 +96,24 @@ const saveSummary = (db, summary_id, interview_id, skill_name, question_index, q
   stmt.run(summary_id, interview_id, skill_name, question_index, question_text, main_summary, followup_summary);
 };
 
+const saveSkillEvaluation = async (db, interview_id, skill_name, evaluation_text) => {
+  const summary_id = 'summary_' + uuidv4();
+  try {
+    await db.run(
+      `INSERT INTO summaries (id, interview_id, skill_name, question_index, question_text, main_answer_summary, followup_summary)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [summary_id, interview_id, skill_name, 0, skill_name, evaluation_text, '']
+    );
+    console.log('[SummaryGenerator] Saved skill evaluation:', skill_name);
+  } catch (error) {
+    console.error('[SummaryGenerator] Error saving skill evaluation:', error);
+  }
+};
+
 module.exports = {
   generateSummary,
+  generateSkillEvaluation,
   summarizeText,
-  saveSummary
+  saveSummary,
+  saveSkillEvaluation
 };

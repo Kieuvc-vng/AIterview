@@ -21,9 +21,11 @@
     // Function to submit interview when complete
     window.submitInterviewOnComplete = async function(sessionId) {
       try {
+        const interviewId = localStorage.getItem('current_interview_id');
         const response = await fetch(`/api/interview/${sessionId}/submit`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ interviewId })
         });
 
         if (!response.ok) {

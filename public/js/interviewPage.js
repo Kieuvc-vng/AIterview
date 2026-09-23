@@ -249,7 +249,6 @@ const InterviewPage = {
       updateButton();
     }
     // "Go to Review" button removed - candidate only sees thank you message
-    }
 
     // Auto-scroll to bottom
     setTimeout(() => {
