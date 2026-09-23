@@ -449,3 +449,69 @@ _Các entry thật bắt đầu từ đây._
 
 **Bước:** 5 — Test (ready for integration)
 **Chưa hiểu:** không có gì
+
+## 23/09 — Kiểu + Tiến (Continuation)
+
+**Nhờ làm:**
+1. Fix candidate data persistence bug
+2. Fix interview chatbot initialization failures
+3. Fix question progression logic
+4. Separate candidate vs HR interview review views
+
+**Claude làm:**
+
+**Phần 1 - Candidate data persistence fix:**
+- Bug: Candidate data không lưu vào database khi tạo
+- Root cause: Column name mismatch (`candidate_id` vs `id` trong schema)
+- Fix: Updated sessionManager.js + candidateRoutes.js
+  * Change INSERT statement: `(candidate_id, ...)` → `(id, ...)`
+  * Pass correct field when inserting
+- Test: Candidate data now persists to database ✓
+- Commit: "fix: correct candidate column name in database insert" (40157d7)
+
+**Phần 2 - Interview chatbot initialization fix:**
+- Bug: "Failed to start interview" error, chatbot không chạy
+- Root causes (3 issues):
+  1. sessionManager dùng `session_id` nhưng messages table dùng `interview_id`
+  2. Queries tìm non-existent `session_states` table
+  3. Cố update `started_at` column không tồn tại trong sessions table
+- Fixes:
+  * Change message queries: WHERE session_id → WHERE interview_id
+  * Remove session_states table queries
+  * Filter updateInterview() chỉ update valid columns
+- Test: Interview starts without errors ✓
+- Commit: "fix: resolve interview chatbot initialization failures" (8f98217)
+
+**Phần 3 - Question progression logic fix:**
+- Bug: Chatbot kết thúc interview ngay tức thì, không hỏi tất cả câu hỏi
+- Root causes:
+  * Dùng sessionId cho messages (nên dùng interviewId)
+  * Không create interview records
+  * Không fetch messages từ database
+- Fixes:
+  * Create interview records khi create session
+  * Change endpoint: /:sessionId/message → /:interviewId/message
+  * Fetch interview + job data bằng interview_id
+  * Fetch messages từ database để calculate question progression
+  * Frontend: store + use interviewId thay vì sessionId
+- Test: Chatbot ask questions in sequence ✓ (Q1→Q2→Q3...)
+- Commit: "fix: implement proper question progression in chatbot interview" (262c50c)
+
+**Phần 4 - Separate candidate vs HR review views:**
+- Spec: 
+  * Candidate: Chỉ thấy thank you message (remove "Go to Review" button)
+  * HR: Click "Xem kết quả" → modal popup show review
+- Fixes:
+  * interviewPage.js: Remove "Go to Review" button, update thank you message
+  * library.html: Add review modal, implement modal functions
+  * Update "Xem kết quả" handler: show modal instead of alert
+- Test: Candidate sees thank you only ✓, HR can click "Xem kết quả" ✓
+- Commit: "feat: separate candidate and HR interview review views" (89d7ad5)
+
+**Phần 5 - Final status:**
+- 4 commits this session (all on feature/job-library-schema branch)
+- All changes tested and verified
+- App running on port 55979, ready to use
+
+**Bước:** 5 — Test (completed)
+**Chưa hiểu:** không có gì
