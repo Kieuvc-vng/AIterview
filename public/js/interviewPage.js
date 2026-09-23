@@ -6,6 +6,7 @@
 
 const InterviewPage = {
   sessionId: null,
+  interviewId: null,
   candidateName: null,
   currentQuestion: null,
   messages: [],
@@ -15,8 +16,9 @@ const InterviewPage = {
   /**
    * Initialize interview page - handle resume from localStorage
    */
-  async init(sessionId) {
+  async init(sessionId, interviewId) {
     this.sessionId = sessionId;
+    this.interviewId = interviewId || localStorage.getItem('current_interview_id');
     const container = document.getElementById('app');
 
     // Check if we have SESSION_ID in localStorage
@@ -325,8 +327,8 @@ const InterviewPage = {
         content: message
       });
 
-      // Send to API
-      const response = await fetch(`/api/interview/${this.sessionId}/message`, {
+      // Send to API (use interviewId for message operations)
+      const response = await fetch(`/api/interview/${this.interviewId}/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ candidate_message: message })

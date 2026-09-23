@@ -36,7 +36,10 @@ router.post('/create-from-candidate', async (req, res, next) => {
       questions_by_skill: typeof job.questions_by_skill === 'string' ? JSON.parse(job.questions_by_skill) : job.questions_by_skill
     });
 
-    res.json({ sessionId: sessionData.session_id });
+    // Also create an interview record in the interviews table
+    const interviewId = await sessionManager.createInterview(jobId, candidateId);
+
+    res.json({ sessionId: sessionData.session_id, interviewId });
   } catch (error) {
     next({ status: 500, message: error.message });
   }
@@ -135,27 +138,42 @@ router.post('/:sessionId/start', async (req, res, next) => {
 });
 
 /**
- * POST /api/interview/:sessionId/message
+ * POST /api/interview/:interviewId/message
  * Main interview loop - receive candidate answer, AI evaluates, determines next action
  */
-router.post('/:sessionId/message', async (req, res, next) => {
+router.post('/:interviewId/message', async (req, res, next) => {
   try {
-    const { sessionId } = req.params;
+    const { interviewId } = req.params;
     const { candidate_message } = req.body;
 
     if (!candidate_message) {
       return res.status(400).json({ error: 'Missing required parameter: candidate_message' });
     }
 
-    const sessionData = await sessionManager.getSession(sessionId);
-    if (!sessionData) {
-      return res.status(404).json({ error: 'Session not found' });
+    // Get interview and associated job data
+    const db = require('../db/init').db;
+    let interview = null;
+    let job = null;
+
+    if (db) {
+      try {
+        const stmt = db.prepare('SELECT * FROM interviews WHERE id = ?');
+        interview = await stmt.get(interviewId);
+
+        if (interview && interview.job_id) {
+          job = await jobLibraryService.getJobById(interview.job_id);
+        }
+      } catch (error) {
+        console.error('[Interview] DB error:', error.message);
+      }
     }
 
-    const session = sessionData.session;
+    if (!interview || !job) {
+      return res.status(404).json({ error: 'Interview not found' });
+    }
 
     // Save candidate message
-    await sessionManager.saveMessage(sessionId, {
+    await sessionManager.saveMessage(interviewId, {
       sender: 'candidate',
       content: candidate_message,
       skill_name: null,
@@ -163,10 +181,10 @@ router.post('/:sessionId/message', async (req, res, next) => {
       attempt_number: null
     });
 
-    // Parse questions by skill from session
-    const questionsBySkill = typeof session.questions_by_skill === 'string'
-      ? JSON.parse(session.questions_by_skill)
-      : session.questions_by_skill;
+    // Parse questions by skill from job
+    const questionsBySkill = typeof job.questions_by_skill === 'string'
+      ? JSON.parse(job.questions_by_skill)
+      : job.questions_by_skill;
 
     // Get all questions in order
     const allQuestions = [];
@@ -178,10 +196,23 @@ router.post('/:sessionId/message', async (req, res, next) => {
       });
     });
 
+    // Get messages for this interview
+    let messages = [];
+    if (db) {
+      try {
+        const stmt = db.prepare('SELECT * FROM messages WHERE interview_id = ? ORDER BY created_at ASC');
+        messages = await stmt.all(interviewId) || [];
+      } catch (error) {
+        console.error('[Interview] Error fetching messages:', error.message);
+      }
+    }
+
     // Get next question (simple increment from message count)
-    const messageCount = sessionData.messages ? sessionData.messages.length : 1;
+    const messageCount = messages.length + 1; // +1 for the message we just saved
     const nextQuestionIndex = Math.floor((messageCount - 1) / 2); // Every 2 messages = 1 question
     let nextQuestion = null;
+
+    console.log('[Interview] MessageCount:', messageCount, 'AllQuestions:', allQuestions.length, 'NextIndex:', nextQuestionIndex);
 
     if (nextQuestionIndex < allQuestions.length) {
       nextQuestion = allQuestions[nextQuestionIndex];
@@ -193,7 +224,7 @@ router.post('/:sessionId/message', async (req, res, next) => {
       : `Thank you for your responses. That concludes our interview. We'll be in touch soon!`;
 
     // Save AI response
-    await sessionManager.saveMessage(sessionId, {
+    await sessionManager.saveMessage(interviewId, {
       sender: 'ai',
       content: ai_response,
       skill_name: nextQuestion ? nextQuestion.skill : null,
