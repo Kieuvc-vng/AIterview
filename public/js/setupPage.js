@@ -281,14 +281,18 @@ const SetupPage = {
 
     const questionsHTML = Object.entries(this.formData.questions_by_skill).map(([skill, questions]) => {
       const questionsListHTML = questions.map((q, i) => `
-        <div class="form-group" style="margin-bottom: 12px;">
-          <input type="text" class="question-input" data-skill="${skill}" data-index="${i}" value="${q}">
+        <div class="form-group" style="margin-bottom: 12px; display: flex; gap: 8px;">
+          <input type="text" class="question-input" data-skill="${skill}" data-index="${i}" value="${q}" style="flex: 1;">
+          <button type="button" class="btn-danger btn-small delete-question-btn" data-skill="${skill}" data-index="${i}" style="width: auto;">Delete</button>
         </div>
       `).join('');
 
       return `
         <div class="question-group">
-          <h3>${skill}</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="margin: 0;">${skill}</h3>
+            <button type="button" class="btn-primary btn-small add-question-btn" data-skill="${skill}" style="width: auto;">+ Add Question</button>
+          </div>
           ${questionsListHTML}
         </div>
       `;
@@ -555,6 +559,27 @@ const SetupPage = {
         const skill = input.dataset.skill;
         const index = parseInt(input.dataset.index);
         this.formData.questions_by_skill[skill][index] = input.value;
+      });
+    });
+
+    // Add question button listeners
+    const addQuestionBtns = document.querySelectorAll('.add-question-btn');
+    addQuestionBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const skill = btn.dataset.skill;
+        this.formData.questions_by_skill[skill].push('');
+        this.render(document.getElementById('app'));
+      });
+    });
+
+    // Delete question button listeners
+    const deleteQuestionBtns = document.querySelectorAll('.delete-question-btn');
+    deleteQuestionBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const skill = btn.dataset.skill;
+        const index = parseInt(btn.dataset.index);
+        this.formData.questions_by_skill[skill].splice(index, 1);
+        this.render(document.getElementById('app'));
       });
     });
 
