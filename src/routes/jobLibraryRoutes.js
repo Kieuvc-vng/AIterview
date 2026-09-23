@@ -35,6 +35,33 @@ router.get('/jobs/:id', async (req, res, next) => {
   }
 });
 
+// POST /api/job-library/jobs - Create new job
+router.post('/jobs', async (req, res, next) => {
+  try {
+    const { job_title, level, company, hr_email, skills, questions_by_skill, jd_text } = req.body;
+
+    if (!job_title || !level || !company || !hr_email) {
+      return res.status(400).json({
+        error: 'Missing required fields: job_title, level, company, hr_email'
+      });
+    }
+
+    const jobId = await jobLibraryService.createJob({
+      job_title,
+      level,
+      company,
+      hr_email,
+      skills: Array.isArray(skills) ? skills : [],
+      questions_by_skill: questions_by_skill || {},
+      jd_text: jd_text || ''
+    });
+
+    res.json({ success: true, id: jobId, message: 'Job created successfully' });
+  } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
+
 // PUT /api/job-library/jobs/:id - Update job details
 router.put('/jobs/:id', async (req, res, next) => {
   try {
