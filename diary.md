@@ -515,3 +515,63 @@ _Các entry thật bắt đầu từ đây._
 
 **Bước:** 5 — Test (completed)
 **Chưa hiểu:** không có gì
+
+## 23/09 — Kiểu + Tiến (Evening - HR Evaluation Edit)
+
+**Nhờ làm:**
+1. Auto-generate AI evaluations khi interview submit
+2. HR có thể xem + chỉnh sửa đánh giá từng kỹ năng
+3. Hiển thị 3 sections: Interview Information + Evaluation Rubric + Interview Transcript
+
+**Claude làm:**
+
+**Phần 1 - Auto-generate AI evaluations:**
+- Thêm summaryGenerator.generateSkillEvaluation() → gọi Qwen để đánh giá từng skill
+- Thêm summaryGenerator.saveSkillEvaluation() → lưu vào bảng `summaries`
+- Modify POST /api/interview/:sessionId/submit:
+  * Get job details + skills
+  * Get messages từ database
+  * Loop từng skill: call generateSkillEvaluation() + save
+  * Add detailed logging để debug
+  * Add test data fallback nếu generation fail (FOR TESTING)
+- Commits: Initial implementation + logging enhancement
+
+**Phần 2 - HR Edit evaluations UI:**
+- Modify GET /api/interview/results/:candidateId:
+  * Return skills list + interviewId kèm response
+  * Change evaluation structure: {summaries: []} → direct array
+- Update library.html:
+  * Add Edit button kế Evaluation Rubric title
+  * Pass skills list + evaluations vào openEditEvaluationModal()
+  * Show textarea cho tất cả skills (không filter by data)
+- Implement openEditEvaluationModal():
+  * Create form with textarea per skill
+  * Pre-fill existing evaluations
+  * Handle empty evaluations gracefully
+  * Commit: Modal with textareas working ✓
+
+**Phần 3 - Save edited evaluations:**
+- Implement PUT /api/interview/summaries/:interviewId
+  * Update summaries SET main_answer_summary WHERE skill_name
+  * Accept {evaluations: {skill_name: text, ...}}
+- Implement saveEditedEvaluations():
+  * Collect all textarea values per skill
+  * POST to update endpoint
+  * Close modal + reload candidate list
+  * Commit: Save functionality ready
+
+**Phần 4 - Bug fixes:**
+- Bug: evaluationArray filter by skill_name trả về empty
+  * Root cause: messages trong DB có skill_name = NULL
+  * Fix: Change filter → get ALL candidate messages, không filter by skill
+  * AI đánh giá skill dựa trên toàn bộ conversation
+- Status: Fixed, awaiting test with fresh interview
+
+**Phần 5 - Current status:**
+- Edit UI: ✓ (modal, textareas, save button)
+- Auto-generation: ❌ (returns empty, need debug Qwen call)
+- Test data fallback: ✓ (dummy evaluations insert khi generation fail)
+- Ready to test: Create new candidate → complete interview → check results
+
+**Bước:** 4 — Spec → Build (implementation complete, UI tested, auto-generation pending debug)
+**Chưa hiểu:** Tại sao generateSkillEvaluation() trả về empty - cần check Qwen API call
