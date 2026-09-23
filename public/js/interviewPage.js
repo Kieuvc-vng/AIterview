@@ -130,11 +130,8 @@ const InterviewPage = {
       </div>
     ` : '';
 
-    const endButtonHTML = this.interviewComplete ? `
-      <button type="button" class="btn-secondary" id="btn-end-interview">
-        Go to Review
-      </button>
-    ` : '';
+    // Remove "Go to Review" button - only show thank you message
+    const endButtonHTML = '';
 
     return `
       <div class="page interview-page">
@@ -154,7 +151,8 @@ const InterviewPage = {
         <div class="interview-input-area">
           ${this.interviewComplete ? `
             <div class="interview-complete-message">
-              <p>✓ Interview completed! All questions have been asked.</p>
+              <p>✓ Interview completed!</p>
+              <p>Thank you for your time. Your interview has been recorded and will be reviewed by the hiring team.</p>
             </div>
           ` : `
             <div class="message-input-group">
@@ -249,13 +247,8 @@ const InterviewPage = {
       });
 
       updateButton();
-    } else {
-      const endBtn = document.getElementById('btn-end-interview');
-      if (endBtn) {
-        endBtn.addEventListener('click', () => {
-          App.goToPage('review', { sessionId: this.sessionId });
-        });
-      }
+    }
+    // "Go to Review" button removed - candidate only sees thank you message
     }
 
     // Auto-scroll to bottom

@@ -99,6 +99,19 @@
     </div>
   </div>
 
+  <!-- Review Modal -->
+  <div id="reviewModal" class="modal">
+    <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="margin: 0;">Interview Review</h2>
+        <button class="btn-secondary" onclick="closeReviewModal()" style="padding: 0.5rem 1rem;">✕ Đóng</button>
+      </div>
+      <div id="reviewContent">
+        <!-- Review content will be populated here -->
+      </div>
+    </div>
+  </div>
+
   <script>
     let currentJobId = null;
     let currentCandidateData = null;
@@ -325,7 +338,8 @@
                 if (!candidateResponse.ok) throw new Error('Candidate not found');
 
                 const candidateData = await candidateResponse.json();
-                const status = candidateData.candidate?.interview_status || 'not_started';
+                const candidate = candidateData.candidate;
+                const status = candidate?.interview_status || 'not_started';
 
                 // Check if interview is completed
                 if (status !== 'completed') {
@@ -333,8 +347,43 @@
                   return;
                 }
 
-                // Placeholder for completed interview (to do later)
-                alert('Tính năng xem kết quả sẽ được cập nhật trong bước tiếp theo');
+                // Generate review HTML and show in modal
+                const reviewHTML = `
+                  <div style="padding: 1rem; background: #f9f9f9; border-radius: 4px; margin-bottom: 1rem;">
+                    <p style="color: #666; margin: 0;">Interview completed. Below are the results and evaluation.</p>
+                  </div>
+
+                  <div style="margin-bottom: 2rem;">
+                    <h3>Interview Information</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem; background: #f9f9f9; border-radius: 4px;">
+                      <div>
+                        <p style="color: #666; margin: 0; font-size: 12px;">Candidate:</p>
+                        <p style="margin: 0; font-weight: bold;">${candidate?.name || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p style="color: #666; margin: 0; font-size: 12px;">Email:</p>
+                        <p style="margin: 0; font-weight: bold;">${candidate?.email || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p style="color: #666; margin: 0; font-size: 12px;">Phone:</p>
+                        <p style="margin: 0; font-weight: bold;">${candidate?.phone || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p style="color: #666; margin: 0; font-size: 12px;">Status:</p>
+                        <p style="margin: 0; font-weight: bold;">✓ Completed</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3>Interview Transcript</h3>
+                    <div style="padding: 1rem; background: #f9f9f9; border-radius: 4px; color: #666;">
+                      <p style="margin: 0;">Interview details and evaluation will be displayed here.</p>
+                    </div>
+                  </div>
+                `;
+
+                showReviewModal(reviewHTML);
               } catch (err) {
                 alert('Lỗi: ' + err.message);
               }
@@ -536,6 +585,15 @@
         .catch(err => {
           alert('Lỗi khi xóa job: ' + err.message);
         });
+    }
+
+    function closeReviewModal() {
+      document.getElementById('reviewModal').classList.remove('active');
+    }
+
+    function showReviewModal(reviewHTML) {
+      document.getElementById('reviewContent').innerHTML = reviewHTML;
+      document.getElementById('reviewModal').classList.add('active');
     }
   </script>
 </body>
