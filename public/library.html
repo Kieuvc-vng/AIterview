@@ -320,17 +320,20 @@
               if (e.target.disabled) return;
 
               try {
-                // Get candidate info to find the interview session
+                // Get candidate info to check interview status
                 const candidateResponse = await fetch(`/api/candidates/${candidateId}`);
                 if (!candidateResponse.ok) throw new Error('Candidate not found');
 
-                // Navigate to review page with session info
-                // For now, we need to find the interview session
-                // Since we don't have direct access, we'll store in localStorage for now
-                localStorage.setItem('current_candidate_id', candidateId);
-                localStorage.setItem('current_job_id', currentJobId);
+                const candidateData = await candidateResponse.json();
+                const status = candidateData.candidate?.interview_status || 'not_started';
 
-                // Navigate to review page - need to implement proper session lookup
+                // Check if interview is completed
+                if (status !== 'completed') {
+                  alert('Ứng viên chưa hoàn thành phỏng vấn');
+                  return;
+                }
+
+                // Placeholder for completed interview (to do later)
                 alert('Tính năng xem kết quả sẽ được cập nhật trong bước tiếp theo');
               } catch (err) {
                 alert('Lỗi: ' + err.message);
