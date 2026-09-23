@@ -694,27 +694,24 @@ const SetupPage = {
     nextBtn.disabled = true;
 
     try {
-      if (!this.isEditMode) {
-        // Normal mode: call API to suggest questions
-        const response = await fetch('/api/setup/suggest-questions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jd_text: this.formData.jd_text,
-            skills: this.formData.skills,
-            job_title: this.formData.job_title,
-            level: this.formData.level
-          })
-        });
+      // Always regenerate questions for selected skills
+      const response = await fetch('/api/setup/suggest-questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jd_text: this.formData.jd_text,
+          skills: this.formData.skills,
+          job_title: this.formData.job_title,
+          level: this.formData.level
+        })
+      });
 
-        if (!response.ok) {
-          throw new Error('Failed to generate questions');
-        }
-
-        const data = await response.json();
-        this.formData.questions_by_skill = data.questions_by_skill;
+      if (!response.ok) {
+        throw new Error('Failed to generate questions');
       }
-      // Edit mode: skip API, keep existing questions from database
+
+      const data = await response.json();
+      this.formData.questions_by_skill = data.questions_by_skill;
 
       this.currentStep = 4;
       this.render(document.getElementById('app'));
