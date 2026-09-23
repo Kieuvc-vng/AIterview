@@ -382,3 +382,70 @@ _Các entry thật bắt đầu từ đây._
 
 **Bước:** Spec → Build → Test (implementation done, partial testing)
 **Chưa hiểu:** không có gì
+
+## 23/09 — Kiểu + Tiến
+
+**Nhờ làm:** Tổng hợp lại tất cả thay đổi trong session, review commit history, chuẩn bị merge
+
+**Claude làm:**
+
+**Phần 1 - Review & Summary của 8 commits:**
+- Commit 1 (27dfcf2): Fix 3 review page bugs - export 503, back button blank, AI scoring visible
+  * Export: Implement fallback data + proper PDF/CSV generation
+  * Back button: Add missing script tags (jobLibraryPage.js + jobDetailPage.js)
+  * Scoring: Remove score field từ rubric generation + frontend
+  
+- Commit 2 (5d7c7f6): Complete export & back button implementation
+  * POST /api/review/:sessionId/export with fallback
+  * Remove score từ exports
+  * Fix interview.html script references
+
+- Commit 3 (36e07b1): Implement candidate list modal feature
+  * formatDate() helper (dd/mm/yyyy format)
+  * getStatusBadge() for status colors
+  * Mark Link Sent button + View Results button
+  * Auto-submit interview when complete
+
+- Commit 4 (709258b): Add link_sent_at timestamp support
+  * Add column to candidates table
+  * Migration in init.js for existing DBs
+  * Include link_sent_at in API responses
+
+- Commit 5 (ab48bf4): Add missing job creation endpoint
+  * POST /api/job-library/jobs
+  * jobLibraryService.createJob() integration
+
+- Commit 6 (d6a11bf): Fix question regeneration in edit mode
+  * Always regenerate questions for selected skills
+  * Support dynamic skill add/remove
+
+- Commit 7 (8170574): Add question management buttons
+  * "+ Add Question" button per skill
+  * Delete button per question
+  * Dynamic UI updates
+
+- Commit 8 (ee6daab): Fix interview page errors (critical)
+  * Add SESSIONS table to schema.sql
+  * Implement updateInterview() method
+  * Auto-migration support
+
+**Phần 2 - Status check:**
+- All 8 commits on branch feature/job-library-schema
+- Working tree clean (no uncommitted changes)
+- Ready to merge to feature/ai-interview-mvp
+
+**Phần 3 - Files modified (summary):**
+- schema.sql: Added sessions table + link_sent_at column
+- sessionManager.js: Implemented updateInterview() method
+- interviewRoutes.js: Added interview submit endpoint + timestamps
+- candidateRoutes.js: Added mark-sent endpoint
+- jobLibraryRoutes.js: Added POST /jobs endpoint
+- reviewRoutes.js: Implemented export fallback logic
+- setupPage.js: Fixed edit mode, added add/delete question buttons
+- library.html: Enhanced candidate modal with status badges + timestamps
+- init.js: Added migration for link_sent_at column
+- reviewPage.js: Removed AI scoring from display
+- interview.html: Added missing script tags
+
+**Bước:** 5 — Test (ready for integration)
+**Chưa hiểu:** không có gì
