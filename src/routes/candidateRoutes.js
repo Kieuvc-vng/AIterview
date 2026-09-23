@@ -78,4 +78,41 @@ router.put('/:candidate_id/mark-sent', (req, res) => {
   }
 });
 
+// PUT /candidates/:candidate_id/update-status - Update link_sent status
+router.put('/:candidate_id/update-status', (req, res) => {
+  try {
+    const { candidate_id } = req.params;
+    const { link_sent } = req.body;
+    const linkSent = Number(link_sent);
+
+    if (![0, 1].includes(linkSent)) {
+      return res.status(400).json({ success: false, error: 'link_sent must be 0 or 1' });
+    }
+
+    const candidate = sessionManager.getCandidate(candidate_id);
+    if (!candidate) {
+      return res.status(404).json({ success: false, error: 'Candidate not found' });
+    }
+
+    const now = new Date().toISOString();
+    const updateData = { link_sent: linkSent };
+
+    // Only update link_sent_at if marking as sent (linkSent = 1)
+    if (linkSent === 1) {
+      updateData.link_sent_at = now;
+    }
+
+    sessionManager.updateCandidateStatus(candidate_id, updateData);
+
+    res.json({
+      success: true,
+      message: 'Status updated',
+      link_sent: linkSent,
+      link_sent_at: updateData.link_sent_at || candidate.link_sent_at
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 module.exports = router;

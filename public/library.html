@@ -16,6 +16,7 @@
     .btn-secondary { background: #f5f5f5; color: #333; border: 1px solid #ddd; }
     .btn-danger { background: #dc3545; color: white; }
     .btn-info { background: #17a2b8; color: white; }
+    .btn-info:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-create { background: #4caf50; color: white; padding: 0.7rem 1.5rem; font-size: 16px; margin-top: 2rem; }
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
     .modal.active { display: flex; }
@@ -208,11 +209,16 @@
 
             const statusDetails = `
               <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee; font-size: 12px;">
-                <div style="margin-bottom: 8px;"><strong>Trạng thái:</strong> ${getStatusBadge(status)}</div>
-                ${c.link_sent_at ? `<div style="margin-bottom: 8px;">📧 <strong>Link đã gửi:</strong> ${formatDate(c.link_sent_at)}</div>` : ''}
+                <div style="margin-bottom: 8px;">
+                  <label for="link-status-${c.id}" style="font-weight: bold;">Trạng thái gửi link:</label>
+                  <select id="link-status-${c.id}" class="link-status-select" data-candidate-id="${c.id}" style="margin-left: 8px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
+                    <option value="0" ${!c.link_sent ? 'selected' : ''}>Chưa gửi</option>
+                    <option value="1" ${c.link_sent ? 'selected' : ''}>Đã gửi</option>
+                  </select>
+                  ${c.link_sent_at ? ` • <span style="color: #666;">${formatDate(c.link_sent_at)}</span>` : ''}
+                </div>
                 <div style="display: flex; gap: 8px; margin-top: 12px;">
-                  <button class="btn btn-primary btn-small mark-sent-btn" data-candidate-id="${c.id}" style="${c.link_sent ? 'opacity: 0.5; cursor: not-allowed;' : ''}">Đã gửi link</button>
-                  <button class="btn btn-info btn-small view-results-btn" data-candidate-id="${c.id}" style="${status !== 'completed' ? 'opacity: 0.5; cursor: not-allowed;' : ''}" ${status !== 'completed' ? 'disabled' : ''}>Xem kết quả</button>
+                  <button class="btn btn-info btn-small view-results-btn" data-candidate-id="${c.id}" aria-label="Xem kết quả phỏng vấn" ${status !== 'completed' ? 'disabled' : ''}>Xem kết quả</button>
                 </div>
               </div>
             `;
@@ -266,27 +272,43 @@
             });
           });
 
-          // Add mark-sent button handlers
-          document.querySelectorAll('.mark-sent-btn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
+          // Add status dropdown handlers
+          document.querySelectorAll('.link-status-select').forEach(select => {
+            select.addEventListener('change', async (e) => {
               const candidateId = e.target.dataset.candidateId;
-              if (e.target.style.opacity === '0.5') return; // Already sent
+              const linkSent = parseInt(e.target.value);
+              const originalValue = e.target.value; // Store original for proper revert
+
+              // Validate inputs
+              if (!candidateId || isNaN(linkSent)) {
+                alert('Lỗi: dữ liệu không hợp lệ');
+                e.target.value = originalValue; // Revert on validation error
+                return;
+              }
+
+              e.target.disabled = true; // Disable while loading
 
               try {
-                const response = await fetch(`/candidates/${candidateId}/mark-sent`, {
+                const response = await fetch(`/candidates/${candidateId}/update-status`, {
                   method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' }
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ link_sent: linkSent })
                 });
 
-                if (!response.ok) throw new Error('Failed to mark as sent');
-                const data = await response.json();
+                if (!response.ok) throw new Error('Failed to update status');
+                await response.json(); // Consume response but don't require it
 
-                e.target.textContent = '✓ Đã gửi';
-                e.target.style.opacity = '0.5';
-                e.target.style.cursor = 'not-allowed';
-                e.target.disabled = true;
+                // Visual feedback
+                e.target.style.borderColor = '#4caf50';
+                setTimeout(() => {
+                  e.target.style.borderColor = '#ddd';
+                }, 1500);
               } catch (err) {
+                // Revert to original value on error
+                e.target.value = originalValue;
                 alert('Lỗi: ' + err.message);
+              } finally {
+                e.target.disabled = false; // Re-enable dropdown
               }
             });
           });
