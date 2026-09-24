@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=League+Gothic&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&display=swap');
+
 /* Reset and Base Styles */
 * {
   margin: 0;
@@ -6,8 +9,8 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #f05a22 0%, #ff9b1e 100%);
   min-height: 100vh;
   padding: 20px;
 }
@@ -39,17 +42,21 @@ body {
 
 /* Typography */
 h1 {
-  font-size: 28px;
-  color: #333;
+  font-family: 'League Gothic', sans-serif;
+  font-size: 32px;
+  color: #f05a22;
   margin-bottom: 10px;
   font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 h2 {
-  font-size: 20px;
-  color: #333;
+  font-family: 'League Gothic', sans-serif;
+  font-size: 24px;
+  color: #f05a22;
   margin-bottom: 8px;
   font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
 p {
@@ -90,8 +97,8 @@ input[type="email"]:focus,
 textarea:focus,
 select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #f05a22;
+  box-shadow: 0 0 0 3px rgba(240, 90, 34, 0.1);
 }
 
 textarea {
@@ -114,13 +121,26 @@ button {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f05a22 0%, #ff9b1e 100%);
   color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: 0;
+  width: 10px;
+  height: calc(100% + 4px);
+  background: inherit;
+  transform: skewX(-3deg);
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 20px rgba(240, 90, 34, 0.3);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -250,15 +270,15 @@ button {
 }
 
 .step.active .step-number {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: #667eea;
+  background: linear-gradient(135deg, #f05a22 0%, #ff9b1e 100%);
+  border-color: #f05a22;
   color: white;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(240, 90, 34, 0.3);
 }
 
 .step.completed .step-number {
-  background: #4caf50;
-  border-color: #4caf50;
+  background: #27ae60;
+  border-color: #27ae60;
   color: white;
 }
 
@@ -271,12 +291,12 @@ button {
 }
 
 .step.active .step-label {
-  color: #667eea;
+  color: #f05a22;
   font-weight: 600;
 }
 
 .step.completed .step-label {
-  color: #4caf50;
+  color: #27ae60;
 }
 
 /* Step Content */
@@ -329,7 +349,7 @@ button {
   padding: 16px;
   border-radius: 6px;
   margin-bottom: 16px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #f05a22;
 }
 
 .question-group h3 {
@@ -352,7 +372,7 @@ button {
 
 .question-list li::before {
   content: '•';
-  color: #667eea;
+  color: #f05a22;
   font-weight: bold;
   flex-shrink: 0;
 }
@@ -401,7 +421,7 @@ button {
 }
 
 .loading-text {
-  color: #667eea;
+  color: #f05a22;
   font-size: 14px;
   font-weight: 500;
 }
@@ -427,11 +447,25 @@ select:disabled {
 }
 
 .current-question-box {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f05a22 0%, #ff9b1e 100%);
   color: white;
   padding: 16px;
   border-radius: 6px;
   margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.current-question-box::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: 0;
+  width: 15px;
+  height: calc(100% + 4px);
+  background: inherit;
+  transform: skewX(-3.6deg);
+  z-index: -1;
 }
 
 .question-label {
@@ -475,7 +509,7 @@ select:disabled {
 }
 
 .ai-message .message-sender {
-  color: #667eea;
+  color: #f05a22;
   font-weight: 600;
   font-size: 13px;
 }
@@ -494,18 +528,32 @@ select:disabled {
 }
 
 .candidate-message .message-sender {
-  color: #764ba2;
+  color: #ff9b1e;
   font-weight: 600;
   font-size: 13px;
 }
 
 .candidate-message .message-content {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f05a22 0%, #ff9b1e 100%);
   color: white;
   padding: 12px;
   border-radius: 6px;
   max-width: 90%;
   line-height: 1.5;
+  position: relative;
+  overflow: hidden;
+}
+
+.candidate-message .message-content::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: 0;
+  width: 10px;
+  height: calc(100% + 4px);
+  background: inherit;
+  transform: skewX(-3.6deg);
+  z-index: -1;
 }
 
 .interview-input-area {
@@ -625,7 +673,7 @@ select:disabled {
 
 .score-cell {
   font-weight: 600;
-  color: #667eea;
+  color: #f05a22;
   font-size: 16px;
 }
 
@@ -663,7 +711,7 @@ select:disabled {
 }
 
 .transcript-message.ai-message .transcript-sender {
-  color: #667eea;
+  color: #f05a22;
   font-weight: 600;
   font-size: 12px;
 }
@@ -683,19 +731,33 @@ select:disabled {
 }
 
 .transcript-message.candidate-message .transcript-sender {
-  color: #764ba2;
+  color: #ff9b1e;
   font-weight: 600;
   font-size: 12px;
 }
 
 .transcript-message.candidate-message .transcript-content {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f05a22 0%, #ff9b1e 100%);
   color: white;
   padding: 10px;
   border-radius: 4px;
   max-width: 85%;
   font-size: 13px;
   line-height: 1.5;
+  position: relative;
+  overflow: hidden;
+}
+
+.transcript-message.candidate-message .transcript-content::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: 0;
+  width: 8px;
+  height: calc(100% + 2px);
+  background: inherit;
+  transform: skewX(-3.6deg);
+  z-index: -1;
 }
 
 .export-buttons {
