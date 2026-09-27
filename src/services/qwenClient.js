@@ -129,28 +129,102 @@ const getMockResponse = (systemPrompt, messages) => {
     return JSON.stringify(skills);
   }
   if (systemLower.includes('generate interview questions') || systemLower.includes('questions')) {
-    // Extract skills from the user message to generate questions for those specific skills
+    // Extract context from the user message
+    const titleMatch = lastMessage.match(/Generate interview questions for a (\w+) ([^\n.]+)\./);
+    const level = titleMatch ? titleMatch[1] : 'Mid';
+    const jobTitle = titleMatch ? titleMatch[2] : 'position';
+
     const skillsMatch = lastMessage.match(/Skills to evaluate: ([^\n]+)/);
     const skillsStr = skillsMatch ? skillsMatch[1] : '';
     const skills = skillsStr.split(', ').map(s => s.trim()).filter(Boolean);
 
-    console.log('[MOCK] Generating questions for skills:', skills, '| skillsStr:', skillsStr);
+    const jdMatch = lastMessage.match(/JD: ([\s\S]+)$/);
+    const jdText = jdMatch ? jdMatch[1].toLowerCase() : '';
+
+    console.log('[MOCK] Level:', level, '| JobTitle:', jobTitle, '| Skills:', skills);
+
+    // Helper: Extract key keywords from JD for contextual questions
+    const getContextKeywords = (skill) => {
+      const skillLower = skill.toLowerCase();
+      const keywords = [];
+
+      if (jdText.includes('scale') || jdText.includes('million') || jdText.includes('high volume')) {
+        keywords.push('scale');
+      }
+      if (jdText.includes('performance') || jdText.includes('optimize') || jdText.includes('optimization')) {
+        keywords.push('performance');
+      }
+      if (jdText.includes('pipeline') || jdText.includes('etl') || jdText.includes('data flow')) {
+        keywords.push('pipeline');
+      }
+      if (jdText.includes('real-time') || jdText.includes('streaming')) {
+        keywords.push('real-time');
+      }
+      if (jdText.includes('aws') || jdText.includes('cloud') || jdText.includes('gcp')) {
+        keywords.push('cloud');
+      }
+      if (jdText.includes('team') || jdText.includes('leadership') || jdText.includes('manage')) {
+        keywords.push('team');
+      }
+      return keywords;
+    };
+
+    // Helper: Generate questions based on level and skill context
+    const generateContextAwareQuestions = (skill, level, keywords) => {
+      const questions = [];
+      const skillBase = skill.toLowerCase();
+
+      if (level === 'Senior') {
+        // Senior level: deep, architectural, system-design questions
+        if (keywords.includes('scale')) {
+          questions.push(`Describe how you would architect ${skill} for a system handling millions of requests. What trade-offs would you make?`);
+        } else {
+          questions.push(`Walk us through a complex ${skill} problem you solved. What was your approach and why?`);
+        }
+
+        if (keywords.includes('performance')) {
+          questions.push(`How do you approach performance optimization for ${skill}? Share a specific example.`);
+        } else {
+          questions.push(`What are the key considerations when designing systems with ${skill}?`);
+        }
+
+        questions.push(`Tell us about a time ${skill} challenges required you to think outside the box.`);
+      } else if (level === 'Junior') {
+        // Junior level: fundamental, practical understanding
+        questions.push(`Tell me about your experience with ${skill}. What projects have you used it in?`);
+        questions.push(`Explain how you would use ${skill} to solve a real-world problem.`);
+        questions.push(`What's one thing about ${skill} that you find challenging and how are you improving?`);
+      } else {
+        // Mid level: balanced between depth and breadth
+        if (keywords.includes('pipeline')) {
+          questions.push(`Describe a data ${skill} pipeline you've built. How did you handle errors and monitoring?`);
+        } else {
+          questions.push(`Can you share a situation where you had to apply ${skill} in a non-obvious way?`);
+        }
+
+        questions.push(`How do you stay current with ${skill} best practices and latest developments?`);
+        questions.push(`What challenges have you faced with ${skill} and how did you overcome them?`);
+      }
+
+      return questions.slice(0, 3); // Return exactly 3 questions
+    };
 
     const questions_by_skill = {};
     if (skills.length > 0) {
       skills.forEach(skill => {
-        questions_by_skill[skill] = [
-          `Tell me about your experience with ${skill}.`,
-          `How do you apply ${skill} in your work?`,
-          `What challenges have you faced with ${skill}?`
-        ];
+        const keywords = getContextKeywords(skill);
+        questions_by_skill[skill] = generateContextAwareQuestions(skill, level, keywords);
       });
     } else {
       // Fallback if skills can't be extracted
-      questions_by_skill['Skill 1'] = ['Tell me about your experience.', 'How do you approach problem-solving?'];
+      questions_by_skill['Skill 1'] = [
+        'Tell me about your experience.',
+        'How do you approach problem-solving?',
+        'Describe a challenge you overcame.'
+      ];
     }
 
-    console.log('[MOCK] Generated questions_by_skill:', JSON.stringify(questions_by_skill));
+    console.log('[MOCK] Generated context-aware questions:', JSON.stringify(questions_by_skill));
     return JSON.stringify({ questions_by_skill });
   }
   if (systemLower.includes('opening greeting') || (systemLower.includes('hr interviewer') && systemLower.includes('warm'))) {
