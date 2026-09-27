@@ -16,7 +16,7 @@ const SetupPage = {
     jd_text: '',
     job_title: '',
     level: '',
-    company: '',
+    company: 'VNGGames',
     hr_email: '',
     skills: [],
     questions_by_skill: {}
@@ -172,12 +172,6 @@ const SetupPage = {
         <textarea id="jd_text" placeholder="Paste job description here..." required>${this.formData.jd_text}</textarea>
       </div>
 
-      <div class="form-group">
-        <label for="hr_email">Your Email *</label>
-        <input type="email" id="hr_email" placeholder="your@email.com" value="${this.formData.hr_email}" required>
-        ${emailNote}
-      </div>
-
       <div class="button-group">
         <button type="button" class="btn-primary" id="btn-step1-next" disabled>
           <span id="step1-spinner" style="display:none;" class="spinner"></span>
@@ -211,7 +205,7 @@ const SetupPage = {
         </select>
 
         <label for="company">Company *</label>
-        <input type="text" id="company" value="${this.formData.company}" required>
+        <input type="text" id="company" value="${this.formData.company || 'VNGGames'}" required>
       </div>
 
       <div class="button-group">
@@ -394,28 +388,17 @@ const SetupPage = {
    */
   attachStep1Listeners() {
     const jdInput = document.getElementById('jd_text');
-    const emailInput = document.getElementById('hr_email');
     const nextBtn = document.getElementById('btn-step1-next');
 
     const updateButton = () => {
-      // Email must be filled (either from input or from formData)
-      const emailValue = emailInput.value.trim() || this.formData.hr_email;
-      nextBtn.disabled = !jdInput.value.trim() || !emailValue;
+      // Only JD is required
+      nextBtn.disabled = !jdInput.value.trim();
     };
 
     jdInput.addEventListener('input', updateButton);
-    if (!emailInput.disabled) {
-      emailInput.addEventListener('input', updateButton);
-    }
 
     nextBtn.addEventListener('click', async () => {
       this.formData.jd_text = jdInput.value.trim();
-      // Use email from input only if it's not disabled, otherwise use saved value
-      if (!emailInput.disabled) {
-        this.formData.hr_email = emailInput.value.trim();
-      }
-      // If email field is disabled and empty, email should already be in formData from init()
-
       await this.parseJD();
     });
 
@@ -646,7 +629,7 @@ const SetupPage = {
         console.log('[DEBUG] parseJD response:', data);
         this.formData.job_title = data.job_title;
         this.formData.level = data.level;
-        this.formData.company = data.company;
+        this.formData.company = data.company && data.company !== 'Unknown Company' ? data.company : 'VNGGames';
       }
 
       console.log('[DEBUG] Setting currentStep to 2, was:', this.currentStep);
