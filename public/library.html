@@ -186,11 +186,6 @@
           <option value="GS3">GS3</option>
           <option value="GIO">GIO</option>
         </select>
-        <div style="display: flex; gap: 0.5rem;">
-          <button class="btn-filter" data-filter="all" onclick="setViewFilter('all', event)">All</button>
-          <button class="btn-filter" data-filter="mine" onclick="setViewFilter('mine', event)">Mine</button>
-          <button class="btn-filter" data-filter="team" onclick="setViewFilter('team', event)">Team</button>
-        </div>
       </div>
 
       <div style="overflow-x: auto;">
@@ -306,11 +301,7 @@
     let currentViewFilter = 'all';
 
     // Load jobs on page load
-    document.addEventListener('DOMContentLoaded', () => {
-      loadJobs();
-      // Set "All" button as active by default
-      document.querySelector('[data-filter="all"]').classList.add('active');
-    });
+    document.addEventListener('DOMContentLoaded', loadJobs);
 
     function loadJobs() {
       // Get hr_email from localStorage
@@ -384,14 +375,6 @@
       displayJobs(filtered);
     }
 
-    function setViewFilter(filter, event) {
-      currentViewFilter = filter;
-      // Remove active class from all buttons
-      document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
-      // Add active class to clicked button
-      event.target.classList.add('active');
-      filterJobs();
-    }
 
     function openSendModal(jobId) {
       currentJobId = jobId;
