@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const { parseJD } = require('../services/jdParser');
+const { parseJobURL } = require('../services/urlParser');
 const { suggestSkills } = require('../services/skillsSuggester');
 const { generateQuestions } = require('../services/questionGenerator');
 const sessionManager = require('../services/sessionManager');
@@ -20,6 +21,25 @@ router.post('/parse-jd', async (req, res, next) => {
     }
 
     const result = await parseJD(jd_text);
+    res.json(result);
+  } catch (error) {
+    next({ status: 500, message: error.message });
+  }
+});
+
+/**
+ * POST /api/setup/parse-job-url
+ * Parse VNG Careers job URL and extract job title, department, description
+ */
+router.post('/parse-job-url', async (req, res, next) => {
+  try {
+    const { job_url } = req.body;
+
+    if (!job_url) {
+      return res.status(400).json({ error: 'Missing required parameter: job_url' });
+    }
+
+    const result = await parseJobURL(job_url);
     res.json(result);
   } catch (error) {
     next({ status: 500, message: error.message });

@@ -9,7 +9,7 @@ const { generatePDF, generateCSV, cleanupOldExports } = require('../services/exp
 
 /**
  * GET /api/review/:sessionId
- * Get session messages and rubric (generates rubric if not exists)
+ * Get session messages and rubric from database
  */
 router.get('/:sessionId', async (req, res, next) => {
   try {
@@ -25,15 +25,46 @@ router.get('/:sessionId', async (req, res, next) => {
     const messages = data.messages || [];
     const skills = typeof session.skills === 'string' ? JSON.parse(session.skills) : session.skills;
 
-    // Generate mock rubric from skills (without AI scoring)
-    const rubric = skills.map((skill, index) => ({
-      skill_name: skill,
-      evidence: [
-        'Demonstrated good understanding',
-        'Provided practical examples',
-        'Showed relevant experience'
-      ]
-    }));
+    // Fetch rubric from database
+    const db = require('../db/init').db;
+    let rubric = [];
+
+    if (db) {
+      try {
+        // Get all summaries with rubric data for this interview
+        const summaries = await db.all(
+          'SELECT skill_name, rubric_score, rubric_evidence, rubric_strengths, rubric_weaknesses FROM summaries WHERE interview_id = ? AND rubric_score IS NOT NULL',
+          [sessionId]
+        );
+
+        if (summaries && summaries.length > 0) {
+          rubric = summaries.map(s => ({
+            skill_name: s.skill_name,
+            evidence: s.rubric_evidence,
+            strengths: s.rubric_strengths ? JSON.parse(s.rubric_strengths) : [],
+            weaknesses: s.rubric_weaknesses ? JSON.parse(s.rubric_weaknesses) : []
+          }));
+        } else {
+          // Fallback to mock if no rubric exists
+          rubric = skills.map((skill) => ({
+            skill_name: skill,
+            evidence: 'Rubric generation in progress or not yet completed',
+            strengths: ['Pending rubric evaluation'],
+            weaknesses: ['Pending rubric evaluation']
+          }));
+        }
+      } catch (dbError) {
+        console.error('[Review] Error fetching rubric:', dbError.message);
+        // Use fallback if DB error
+        rubric = skills.map((skill) => ({
+          skill_name: skill,
+          score: 5,
+          evidence: 'Unable to fetch rubric',
+          strengths: ['Error loading rubric'],
+          weaknesses: ['Error loading rubric']
+        }));
+      }
+    }
 
     res.json({
       session: {
@@ -95,14 +126,48 @@ router.post('/:sessionId/export', async (req, res, next) => {
 
     const skills = typeof session.skills === 'string' ? JSON.parse(session.skills) : (session.skills || []);
 
-    const rubric = skills.map((skill) => ({
-      skill_name: skill,
-      evidence: [
-        'Demonstrated good understanding',
-        'Provided practical examples',
-        'Showed relevant experience'
-      ]
-    }));
+    // Fetch rubric from database
+    let rubric = [];
+    if (db) {
+      try {
+        const summaries = await db.all(
+          'SELECT skill_name, rubric_score, rubric_evidence, rubric_strengths, rubric_weaknesses FROM summaries WHERE interview_id = ? AND rubric_score IS NOT NULL',
+          [sessionId]
+        );
+
+        if (summaries && summaries.length > 0) {
+          rubric = summaries.map(s => ({
+            skill_name: s.skill_name,
+            evidence: s.rubric_evidence,
+            strengths: s.rubric_strengths ? JSON.parse(s.rubric_strengths) : [],
+            weaknesses: s.rubric_weaknesses ? JSON.parse(s.rubric_weaknesses) : []
+          }));
+        } else {
+          // Fallback to mock
+          rubric = skills.map((skill) => ({
+            skill_name: skill,
+            evidence: 'Rubric not yet generated',
+            strengths: [],
+            weaknesses: []
+          }));
+        }
+      } catch (dbError) {
+        console.error('[Export] Error fetching rubric:', dbError.message);
+        rubric = skills.map((skill) => ({
+          skill_name: skill,
+          evidence: 'Unable to fetch rubric',
+          strengths: [],
+          weaknesses: []
+        }));
+      }
+    } else {
+      rubric = skills.map((skill) => ({
+        skill_name: skill,
+        evidence: 'Database unavailable',
+        strengths: [],
+        weaknesses: []
+      }));
+    }
 
     let filePath;
     if (format === 'pdf') {

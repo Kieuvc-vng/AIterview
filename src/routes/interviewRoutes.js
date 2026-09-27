@@ -7,6 +7,7 @@ const jobLibraryService = require('../services/jobLibraryService');
 const { conductInterview, generateOpeningGreeting } = require('../services/aiIntegration');
 const { initializeInterviewState, getCurrentQuestion, processAnswerQuality, isInterviewComplete, moveToNextSkillIfNeeded } = require('../services/interviewEngine');
 const summaryGenerator = require('../services/summaryGenerator');
+const { generateRubric } = require('../services/rubricGenerator');
 
 /**
  * POST /api/interview/create-from-candidate
@@ -352,7 +353,7 @@ router.post('/:sessionId/submit', async (req, res, next) => {
         await sessionManager.updateCandidateInterviewStatus(interview.candidate_id, 'completed');
         console.log('[Interview Submit] Updated candidate status for:', interview.candidate_id);
 
-        // Generate AI evaluations for each skill
+        // Generate AI evaluations and rubric for each skill
         try {
           console.log('[Interview Submit] Generating AI evaluations...');
           const job = await jobLibraryService.getJobById(interview.job_id);
@@ -365,6 +366,34 @@ router.post('/:sessionId/submit', async (req, res, next) => {
             // Get all messages for this interview
             const messages = await db.all('SELECT * FROM messages WHERE interview_id = ? ORDER BY created_at', [interviewId]);
             console.log('[Interview Submit] Messages found:', messages?.length || 0);
+
+            // Generate rubric for all skills at once
+            try {
+              console.log('[Interview Submit] Generating rubric...');
+              const rubrics = await generateRubric(messages, skills);
+              console.log('[Interview Submit] Rubric generated:', rubrics?.length || 0, 'skills');
+
+              // Save rubric data to summaries table
+              for (const rubric of rubrics) {
+                const stmt = db.prepare(`
+                  UPDATE summaries
+                  SET rubric_score = ?, rubric_evidence = ?, rubric_strengths = ?, rubric_weaknesses = ?
+                  WHERE interview_id = ? AND skill_name = ?
+                `);
+                await stmt.run(
+                  rubric.score,
+                  rubric.evidence,
+                  JSON.stringify(rubric.strengths),
+                  JSON.stringify(rubric.weaknesses),
+                  interviewId,
+                  rubric.skill_name
+                );
+                console.log('[Interview Submit] Saved rubric for skill:', rubric.skill_name);
+              }
+            } catch (rubricError) {
+              console.error('[Interview Submit] RUBRIC ERROR:', rubricError.message);
+              // Continue even if rubric generation fails
+            }
 
             // Generate evaluation for each skill
             for (const skill of skills) {

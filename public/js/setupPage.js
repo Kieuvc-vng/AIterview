@@ -159,25 +159,38 @@ const SetupPage = {
   },
 
   /**
-   * Step 1: Input JD
+   * Step 1: Input JD or URL
    */
   getStep1HTML() {
-    const savedHrEmail = localStorage.getItem('hr_email');
-    const emailNote = savedHrEmail ? '<p style="color: #666; font-size: 13px; margin-top: 4px;">This email was saved from your previous job creation. You can change it anytime.</p>' : '';
-
     return `
       <div class="form-group">
-        <h2>Step 1: Paste Job Description</h2>
-        <p>Paste the complete job description below. We'll extract key information automatically.</p>
-        <label for="jd_text">Job Description *</label>
-        <textarea id="jd_text" placeholder="Paste job description here..." required>${this.formData.jd_text}</textarea>
+        <h2>Step 1: Get Job Details</h2>
+        <p>Choose one method to get job information:</p>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+          <button type="button" class="tab-button active" id="tab-url" data-tab="url" style="flex: 1; padding: 10px; background: #f05a22; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">From URL</button>
+          <button type="button" class="tab-button" id="tab-description" data-tab="description" style="flex: 1; padding: 10px; background: #ddd; color: #333; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">From Description</button>
+        </div>
+
+        <!-- URL Tab -->
+        <div id="tab-content-url" class="tab-content" style="display: block;">
+          <label for="job_url">Job URL *</label>
+          <input type="url" id="job_url" placeholder="e.g., https://career.vng.com.vn/tim-kiem-viec-lam/chi-tiet/..." required>
+          <p style="color: #666; font-size: 12px; margin-top: 8px;">Paste the URL from VNG Careers website. We'll extract job details automatically.</p>
+        </div>
+
+        <!-- Description Tab -->
+        <div id="tab-content-description" class="tab-content" style="display: none;">
+          <label for="jd_text">Job Description *</label>
+          <textarea id="jd_text" placeholder="Paste job description here..." required>${this.formData.jd_text}</textarea>
+        </div>
       </div>
 
       <div class="button-group">
         <button type="button" class="btn-secondary" id="btn-step1-back">Back</button>
         <button type="button" class="btn-primary" id="btn-step1-next" disabled>
           <span id="step1-spinner" style="display:none;" class="spinner"></span>
-          <span id="step1-text">Parse Job Description</span>
+          <span id="step1-text">Parse</span>
         </button>
       </div>
     `;
@@ -392,20 +405,58 @@ const SetupPage = {
    * Step 1 listeners
    */
   attachStep1Listeners() {
+    const tabUrlBtn = document.getElementById('tab-url');
+    const tabDescBtn = document.getElementById('tab-description');
+    const urlTabContent = document.getElementById('tab-content-url');
+    const descTabContent = document.getElementById('tab-content-description');
+    const urlInput = document.getElementById('job_url');
     const jdInput = document.getElementById('jd_text');
     const nextBtn = document.getElementById('btn-step1-next');
     const backBtn = document.getElementById('btn-step1-back');
 
+    let activeTab = 'url';
+
+    // Tab switching
+    tabUrlBtn.addEventListener('click', () => {
+      activeTab = 'url';
+      tabUrlBtn.style.background = '#f05a22';
+      tabUrlBtn.style.color = 'white';
+      tabDescBtn.style.background = '#ddd';
+      tabDescBtn.style.color = '#333';
+      urlTabContent.style.display = 'block';
+      descTabContent.style.display = 'none';
+      updateButton();
+    });
+
+    tabDescBtn.addEventListener('click', () => {
+      activeTab = 'description';
+      tabDescBtn.style.background = '#f05a22';
+      tabDescBtn.style.color = 'white';
+      tabUrlBtn.style.background = '#ddd';
+      tabUrlBtn.style.color = '#333';
+      urlTabContent.style.display = 'none';
+      descTabContent.style.display = 'block';
+      updateButton();
+    });
+
     const updateButton = () => {
-      // Only JD is required
-      nextBtn.disabled = !jdInput.value.trim();
+      if (activeTab === 'url') {
+        nextBtn.disabled = !urlInput.value.trim();
+      } else {
+        nextBtn.disabled = !jdInput.value.trim();
+      }
     };
 
+    urlInput.addEventListener('input', updateButton);
     jdInput.addEventListener('input', updateButton);
 
     nextBtn.addEventListener('click', async () => {
-      this.formData.jd_text = jdInput.value.trim();
-      await this.parseJD();
+      if (activeTab === 'url') {
+        await this.parseJobURL(urlInput.value.trim());
+      } else {
+        this.formData.jd_text = jdInput.value.trim();
+        await this.parseJD();
+      }
     });
 
     backBtn.addEventListener('click', () => {
@@ -621,6 +672,44 @@ const SetupPage = {
    * In edit mode: skip AI detection, load data from database
    * In normal mode: call API to detect job details
    */
+  async parseJobURL(jobUrl) {
+    const spinner = document.getElementById('step1-spinner');
+    const nextBtn = document.getElementById('btn-step1-next');
+
+    spinner.style.display = 'inline-block';
+    nextBtn.disabled = true;
+
+    try {
+      const response = await fetch('/api/setup/parse-job-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_url: jobUrl })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to parse job URL. Please check the URL and try again.');
+      }
+
+      const data = await response.json();
+      console.log('[DEBUG] parseJobURL response:', data);
+
+      // Auto-fill Step 2 with extracted data
+      this.formData.job_title = data.job_title || '';
+      this.formData.department = data.department || '';
+      this.formData.company = 'VNGGames';
+      this.formData.jd_text = data.job_description || '';
+
+      console.log('[DEBUG] Setting currentStep to 2');
+      this.currentStep = 2;
+      this.render(document.getElementById('app'));
+    } catch (error) {
+      console.error('[DEBUG] parseJobURL error:', error);
+      App.showError(error.message);
+      nextBtn.disabled = false;
+      spinner.style.display = 'none';
+    }
+  },
+
   async parseJD() {
     const spinner = document.getElementById('step1-spinner');
     const text = document.getElementById('step1-text');

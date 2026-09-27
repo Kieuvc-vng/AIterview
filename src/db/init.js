@@ -133,6 +133,30 @@ async function initializeDatabase() {
           await db.run('ALTER TABLE candidates ADD COLUMN link_sent_at TIMESTAMP');
           console.log('Migration: Added link_sent_at column to candidates table');
         }
+
+        // Add rubric columns to summaries table if they don't exist
+        const summariesInfo = await db.all("PRAGMA table_info(summaries)");
+        const hasRubricScore = summariesInfo.some(col => col.name === 'rubric_score');
+        const hasRubricEvidence = summariesInfo.some(col => col.name === 'rubric_evidence');
+        const hasRubricStrengths = summariesInfo.some(col => col.name === 'rubric_strengths');
+        const hasRubricWeaknesses = summariesInfo.some(col => col.name === 'rubric_weaknesses');
+
+        if (!hasRubricScore) {
+          await db.run('ALTER TABLE summaries ADD COLUMN rubric_score INTEGER');
+          console.log('Migration: Added rubric_score column to summaries table');
+        }
+        if (!hasRubricEvidence) {
+          await db.run('ALTER TABLE summaries ADD COLUMN rubric_evidence TEXT');
+          console.log('Migration: Added rubric_evidence column to summaries table');
+        }
+        if (!hasRubricStrengths) {
+          await db.run('ALTER TABLE summaries ADD COLUMN rubric_strengths TEXT');
+          console.log('Migration: Added rubric_strengths column to summaries table');
+        }
+        if (!hasRubricWeaknesses) {
+          await db.run('ALTER TABLE summaries ADD COLUMN rubric_weaknesses TEXT');
+          console.log('Migration: Added rubric_weaknesses column to summaries table');
+        }
       } catch (migrationError) {
         console.log('Migration check completed:', migrationError.message);
       }

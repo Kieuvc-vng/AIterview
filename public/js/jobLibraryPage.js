@@ -39,7 +39,7 @@ const JobLibraryPage = (() => {
     `;
 
     document.getElementById('new-job-btn').addEventListener('click', () => {
-      window.location.href = '/setup.html';
+      window.location.href = '/index.html';
     });
   };
 

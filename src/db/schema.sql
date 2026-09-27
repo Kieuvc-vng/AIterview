@@ -83,6 +83,10 @@ CREATE TABLE IF NOT EXISTS summaries (
   question_text TEXT NOT NULL,
   main_answer_summary TEXT,
   followup_summary TEXT,
+  rubric_score INTEGER,
+  rubric_evidence TEXT,
+  rubric_strengths TEXT,
+  rubric_weaknesses TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (interview_id) REFERENCES interviews(id) ON DELETE CASCADE
 );
