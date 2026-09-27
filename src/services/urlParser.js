@@ -53,6 +53,23 @@ async function parseJobURL(jobUrl) {
       }
     }
 
+    // Extract job code - pattern: XX-XXX-XXXX or similar
+    let jobCode = '';
+    const codePatterns = [
+      /\b([A-Z0-9]{2,3}-[A-Z0-9]{3,4}-[0-9]{3,4})\b/i,  // XX-XXX-XXXX pattern
+      /Code:\s*([A-Z0-9\-]+)/i,
+      /Mã vị trí:\s*([A-Z0-9\-]+)/i,
+      /Job Code:\s*([A-Z0-9\-]+)/i
+    ];
+
+    for (const pattern of codePatterns) {
+      const match = pageText.match(pattern);
+      if (match) {
+        jobCode = match[1].toUpperCase();
+        break;
+      }
+    }
+
     // Extract job description
     let jobDescription = '';
 
@@ -71,6 +88,7 @@ async function parseJobURL(jobUrl) {
 
     return {
       job_title: jobTitle || 'Unknown Job Title',
+      job_code: jobCode || 'Unknown',
       department: department || 'Unknown',
       job_description: jobDescription,
       source_url: jobUrl

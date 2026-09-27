@@ -15,6 +15,7 @@ const SetupPage = {
   formData: {
     jd_text: '',
     job_title: '',
+    job_code: '',
     level: '',
     company: 'VNGGames',
     department: '',
@@ -207,6 +208,9 @@ const SetupPage = {
 
         <label for="job_title">Job Title *</label>
         <input type="text" id="job_title" value="${this.formData.job_title}" required>
+
+        <label for="job_code">Job Code</label>
+        <input type="text" id="job_code" placeholder="e.g., 26-HRA-4039" value="${this.formData.job_code || ''}" style="background-color: #f5f5f5; color: #999;">
 
         <label for="level">Level *</label>
         <select id="level" required>
@@ -471,6 +475,7 @@ const SetupPage = {
    */
   attachStep2Listeners() {
     const jobTitleInput = document.getElementById('job_title');
+    const jobCodeInput = document.getElementById('job_code');
     const levelSelect = document.getElementById('level');
     const companyInput = document.getElementById('company');
     const departmentInput = document.getElementById('department');
@@ -519,10 +524,15 @@ const SetupPage = {
       }
     });
 
+    jobCodeInput.addEventListener('input', (e) => {
+      this.formData.job_code = e.target.value.trim();
+    });
+
     // Use form submit or button click as fallback
     const handleNext = async () => {
       console.log('[Step2] Button clicked, calling suggestSkills');
       this.formData.job_title = jobTitleInput.value.trim();
+      this.formData.job_code = jobCodeInput.value.trim();
       this.formData.level = levelSelect.value;
       this.formData.company = companyInput.value.trim();
       this.formData.department = departmentInput.value.trim();
@@ -695,6 +705,7 @@ const SetupPage = {
 
       // Auto-fill Step 2 with extracted data
       this.formData.job_title = data.job_title || '';
+      this.formData.job_code = data.job_code || '';
       this.formData.department = data.department || '';
       this.formData.company = 'VNGGames';
       this.formData.jd_text = data.job_description || '';
