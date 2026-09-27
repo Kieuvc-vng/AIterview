@@ -70,6 +70,16 @@ async function parseJobURL(jobUrl) {
       }
     }
 
+    // Extract department from job code - middle part between hyphens
+    // E.g., 26-HRA-4039 → department = HRA, 26-ENG-4040 → department = ENG
+    let departmentFromCode = '';
+    if (jobCode) {
+      const codeParts = jobCode.split('-');
+      if (codeParts.length >= 2) {
+        departmentFromCode = codeParts[1];  // Get middle part (e.g., HRA from 26-HRA-4039)
+      }
+    }
+
     // Extract job description
     let jobDescription = '';
 
@@ -86,10 +96,13 @@ async function parseJobURL(jobUrl) {
     // Clean up description (remove extra whitespace)
     jobDescription = jobDescription.replace(/\s+/g, ' ').trim();
 
+    // Use department extracted from job code if available, otherwise use page-extracted department
+    const finalDepartment = departmentFromCode || department || 'Unknown';
+
     return {
       job_title: jobTitle || 'Unknown Job Title',
       job_code: jobCode || 'Unknown',
-      department: department || 'Unknown',
+      department: finalDepartment,
       job_description: jobDescription,
       source_url: jobUrl
     };

@@ -175,9 +175,12 @@ const SetupPage = {
 
         <!-- URL Tab -->
         <div id="tab-content-url" class="tab-content" style="display: block;">
-          <label for="job_url">Job URL *</label>
-          <input type="url" id="job_url" placeholder="e.g., https://career.vng.com.vn/tim-kiem-viec-lam/chi-tiet/..." required>
-          <p style="color: #666; font-size: 12px; margin-top: 8px;">Paste the URL from VNG Careers website. We'll extract job details automatically.</p>
+          <div style="background: #f9f9f9; border: 2px solid #f05a22; border-radius: 8px; padding: 24px; margin: 16px 0;">
+            <label for="job_url" style="display: block; font-weight: 600; color: #333; margin-bottom: 12px; font-size: 14px;">Job Posting URL</label>
+            <input type="url" id="job_url" placeholder="https://career.vng.com.vn/tim-kiem-viec-lam/chi-tiet/..."
+              style="width: 100%; padding: 14px 16px; font-size: 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: inherit;" required>
+            <p style="color: #666; font-size: 13px; margin-top: 12px; margin-bottom: 0;">Paste a job link from <span style="color: #f05a22; font-weight: 600;">career.vng.com.vn</span>. The job code, title, location, and JD fill in automatically — the rest (openings, hiring manager, tie...) you complete on the form.</p>
+          </div>
         </div>
 
         <!-- Description Tab -->
