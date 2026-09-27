@@ -231,6 +231,9 @@ const SetupPage = {
 
         <label for="department">Department *</label>
         <input type="text" id="department" placeholder="e.g., GDS, PEN, PRO, GS3, GIO" value="${this.formData.department || ''}" required>
+
+        <label for="hr_email">HR Email *</label>
+        <input type="email" id="hr_email" value="${this.formData.hr_email || ''}" required style="background-color: #f5f5f5;">
       </div>
 
       <div class="button-group">
@@ -482,17 +485,18 @@ const SetupPage = {
     const levelSelect = document.getElementById('level');
     const companyInput = document.getElementById('company');
     const departmentInput = document.getElementById('department');
+    const hrEmailInput = document.getElementById('hr_email');
     const nextBtn = document.getElementById('btn-step2-next');
     const backBtn = document.getElementById('btn-step2-back');
     const form = document.getElementById('setup-form');
 
-    if (!jobTitleInput || !levelSelect || !companyInput || !departmentInput || !nextBtn || !backBtn) {
-      console.error('[Step2] Missing DOM elements:', {jobTitleInput, levelSelect, companyInput, departmentInput, nextBtn, backBtn});
+    if (!jobTitleInput || !levelSelect || !companyInput || !departmentInput || !hrEmailInput || !nextBtn || !backBtn) {
+      console.error('[Step2] Missing DOM elements:', {jobTitleInput, levelSelect, companyInput, departmentInput, hrEmailInput, nextBtn, backBtn});
       return;
     }
 
     const updateButton = () => {
-      nextBtn.disabled = !jobTitleInput.value.trim() || !levelSelect.value || !companyInput.value.trim() || !departmentInput.value.trim();
+      nextBtn.disabled = !jobTitleInput.value.trim() || !levelSelect.value || !companyInput.value.trim() || !departmentInput.value.trim() || !hrEmailInput.value.trim();
     };
 
     jobTitleInput.addEventListener('input', updateButton);
@@ -531,6 +535,14 @@ const SetupPage = {
       this.formData.job_code = e.target.value.trim();
     });
 
+    hrEmailInput.addEventListener('input', updateButton);
+    hrEmailInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !nextBtn.disabled) {
+        e.preventDefault();
+        handleNext();
+      }
+    });
+
     // Use form submit or button click as fallback
     const handleNext = async () => {
       console.log('[Step2] Button clicked, calling suggestSkills');
@@ -539,6 +551,7 @@ const SetupPage = {
       this.formData.level = levelSelect.value;
       this.formData.company = companyInput.value.trim();
       this.formData.department = departmentInput.value.trim();
+      this.formData.hr_email = hrEmailInput.value.trim();
 
       await this.suggestSkills();
     };
