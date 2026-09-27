@@ -12,13 +12,28 @@ const JobLibraryPage = (() => {
   const render = () => {
     const container = document.getElementById('app');
     container.innerHTML = `
-      <div class="job-library-container">
-        <div class="job-library-header">
-          <h1>Job Library</h1>
-          <button id="new-job-btn" class="btn btn-primary">New Job</button>
+      <div class="job-library-wrapper">
+        <div class="job-library-nav">
+          <div class="logo-section">
+            <div class="logo-icon">AI</div>
+            <div class="logo-text">
+              <span class="logo-main">AIterview</span>
+              <span class="logo-sub">Interview Platform</span>
+            </div>
+          </div>
         </div>
-        <div id="jobs-list" class="jobs-list">
-          <p class="loading">Loading jobs...</p>
+
+        <div class="job-library-container">
+          <div class="job-library-header">
+            <div class="header-content">
+              <h1>Thư Viện Job</h1>
+              <p class="header-subtitle">Quản lý và tạo phỏng vấn cho các vị trí tuyển dụng</p>
+            </div>
+            <button id="new-job-btn" class="btn btn-primary btn-large">+ Tạo Job Mới</button>
+          </div>
+          <div id="jobs-list" class="jobs-list">
+            <p class="loading">Loading jobs...</p>
+          </div>
         </div>
       </div>
     `;
@@ -44,7 +59,27 @@ const JobLibraryPage = (() => {
   const displayJobs = (jobs) => {
     const container = document.getElementById('jobs-list');
     if (jobs.length === 0) {
-      container.innerHTML = '<p class="empty">No jobs yet. Create one!</p>';
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <h2>Chưa có job nào</h2>
+          <p class="empty-description">Hãy tạo job đầu tiên để bắt đầu phỏng vấn ứng viên</p>
+          <div class="empty-features">
+            <div class="feature-item">
+              <span class="feature-icon">✓</span>
+              <span class="feature-text">Tải job description tự động</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">✓</span>
+              <span class="feature-text">AI tạo câu hỏi phỏng vấn</span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">✓</span>
+              <span class="feature-text">Đánh giá kỹ năng tự động</span>
+            </div>
+          </div>
+        </div>
+      `;
       return;
     }
 
