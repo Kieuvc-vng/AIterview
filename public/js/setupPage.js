@@ -17,6 +17,7 @@ const SetupPage = {
     job_title: '',
     level: '',
     company: 'VNGGames',
+    department: '',
     hr_email: '',
     skills: [],
     questions_by_skill: {}
@@ -173,6 +174,7 @@ const SetupPage = {
       </div>
 
       <div class="button-group">
+        <button type="button" class="btn-secondary" id="btn-step1-back">Back</button>
         <button type="button" class="btn-primary" id="btn-step1-next" disabled>
           <span id="step1-spinner" style="display:none;" class="spinner"></span>
           <span id="step1-text">Parse Job Description</span>
@@ -206,6 +208,9 @@ const SetupPage = {
 
         <label for="company">Company *</label>
         <input type="text" id="company" value="${this.formData.company || 'VNGGames'}" required>
+
+        <label for="department">Department *</label>
+        <input type="text" id="department" placeholder="e.g., GDS, PEN, PRO, GS3, GIO" value="${this.formData.department || ''}" required>
       </div>
 
       <div class="button-group">
@@ -389,6 +394,7 @@ const SetupPage = {
   attachStep1Listeners() {
     const jdInput = document.getElementById('jd_text');
     const nextBtn = document.getElementById('btn-step1-next');
+    const backBtn = document.getElementById('btn-step1-back');
 
     const updateButton = () => {
       // Only JD is required
@@ -402,6 +408,10 @@ const SetupPage = {
       await this.parseJD();
     });
 
+    backBtn.addEventListener('click', () => {
+      window.location.href = '/library.html';
+    });
+
     updateButton();
   },
 
@@ -412,17 +422,18 @@ const SetupPage = {
     const jobTitleInput = document.getElementById('job_title');
     const levelSelect = document.getElementById('level');
     const companyInput = document.getElementById('company');
+    const departmentInput = document.getElementById('department');
     const nextBtn = document.getElementById('btn-step2-next');
     const backBtn = document.getElementById('btn-step2-back');
     const form = document.getElementById('setup-form');
 
-    if (!jobTitleInput || !levelSelect || !companyInput || !nextBtn || !backBtn) {
-      console.error('[Step2] Missing DOM elements:', {jobTitleInput, levelSelect, companyInput, nextBtn, backBtn});
+    if (!jobTitleInput || !levelSelect || !companyInput || !departmentInput || !nextBtn || !backBtn) {
+      console.error('[Step2] Missing DOM elements:', {jobTitleInput, levelSelect, companyInput, departmentInput, nextBtn, backBtn});
       return;
     }
 
     const updateButton = () => {
-      nextBtn.disabled = !jobTitleInput.value.trim() || !levelSelect.value || !companyInput.value.trim();
+      nextBtn.disabled = !jobTitleInput.value.trim() || !levelSelect.value || !companyInput.value.trim() || !departmentInput.value.trim();
     };
 
     jobTitleInput.addEventListener('input', updateButton);
@@ -449,12 +460,21 @@ const SetupPage = {
       }
     });
 
+    departmentInput.addEventListener('input', updateButton);
+    departmentInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !nextBtn.disabled) {
+        e.preventDefault();
+        handleNext();
+      }
+    });
+
     // Use form submit or button click as fallback
     const handleNext = async () => {
       console.log('[Step2] Button clicked, calling suggestSkills');
       this.formData.job_title = jobTitleInput.value.trim();
       this.formData.level = levelSelect.value;
       this.formData.company = companyInput.value.trim();
+      this.formData.department = departmentInput.value.trim();
 
       await this.suggestSkills();
     };
