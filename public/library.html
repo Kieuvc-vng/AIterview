@@ -46,6 +46,101 @@
     .link-input { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; }
     .btn-small { padding: 6px 12px; font-size: 12px; }
     .send-email-btn { background: #ff9800; color: white; margin-top: 5px; }
+
+    .btn-filter {
+      padding: 0.6rem 1.2rem;
+      border: 1px solid #ddd;
+      background: white;
+      color: #666;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .btn-filter:hover {
+      border-color: #f05a22;
+      color: #f05a22;
+    }
+
+    .btn-filter.active {
+      background: #f05a22;
+      color: white;
+      border-color: #f05a22;
+    }
+
+    table tr {
+      border-bottom: 1px solid #eee;
+      transition: background 0.2s ease;
+    }
+
+    table tbody tr:hover {
+      background: #f9f9f9;
+    }
+
+    table td {
+      padding: 12px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-open {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .status-closed {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    .status-on-hold {
+      background: #fff3e0;
+      color: #e65100;
+    }
+
+    .code-cell {
+      color: #f05a22;
+      font-weight: 600;
+      font-family: monospace;
+    }
+
+    .candidates-count {
+      text-align: center;
+      font-weight: 600;
+      color: #f05a22;
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .action-btn {
+      padding: 6px 12px;
+      border: none;
+      background: #f5f5f5;
+      color: #333;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      background: #f05a22;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -60,8 +155,64 @@
   </header>
 
   <div class="container">
-    <div id="jobsList"></div>
-    <button class="btn-create" onclick="showCreateJobForm()">+ Tạo Job Mới</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+      <div style="flex: 1; min-width: 300px;">
+        <h2 style="margin: 0 0 1rem 0; color: #333; font-family: 'League Gothic', sans-serif; font-size: 24px;">JOBS</h2>
+        <p style="margin: 0; color: #666; font-size: 14px;">Quản lý các vị trí tuyển dụng - đang mở, đang tuyển và đã đóng.</p>
+      </div>
+      <button class="btn-create" onclick="showCreateJobForm()">+ Tạo Job Mới</button>
+    </div>
+
+    <div style="background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+      <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px;">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search code, title, department..."
+            style="width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;"
+            onkeyup="filterJobs()"
+          />
+        </div>
+        <select
+          id="departmentFilter"
+          style="padding: 0.7rem; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; cursor: pointer;"
+          onchange="filterJobs()"
+        >
+          <option value="">All Departments</option>
+          <option value="GDS">GDS</option>
+          <option value="PEN">PEN</option>
+          <option value="PRO">PRO</option>
+          <option value="GS3">GS3</option>
+          <option value="GIO">GIO</option>
+        </select>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn-filter" data-filter="all" onclick="setViewFilter('all', event)">All</button>
+          <button class="btn-filter" data-filter="mine" onclick="setViewFilter('mine', event)">Mine</button>
+          <button class="btn-filter" data-filter="team" onclick="setViewFilter('team', event)">Team</button>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;" id="jobsTable">
+          <thead>
+            <tr style="border-bottom: 2px solid #f05a22;">
+              <th style="text-align: left; padding: 12px; font-weight: 600; color: #333; font-size: 13px;">CODE</th>
+              <th style="text-align: left; padding: 12px; font-weight: 600; color: #333; font-size: 13px;">TITLE</th>
+              <th style="text-align: left; padding: 12px; font-weight: 600; color: #333; font-size: 13px;">DEPARTMENT</th>
+              <th style="text-align: center; padding: 12px; font-weight: 600; color: #333; font-size: 13px;">STATUS</th>
+              <th style="text-align: center; padding: 12px; font-weight: 600; color: #333; font-size: 13px;">CANDIDATES</th>
+              <th style="text-align: center; padding: 12px; font-weight: 600; color: #333; font-size: 13px;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="jobsTableBody">
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 2rem; color: #999;">Loading jobs...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <div id="editJobModal" class="modal">
@@ -151,9 +302,15 @@
   <script>
     let currentJobId = null;
     let currentCandidateData = null;
+    let allJobs = [];
+    let currentViewFilter = 'all';
 
     // Load jobs on page load
-    document.addEventListener('DOMContentLoaded', loadJobs);
+    document.addEventListener('DOMContentLoaded', () => {
+      loadJobs();
+      // Set "All" button as active by default
+      document.querySelector('[data-filter="all"]').classList.add('active');
+    });
 
     function loadJobs() {
       // Get hr_email from localStorage
@@ -162,46 +319,78 @@
       fetch(`/api/job-library/jobs?hr_email=${encodeURIComponent(hrEmail)}`)
         .then(r => r.json())
         .then(jobs => {
-          const list = document.getElementById('jobsList');
+          allJobs = jobs;
           if (jobs.length === 0) {
-            list.innerHTML = `
-              <div style="background: white; border-radius: 12px; padding: 60px 40px; text-align: center; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); max-width: 500px; margin: 40px auto;">
-                <div style="font-size: 64px; margin-bottom: 24px; display: block;">📋</div>
-                <h2 style="font-size: 28px; color: #f05a22; margin: 0 0 12px 0; font-family: 'League Gothic', sans-serif;">Chưa có job nào</h2>
-                <p style="color: #666; font-size: 16px; margin: 0 0 32px 0; line-height: 1.5;">Hãy tạo job đầu tiên để bắt đầu phỏng vấn ứng viên</p>
-                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 32px; padding-top: 32px; border-top: 1px solid #eee; align-items: flex-start;">
-                  <div style="display: flex; align-items: center; gap: 12px; font-size: 14px; color: #555;">
-                    <span style="width: 24px; height: 24px; background: #f05a22; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0;">✓</span>
-                    <span style="font-weight: 500;">Tải job description tự động</span>
+            document.getElementById('jobsTableBody').innerHTML = `
+              <tr>
+                <td colspan="6" style="padding: 3rem; text-align: center;">
+                  <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                    <div style="font-size: 48px;">📋</div>
+                    <h3 style="color: #f05a22; margin: 0; font-family: 'League Gothic', sans-serif;">Chưa có job nào</h3>
+                    <p style="color: #666; margin: 0;">Hãy tạo job đầu tiên để bắt đầu phỏng vấn ứng viên</p>
                   </div>
-                  <div style="display: flex; align-items: center; gap: 12px; font-size: 14px; color: #555;">
-                    <span style="width: 24px; height: 24px; background: #f05a22; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0;">✓</span>
-                    <span style="font-weight: 500;">AI tạo câu hỏi phỏng vấn</span>
-                  </div>
-                  <div style="display: flex; align-items: center; gap: 12px; font-size: 14px; color: #555;">
-                    <span style="width: 24px; height: 24px; background: #f05a22; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0;">✓</span>
-                    <span style="font-weight: 500;">Đánh giá kỹ năng tự động</span>
-                  </div>
-                </div>
-              </div>
+                </td>
+              </tr>
             `;
             return;
           }
-          list.innerHTML = jobs.map(job => `
-            <div class="job-card">
-              <div class="job-info">
-                <h3>${job.job_title} (${job.level})</h3>
-                <p>${job.company} · ${JSON.parse(job.skills || '[]').length} skills</p>
-              </div>
-              <div class="actions">
-                <button class="btn-primary" onclick="openCandidatesModal('${job.id}')">Xem Ứng Viên</button>
-                <button class="btn-secondary" onclick="openSendModal('${job.id}')">Tạo Ứng Viên</button>
-                <button class="btn-secondary" onclick="openJobDetail('${job.id}')">Chỉnh Sửa</button>
-                <button class="btn-danger" onclick="showDeleteConfirm('${job.id}', '${job.job_title}')">Xóa</button>
-              </div>
-            </div>
-          `).join('');
+          displayJobs(jobs);
         });
+    }
+
+    function displayJobs(jobs) {
+      const tbody = document.getElementById('jobsTableBody');
+      if (jobs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #999;">Không tìm thấy job nào</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = jobs.map((job, idx) => `
+        <tr>
+          <td class="code-cell">${job.id ? job.id.substring(0, 8).toUpperCase() : 'N/A'}</td>
+          <td>
+            <div style="font-weight: 600; color: #333;">${job.job_title}</div>
+            <div style="font-size: 12px; color: #999;">${job.company}</div>
+          </td>
+          <td>${job.company || '-'}</td>
+          <td style="text-align: center;">
+            <span class="status-badge status-open">OPEN</span>
+          </td>
+          <td class="candidates-count">${job.candidate_count || 0}</td>
+          <td class="actions-cell">
+            <button class="action-btn" onclick="openCandidatesModal('${job.id}')">View</button>
+            <button class="action-btn" onclick="openSendModal('${job.id}')">Add</button>
+            <button class="action-btn" onclick="openJobDetail('${job.id}')">Edit</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filterJobs() {
+      const searchText = document.getElementById('searchInput').value.toLowerCase();
+      const departmentFilter = document.getElementById('departmentFilter').value;
+
+      const filtered = allJobs.filter(job => {
+        const matchesSearch = !searchText ||
+          job.job_title.toLowerCase().includes(searchText) ||
+          (job.company && job.company.toLowerCase().includes(searchText)) ||
+          (job.id && job.id.toLowerCase().includes(searchText));
+
+        const matchesDepartment = !departmentFilter || (job.company === departmentFilter);
+
+        return matchesSearch && matchesDepartment;
+      });
+
+      displayJobs(filtered);
+    }
+
+    function setViewFilter(filter, event) {
+      currentViewFilter = filter;
+      // Remove active class from all buttons
+      document.querySelectorAll('.btn-filter').forEach(btn => btn.classList.remove('active'));
+      // Add active class to clicked button
+      event.target.classList.add('active');
+      filterJobs();
     }
 
     function openSendModal(jobId) {
