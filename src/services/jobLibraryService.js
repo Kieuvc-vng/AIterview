@@ -262,7 +262,7 @@ const jobLibraryService = {
       const interviewLink = baseUrl ? `${baseUrl}${pathOnly}` : pathOnly;
 
       const result = await db.prepare(
-        'UPDATE candidates SET link_sent = 1, interview_link = ? WHERE id = ?'
+        'UPDATE candidates SET interview_link = ? WHERE id = ?'
       ).run(interviewLink, candidateId);
 
       if (!result || result.changes === 0) {
