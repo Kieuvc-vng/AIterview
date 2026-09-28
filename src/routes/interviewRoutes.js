@@ -248,67 +248,12 @@ router.post('/:interviewId/message', async (req, res, next) => {
 });
 
 /**
- * POST /api/interview/:interview_id/message
- * New: Send message with summary generation for new schema
- */
-router.post('/:interview_id/message', async (req, res, next) => {
-  try {
-    const { interview_id } = req.params;
-    const { content, sender } = req.body;
-
-    if (!content || !sender) {
-      return res.status(400).json({ success: false, error: 'Missing required fields' });
-    }
-
-    const messageId = 'msg_' + uuidv4();
-    sessionManager.addMessage(interview_id, messageId, sender, content);
-
-    // Generate summary if candidate answered
-    if (sender === 'candidate') {
-      const interview = sessionManager.getInterview(interview_id);
-      const messages = sessionManager.getInterviewMessages(interview_id);
-
-      if (interview && messages.length > 0) {
-        const lastQuestion = messages.find(m => m.sender === 'interviewer');
-        if (lastQuestion) {
-          const { main_answer_summary, followup_summary } = await summaryGenerator.generateSummary(
-            interview_id,
-            'skill',
-            0,
-            lastQuestion.content,
-            messages
-          );
-
-          const summaryId = 'summary_' + uuidv4();
-          if (sessionManager.db) {
-            summaryGenerator.saveSummary(
-              sessionManager.db,
-              summaryId,
-              interview_id,
-              'skill',
-              0,
-              lastQuestion.content,
-              main_answer_summary,
-              followup_summary
-            );
-          }
-        }
-      }
-    }
-
-    res.json({ success: true, messageId });
-  } catch (error) {
-    next({ status: 500, message: error.message });
-  }
-});
-
-/**
- * GET /api/interview/:interview_id/summaries
+ * GET /api/interview/:interviewId/summaries
  * Get all summaries for an interview
  */
-router.get('/:interview_id/summaries', (req, res, next) => {
+router.get('/:interviewId/summaries', (req, res, next) => {
   try {
-    const summaries = sessionManager.getSummaries(req.params.interview_id);
+    const summaries = sessionManager.getSummaries(req.params.interviewId);
     res.json({ success: true, summaries });
   } catch (error) {
     next({ status: 500, message: error.message });
