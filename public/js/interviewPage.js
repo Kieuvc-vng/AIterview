@@ -283,11 +283,17 @@ const InterviewPage = {
       const data = await response.json();
       this.currentQuestion = data.current_question;
 
-      // Add opening message to messages
-      this.messages = [{
-        sender: 'ai',
-        content: data.opening_message
-      }];
+      // Add opening message + readiness prompt to messages
+      this.messages = [
+        {
+          sender: 'ai',
+          content: data.opening_message
+        },
+        {
+          sender: 'ai',
+          content: data.readiness_prompt || "Please tell me when you're ready to begin."
+        }
+      ];
 
       this.interviewStarted = true;
       this.render(document.getElementById('app'), {

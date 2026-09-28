@@ -106,32 +106,23 @@ router.post('/:sessionId/start', async (req, res, next) => {
       attempt_number: null
     });
 
+    // Add readiness confirmation prompt
+    const readinessPrompt = "Please type anything (like 'Ready' or 'Yes') when you're ready to begin the interview.";
+    await sessionManager.saveMessage(sessionId, {
+      sender: 'ai',
+      content: readinessPrompt,
+      skill_name: null,
+      question_index: null,
+      attempt_number: null
+    });
+
     const updatedData = await sessionManager.getSession(sessionId);
-
-    // Get first question from questions_by_skill
-    let currentQuestion = null;
-    const questionsBySkill = typeof updatedData.session.questions_by_skill === 'string'
-      ? JSON.parse(updatedData.session.questions_by_skill)
-      : updatedData.session.questions_by_skill;
-
-    if (questionsBySkill && Object.keys(questionsBySkill).length > 0) {
-      const firstSkill = Object.keys(questionsBySkill)[0];
-      const skillQuestions = questionsBySkill[firstSkill];
-      if (skillQuestions && skillQuestions.length > 0) {
-        currentQuestion = {
-          skill: firstSkill,
-          question_text: skillQuestions[0]
-        };
-      }
-    }
 
     res.json({
       session: updatedData.session,
       opening_message,
-      current_question: currentQuestion || {
-        skill: 'TBD',
-        question_text: 'No questions available'
-      }
+      readiness_prompt: readinessPrompt,
+      current_question: null
     });
   } catch (error) {
     next({ status: 500, message: error.message });
@@ -208,16 +199,45 @@ router.post('/:interviewId/message', async (req, res, next) => {
       }
     }
 
-    // Get next question (simple increment from message count)
-    const messageCount = messages.length + 1; // +1 for the message we just saved
-    const nextQuestionIndex = Math.floor((messageCount - 1) / 2); // Every 2 messages = 1 question
+    // Count only candidate messages (excluding AI messages)
+    const candidateMessages = messages.filter(m => m.sender === 'candidate');
+    const candidateMessageCount = candidateMessages.length; // Already includes the one we just saved
+
+    console.log('[Interview] CandidateMessageCount:', candidateMessageCount, 'TotalMessages:', messages.length);
+
+    // If this is the FIRST candidate message, just acknowledge readiness - don't ask questions yet
+    if (candidateMessageCount === 1) {
+      const acknowledgement = `Great! Thank you for confirming. Let's get started. ${allQuestions[0] ? allQuestions[0].question_text : 'No questions available'}`;
+
+      // Save AI acknowledgement
+      await sessionManager.saveMessage(interviewId, {
+        sender: 'ai',
+        content: acknowledgement,
+        skill_name: allQuestions[0] ? allQuestions[0].skill : null,
+        question_index: 0,
+        attempt_number: 1
+      });
+
+      return res.json({
+        ai_response: acknowledgement,
+        answer_good: true,
+        next_action: 'next_question',
+        next_question: allQuestions[0] || null,
+        interview_complete: false
+      });
+    }
+
+    // For subsequent messages, proceed with normal question progression
+    // Adjust question index: subtract 1 because first candidate message was just confirmation
+    const adjustedAnswerCount = candidateMessageCount - 1; // -1 to exclude the readiness confirmation
+    const nextQuestionIndex = Math.min(adjustedAnswerCount, allQuestions.length - 1);
     let nextQuestion = null;
 
-    console.log('[Interview] MessageCount:', messageCount, 'AllQuestions:', allQuestions.length, 'NextIndex:', nextQuestionIndex);
-
-    if (nextQuestionIndex < allQuestions.length) {
-      nextQuestion = allQuestions[nextQuestionIndex];
+    if (nextQuestionIndex + 1 < allQuestions.length) {
+      nextQuestion = allQuestions[nextQuestionIndex + 1];
     }
+
+    console.log('[Interview] AdjustedAnswerCount:', adjustedAnswerCount, 'NextQuestionIndex:', nextQuestionIndex + 1);
 
     // Get AI response
     const ai_response = nextQuestion
@@ -229,11 +249,11 @@ router.post('/:interviewId/message', async (req, res, next) => {
       sender: 'ai',
       content: ai_response,
       skill_name: nextQuestion ? nextQuestion.skill : null,
-      question_index: nextQuestionIndex,
+      question_index: nextQuestionIndex + 1,
       attempt_number: 1
     });
 
-    const isComplete = !nextQuestion || nextQuestionIndex >= allQuestions.length - 1;
+    const isComplete = !nextQuestion || (nextQuestionIndex + 1) >= allQuestions.length - 1;
 
     res.json({
       ai_response,
