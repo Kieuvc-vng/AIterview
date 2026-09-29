@@ -5,16 +5,19 @@
 
 const ReviewPage = {
   sessionId: null,
+  interviewId: null,
   sessionData: null,
   messages: [],
   rubric: [],
   rubricSummary: null,
 
   /**
-   * Initialize review page with session ID
+   * Initialize review page with session ID or interview ID
    */
   init(sessionId) {
     this.sessionId = sessionId;
+    // Get interviewId from localStorage if available
+    this.interviewId = localStorage.getItem('current_interview_id');
     this.render(document.getElementById('app'));
   },
 
@@ -118,7 +121,9 @@ const ReviewPage = {
    */
   async loadReviewData() {
     try {
-      const response = await fetch(`/api/review/${this.sessionId}`);
+      // Use interviewId if available, fallback to sessionId
+      const id = this.interviewId || this.sessionId;
+      const response = await fetch(`/api/review/${id}`);
 
       if (!response.ok) {
         throw new Error('Failed to load review data');
@@ -303,7 +308,9 @@ const ReviewPage = {
     btn.disabled = true;
 
     try {
-      const response = await fetch(`/api/review/${this.sessionId}/export`, {
+      // Use interviewId if available, fallback to sessionId
+      const id = this.interviewId || this.sessionId;
+      const response = await fetch(`/api/review/${id}/export`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ format: format })
