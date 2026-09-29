@@ -199,7 +199,7 @@ const ReviewPage = {
   },
 
   /**
-   * Display chat transcript
+   * Display chat transcript grouped by skill
    */
   displayTranscript() {
     const transcriptContainer = document.getElementById('transcript-container');
@@ -209,19 +209,43 @@ const ReviewPage = {
       return;
     }
 
-    const messagesHTML = this.messages.map(msg => {
-      const isAI = msg.sender === 'ai';
-      return `
-        <div class="transcript-message ${isAI ? 'ai-message' : 'candidate-message'}">
-          <div class="transcript-sender">
-            ${isAI ? 'AI Interviewer' : this.escapeHtml(this.sessionData?.candidate_name || 'Candidate')}
+    // Group messages by skill, preserving order
+    const skillGroups = {};
+    const skillOrder = [];
+
+    this.messages.forEach(msg => {
+      const skillName = msg.skill_name || 'General';
+      if (!skillGroups[skillName]) {
+        skillGroups[skillName] = [];
+        skillOrder.push(skillName);
+      }
+      skillGroups[skillName].push(msg);
+    });
+
+    // Build HTML for each skill group
+    const groupsHTML = skillOrder.map(skillName => {
+      const messages = skillGroups[skillName];
+      const messagesHTML = messages.map(msg => {
+        const isAI = msg.sender === 'ai';
+        return `
+          <div class="transcript-message ${isAI ? 'ai-message' : 'candidate-message'}">
+            <div class="transcript-sender">
+              ${isAI ? 'AI Interviewer' : this.escapeHtml(this.sessionData?.candidate_name || 'Candidate')}
+            </div>
+            <div class="transcript-content">${this.escapeHtml(msg.content)}</div>
           </div>
-          <div class="transcript-content">${this.escapeHtml(msg.content)}</div>
+        `;
+      }).join('');
+
+      return `
+        <div class="transcript-skill-group">
+          <div class="transcript-skill-header">${this.escapeHtml(skillName)}</div>
+          <div class="transcript-list">${messagesHTML}</div>
         </div>
       `;
     }).join('');
 
-    transcriptContainer.innerHTML = `<div class="transcript-list">${messagesHTML}</div>`;
+    transcriptContainer.innerHTML = groupsHTML;
   },
 
   /**

@@ -760,6 +760,29 @@ select:disabled {
   z-index: -1;
 }
 
+.transcript-skill-group {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #eee;
+}
+
+.transcript-skill-group:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.transcript-skill-header {
+  font-weight: 700;
+  font-size: 14px;
+  color: #f05a22;
+  background: #fff5f0;
+  padding: 10px 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  border-left: 4px solid #f05a22;
+}
+
 .export-buttons {
   display: flex;
   gap: 12px;
