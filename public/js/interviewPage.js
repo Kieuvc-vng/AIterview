@@ -252,9 +252,9 @@ const InterviewPage = {
 
     // Auto-scroll to bottom
     setTimeout(() => {
-      const messagesList = document.getElementById('messages-list');
-      if (messagesList) {
-        messagesList.scrollTop = messagesList.scrollHeight;
+      const chatContainer = document.querySelector('.chat-container');
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
       }
     }, 100);
   },
@@ -356,11 +356,26 @@ const InterviewPage = {
       }
 
       // Re-render
+      console.log('[sendMessage] About to render...');
       this.render(document.getElementById('app'), {
         sessionId: this.sessionId,
         interviewStarted: true,
         messages: this.messages
       });
+      console.log('[sendMessage] Render complete');
+
+      // Auto-scroll to bottom to show latest messages
+      console.log('[sendMessage] Scheduling auto-scroll...');
+      setTimeout(() => {
+        const chatContainer = document.querySelector('.chat-container');
+        if (chatContainer) {
+          console.log('[Auto-scroll] Before:', { scrollTop: chatContainer.scrollTop, scrollHeight: chatContainer.scrollHeight });
+          chatContainer.scrollTop = chatContainer.scrollHeight;
+          console.log('[Auto-scroll] After:', { scrollTop: chatContainer.scrollTop, scrollHeight: chatContainer.scrollHeight });
+        } else {
+          console.log('[Auto-scroll] chatContainer not found!');
+        }
+      }, 100);
     } catch (error) {
       App.showError(error.message);
       // Remove the candidate message we added
