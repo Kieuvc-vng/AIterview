@@ -158,9 +158,9 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
       <div style="flex: 1; min-width: 300px;">
         <h2 style="margin: 0 0 1rem 0; color: #333; font-family: 'League Gothic', sans-serif; font-size: 24px;">JOBS</h2>
-        <p style="margin: 0; color: #666; font-size: 14px;">Quản lý các vị trí tuyển dụng - đang mở, đang tuyển và đã đóng.</p>
+        <p style="margin: 0; color: #666; font-size: 14px;">Manage job positions - open, recruiting, and closed.</p>
       </div>
-      <button class="btn-create" onclick="showCreateJobForm()">+ Tạo Job Mới</button>
+      <button class="btn-create" onclick="showCreateJobForm()">+ Create New Job</button>
     </div>
 
     <div style="background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
@@ -212,57 +212,57 @@
 
   <div id="editJobModal" class="modal">
     <div class="modal-content" style="max-width: 600px;">
-      <h2>Chi Tiết Job</h2>
+      <h2>Job Details</h2>
       <div id="editJobContent" style="max-height: 500px; overflow-y: auto;">
         <!-- Job details will be populated here -->
       </div>
       <div class="modal-actions" style="margin-top: 1rem;">
-        <button class="btn-secondary" onclick="closeEditJobModal()">Đóng</button>
-        <button class="btn-primary" id="editJobBtn" onclick="editJobSetup()">Chỉnh Sửa</button>
+        <button class="btn-secondary" onclick="closeEditJobModal()">Close</button>
+        <button class="btn-primary" id="editJobBtn" onclick="editJobSetup()">Edit</button>
       </div>
     </div>
   </div>
 
   <div id="candidatesModal" class="modal">
     <div class="modal-content" style="max-width: 600px; max-height: 600px; overflow-y: auto;">
-      <h2>Danh Sách Ứng Viên</h2>
+      <h2>Candidate List</h2>
       <div id="candidatesList" style="margin: 1rem 0;"></div>
       <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeCandidatesModal()">Đóng</button>
+        <button class="btn-secondary" onclick="closeCandidatesModal()">Close</button>
       </div>
     </div>
   </div>
 
   <div id="sendModal" class="modal">
     <div class="modal-content">
-      <h2>Gửi cho Ứng Viên</h2>
+      <h2>Send to Candidate</h2>
       <div id="formSection">
-        <input type="text" id="candidateName" placeholder="Tên ứng viên" />
+        <input type="text" id="candidateName" placeholder="Candidate Name" />
         <input type="email" id="candidateEmail" placeholder="Email" />
-        <input type="tel" id="candidatePhone" placeholder="Số điện thoại" />
+        <input type="tel" id="candidatePhone" placeholder="Phone Number" />
         <div class="modal-actions">
-          <button class="btn-secondary" onclick="closeSendModal()">Hủy</button>
-          <button class="btn-primary" onclick="generateLink()">Tạo Link</button>
+          <button class="btn-secondary" onclick="closeSendModal()">Cancel</button>
+          <button class="btn-primary" onclick="generateLink()">Create Link</button>
         </div>
       </div>
       <div id="linkSection" class="link-section" style="display: none;">
-        <p class="link-info">✓ Link tạo thành công</p>
+        <p class="link-info">✓ Link created successfully</p>
         <div class="link-display">
           <input type="text" id="generatedLink" class="link-input" readonly />
           <button class="btn btn-primary btn-small copy-link-btn">Copy</button>
         </div>
-        <button class="btn btn-secondary" onclick="closeSendModal()" style="margin-top: 5px;">Đóng</button>
+        <button class="btn btn-secondary" onclick="closeSendModal()" style="margin-top: 5px;">Close</button>
       </div>
     </div>
   </div>
 
   <div id="deleteConfirmModal" class="modal">
     <div class="modal-content" style="max-width: 400px;">
-      <h2>Xóa Job</h2>
-      <p id="deleteMessage" style="margin: 1rem 0; color: #333;">Bạn có chắc muốn xóa job này? Tất cả ứng viên sẽ bị xóa theo. <strong>Không thể hoàn tác.</strong></p>
+      <h2>Delete Job</h2>
+      <p id="deleteMessage" style="margin: 1rem 0; color: #333;">Are you sure you want to delete this job? All candidates will be deleted as well. <strong>This cannot be undone.</strong></p>
       <div class="modal-actions">
-        <button class="btn-secondary" onclick="closeDeleteConfirm()">Hủy</button>
-        <button class="btn-danger" onclick="confirmDelete()">Xóa</button>
+        <button class="btn-secondary" onclick="closeDeleteConfirm()">Cancel</button>
+        <button class="btn-danger" onclick="confirmDelete()">Delete</button>
       </div>
     </div>
   </div>
@@ -272,7 +272,7 @@
     <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <h2 style="margin: 0;">Interview Review</h2>
-        <button class="btn-secondary" onclick="closeReviewModal()" style="padding: 0.5rem 1rem;">✕ Đóng</button>
+        <button class="btn-secondary" onclick="closeReviewModal()" style="padding: 0.5rem 1rem;">✕ Close</button>
       </div>
       <div id="reviewContent">
         <!-- Review content will be populated here -->
@@ -283,13 +283,13 @@
   <!-- Edit Evaluation Modal -->
   <div id="editEvaluationModal" class="modal">
     <div class="modal-content" style="max-width: 600px; max-height: 90vh; overflow-y: auto;">
-      <h2>Chỉnh Sửa Đánh Giá</h2>
+      <h2>Edit Evaluation</h2>
       <div id="editEvaluationContent">
         <!-- Edit form will be populated here -->
       </div>
       <div class="modal-actions" style="margin-top: 1.5rem;">
-        <button class="btn-secondary" onclick="closeEditEvaluationModal()">Hủy</button>
-        <button class="btn-primary" onclick="saveEditedEvaluations()">Lưu</button>
+        <button class="btn-secondary" onclick="closeEditEvaluationModal()">Cancel</button>
+        <button class="btn-primary" onclick="saveEditedEvaluations()">Save</button>
       </div>
     </div>
   </div>
@@ -317,8 +317,8 @@
                 <td colspan="6" style="padding: 3rem; text-align: center;">
                   <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
                     <div style="font-size: 48px;">📋</div>
-                    <h3 style="color: #f05a22; margin: 0; font-family: 'League Gothic', sans-serif;">Chưa có job nào</h3>
-                    <p style="color: #666; margin: 0;">Hãy tạo job đầu tiên để bắt đầu phỏng vấn ứng viên</p>
+                    <h3 style="color: #f05a22; margin: 0; font-family: 'League Gothic', sans-serif;">No jobs yet</h3>
+                    <p style="color: #666; margin: 0;">Create your first job to start interviewing candidates</p>
                   </div>
                 </td>
               </tr>
@@ -332,7 +332,7 @@
     function displayJobs(jobs) {
       const tbody = document.getElementById('jobsTableBody');
       if (jobs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #999;">Không tìm thấy job nào</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: #999;">No jobs found</td></tr>';
         return;
       }
 
@@ -412,9 +412,9 @@
 
     function getStatusBadge(status) {
       const statusMap = {
-        'not_started': { text: 'Chưa bắt đầu', color: '#f0f0f0', textColor: '#666' },
-        'in_progress': { text: 'Đang phỏng vấn', color: '#fff3cd', textColor: '#856404' },
-        'completed': { text: 'Hoàn thành', color: '#d4edda', textColor: '#155724' }
+        'not_started': { text: 'Not Started', color: '#f0f0f0', textColor: '#666' },
+        'in_progress': { text: 'In Progress', color: '#fff3cd', textColor: '#856404' },
+        'completed': { text: 'Completed', color: '#d4edda', textColor: '#155724' }
       };
       const statusInfo = statusMap[status] || statusMap['not_started'];
       return `<span style="display: inline-block; padding: 4px 8px; background-color: ${statusInfo.color}; color: ${statusInfo.textColor}; border-radius: 3px; font-size: 12px; font-weight: 500;">${statusInfo.text}</span>`;
@@ -428,7 +428,7 @@
           const listDiv = document.getElementById('candidatesList');
 
           if (!candidates || candidates.length === 0) {
-            listDiv.innerHTML = '<p style="text-align: center; color: #999;">Chưa có ứng viên nào</p>';
+            listDiv.innerHTML = '<p style="text-align: center; color: #999;">No candidates yet</p>';
             return;
           }
 
@@ -438,28 +438,28 @@
               c.interview_link.startsWith('http://') || c.interview_link.startsWith('https://')
                 ? c.interview_link
                 : `${window.location.origin}${c.interview_link}`
-            ) : 'Chưa tạo link';
+            ) : 'Link not created';
 
             const linkHtml = c.interview_link ? `
               <div style="display: flex; gap: 8px; margin-top: 8px;">
                 <input type="text" value="${link}" readonly style="flex: 1; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;" />
                 <button class="btn btn-primary btn-small copy-candidate-link" data-link="${link}">Copy</button>
-                <button class="btn btn-danger btn-small delete-candidate-btn" data-candidate-id="${c.id}" data-candidate-name="${c.name}">Xóa</button>
+                <button class="btn btn-danger btn-small delete-candidate-btn" data-candidate-id="${c.id}" data-candidate-name="${c.name}">Delete</button>
               </div>
-            ` : '<p style="color: #ff9800; font-size: 13px;">Link chưa được tạo</p>';
+            ` : '<p style="color: #ff9800; font-size: 13px;">Link not created yet</p>';
 
             const statusDetails = `
               <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee; font-size: 12px;">
                 <div style="margin-bottom: 8px;">
-                  <label for="link-status-${c.id}" style="font-weight: bold;">Trạng thái gửi link:</label>
+                  <label for="link-status-${c.id}" style="font-weight: bold;">Link sent status:</label>
                   <select id="link-status-${c.id}" class="link-status-select" data-candidate-id="${c.id}" style="margin-left: 8px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
-                    <option value="0" ${!c.link_sent ? 'selected' : ''}>Chưa gửi</option>
-                    <option value="1" ${c.link_sent ? 'selected' : ''}>Đã gửi</option>
+                    <option value="0" ${!c.link_sent ? 'selected' : ''}>Not sent</option>
+                    <option value="1" ${c.link_sent ? 'selected' : ''}>Sent</option>
                   </select>
                   ${c.link_sent_at ? ` • <span style="color: #666;">${formatDate(c.link_sent_at)}</span>` : ''}
                 </div>
                 <div style="display: flex; gap: 8px; margin-top: 12px;">
-                  <button class="btn btn-info btn-small view-results-btn" data-candidate-id="${c.id}" aria-label="Xem kết quả phỏng vấn" ${status !== 'completed' ? 'disabled' : ''}>Xem kết quả</button>
+                  <button class="btn btn-info btn-small view-results-btn" data-candidate-id="${c.id}" aria-label="View interview results" ${status !== 'completed' ? 'disabled' : ''}>View Results</button>
                 </div>
               </div>
             `;
@@ -468,7 +468,7 @@
               <div style="padding: 12px; border: 1px solid #eee; border-radius: 4px; margin-bottom: 12px;">
                 <div style="display: flex; justify-content: space-between; align-items: start;">
                   <div style="flex: 1;">
-                    <h4 style="margin: 0 0 4px 0;">${c.name} ${status === 'completed' ? '<span style="color: #4caf50; font-weight: bold;">✅ Đã hoàn thành</span>' : '<span style="color: #ff9800; font-weight: bold;">⏳ Chờ phỏng vấn</span>'}</h4>
+                    <h4 style="margin: 0 0 4px 0;">${c.name} ${status === 'completed' ? '<span style="color: #4caf50; font-weight: bold;">✅ Completed</span>' : '<span style="color: #ff9800; font-weight: bold;">⏳ Awaiting Interview</span>'}</h4>
                     <p style="margin: 0; color: #666; font-size: 13px;">${c.email} • ${c.phone}</p>
                   </div>
                 </div>
@@ -483,14 +483,14 @@
             btn.addEventListener('click', (e) => {
               const link = e.target.dataset.link;
               navigator.clipboard.writeText(link).then(() => {
-                e.target.textContent = '✓ Đã Copy';
+                e.target.textContent = '✓ Copied';
                 e.target.style.background = '#4caf50';
                 setTimeout(() => {
                   e.target.textContent = 'Copy';
                   e.target.style.background = '';
                 }, 2000);
               }).catch(() => {
-                alert('Không thể copy link');
+                alert('Could not copy link');
               });
             });
           });
@@ -501,14 +501,14 @@
               const candidateId = e.target.dataset.candidateId;
               const candidateName = e.target.dataset.candidateName;
 
-              if (confirm(`Bạn có chắc muốn xóa ứng viên "${candidateName}"? Không thể hoàn tác.`)) {
+              if (confirm(`Are you sure you want to delete candidate "${candidateName}"? This cannot be undone.`)) {
                 fetch(`/api/job-library/candidates/${candidateId}`, { method: 'DELETE' })
                   .then(r => {
-                    if (!r.ok) throw new Error('Xóa không thành công');
+                    if (!r.ok) throw new Error('Delete failed');
                     // Remove from UI
                     e.target.closest('[style*="padding: 12px"]').remove();
                   })
-                  .catch(err => alert('Lỗi: ' + err.message));
+                  .catch(err => alert('Error: ' + err.message));
               }
             });
           });
@@ -522,7 +522,7 @@
 
               // Validate inputs
               if (!candidateId || isNaN(linkSent)) {
-                alert('Lỗi: dữ liệu không hợp lệ');
+                alert('Error: Invalid data');
                 e.target.value = originalValue; // Revert on validation error
                 return;
               }
@@ -547,7 +547,7 @@
               } catch (err) {
                 // Revert to original value on error
                 e.target.value = originalValue;
-                alert('Lỗi: ' + err.message);
+                alert('Error: ' + err.message);
               } finally {
                 e.target.disabled = false; // Re-enable dropdown
               }
@@ -568,7 +568,7 @@
                 if (!response.ok) {
                   const errorText = await response.text();
                   console.error('API Error:', errorText);
-                  throw new Error(`Không tìm thấy kết quả phỏng vấn (${response.status})`);
+                  throw new Error(`Interview results not found (${response.status})`);
                 }
 
                 const data = await response.json();
@@ -598,36 +598,36 @@
                   ? uniqueEvaluations.map(e => `
                     <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f9f9f9; border-radius: 4px;">
                       <h4 style="margin: 0 0 0.5rem 0; color: #2196f3;">${e.skill_name}</h4>
-                      <p style="margin: 0; color: #666;"><strong>Đánh giá:</strong> ${e.summary || 'Chưa có'}</p>
+                      <p style="margin: 0; color: #666;"><strong>Evaluation:</strong> ${e.summary || 'No evaluation yet'}</p>
                     </div>
                   `).join('')
-                  : '<p style="color: #999;">Chưa có đánh giá</p>';
+                  : '<p style="color: #999;">No evaluation yet</p>';
 
                 // Build transcript HTML
                 const transcriptHtml = transcript.length > 0
                   ? transcript.map(msg => `
                     <div style="margin-bottom: 1rem; padding: 0.8rem; background: ${msg.sender === 'candidate' ? '#e3f2fd' : '#fff3e0'}; border-radius: 4px;">
-                      <p style="margin: 0 0 0.3rem 0; font-weight: bold; color: ${msg.sender === 'candidate' ? '#1976d2' : '#f57c00'};">${msg.sender === 'candidate' ? 'Ứng viên' : 'AI Interviewer'}</p>
+                      <p style="margin: 0 0 0.3rem 0; font-weight: bold; color: ${msg.sender === 'candidate' ? '#1976d2' : '#f57c00'};">${msg.sender === 'candidate' ? 'Candidate' : 'AI Interviewer'}</p>
                       <p style="margin: 0; color: #333;">${msg.content}</p>
                     </div>
                   `).join('')
-                  : '<p style="color: #999;">Chưa có hội thoại</p>';
+                  : '<p style="color: #999;">No conversation yet</p>';
 
                 // Generate review HTML and show in modal
                 const reviewHTML = `
                   <div style="padding: 1rem; background: #f9f9f9; border-radius: 4px; margin-bottom: 1.5rem;">
-                    <p style="color: #4caf50; margin: 0; font-weight: bold;">✓ Phỏng vấn đã hoàn thành</p>
+                    <p style="color: #4caf50; margin: 0; font-weight: bold;">✓ Interview completed</p>
                   </div>
 
                   <div style="margin-bottom: 2rem;">
                     <h3 style="border-bottom: 2px solid #2196f3; padding-bottom: 0.5rem;">Interview Information</h3>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; padding: 1rem; background: #f9f9f9; border-radius: 4px;">
                       <div>
-                        <p style="color: #666; margin: 0; font-size: 12px;">Ứng viên:</p>
+                        <p style="color: #666; margin: 0; font-size: 12px;">Candidate:</p>
                         <p style="margin: 0; font-weight: bold;">${info.candidate_name || 'N/A'}</p>
                       </div>
                       <div>
-                        <p style="color: #666; margin: 0; font-size: 12px;">Vị trí:</p>
+                        <p style="color: #666; margin: 0; font-size: 12px;">Position:</p>
                         <p style="margin: 0; font-weight: bold;">${info.job_title || 'N/A'}</p>
                       </div>
                       <div>
@@ -635,7 +635,7 @@
                         <p style="margin: 0; font-weight: bold;">${info.level || 'N/A'}</p>
                       </div>
                       <div>
-                        <p style="color: #666; margin: 0; font-size: 12px;">Công ty:</p>
+                        <p style="color: #666; margin: 0; font-size: 12px;">Company:</p>
                         <p style="margin: 0; font-weight: bold;">${info.company || 'N/A'}</p>
                       </div>
                     </div>
@@ -675,7 +675,7 @@
       const phone = document.getElementById('candidatePhone').value;
 
       if (!name || !email || !phone) {
-        alert('Điền đầy đủ thông tin!');
+        alert('Please fill in all information!');
         return;
       }
 
@@ -704,11 +704,11 @@
               document.getElementById('linkSection').style.display = 'flex';
             });
           } else {
-            alert('Lỗi: không thể tạo ứng viên');
+            alert('Error: Could not create candidate');
           }
         })
         .catch(err => {
-          alert('Lỗi: ' + err.message);
+          alert('Error: ' + err.message);
         });
     }
 
@@ -732,7 +732,7 @@
               <h3>${job.job_title}</h3>
               <p><strong>Level:</strong> ${job.level}</p>
               <p><strong>Company:</strong> ${job.company}</p>
-              <p><strong>Số ứng viên:</strong> ${candidates.length}</p>
+              <p><strong>Candidates:</strong> ${candidates.length}</p>
             </div>
 
             <div style="margin-bottom: 1rem;">
@@ -743,14 +743,14 @@
             </div>
 
             <div style="margin-bottom: 1rem;">
-              <h4>Kỹ Năng Yêu Cầu</h4>
+              <h4>Required Skills</h4>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 ${skillsArray.map(skill => `<span style="background: #e3f2fd; color: #1976d2; padding: 4px 12px; border-radius: 16px; font-size: 13px;">${skill}</span>`).join('')}
               </div>
             </div>
 
             <div style="margin-bottom: 1rem;">
-              <h4>Các Câu Hỏi</h4>
+              <h4>Questions</h4>
               ${Object.entries(questionsBySkill).map(([skill, questions]) => `
                 <div style="margin-bottom: 12px; padding: 8px; background: #f5f5f5; border-radius: 4px;">
                   <strong style="color: #333;">${skill}</strong>
@@ -765,7 +765,7 @@
           document.getElementById('editJobContent').innerHTML = html;
           document.getElementById('editJobModal').classList.add('active');
         })
-        .catch(err => alert('Lỗi khi load job details: ' + err.message));
+        .catch(err => alert('Error loading job details: ' + err.message));
     }
 
     function closeEditJobModal() {
@@ -787,7 +787,7 @@
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(link).then(() => {
-            e.target.textContent = '✓ Đã Copy';
+            e.target.textContent = '✓ Copied';
             e.target.style.background = '#4caf50';
             setTimeout(() => {
               e.target.textContent = originalText;
@@ -811,14 +811,14 @@
       textarea.select();
       try {
         document.execCommand('copy');
-        btn.textContent = '✓ Đã Copy';
+        btn.textContent = '✓ Copied';
         btn.style.background = '#4caf50';
         setTimeout(() => {
           btn.textContent = originalText;
           btn.style.background = '';
         }, 2000);
       } catch (err) {
-        alert('Không thể copy link. Vui lòng copy thủ công.');
+        alert('Could not copy link. Please copy manually.');
       }
       document.body.removeChild(textarea);
     }
@@ -830,7 +830,7 @@
       deleteJobContext = { jobId, jobTitle };
       const modal = document.getElementById('deleteConfirmModal');
       const message = document.getElementById('deleteMessage');
-      message.innerHTML = `Bạn có chắc muốn xóa job <strong>"${jobTitle}"</strong>? Tất cả ứng viên sẽ bị xóa theo. <strong>Không thể hoàn tác.</strong>`;
+      message.innerHTML = `Are you sure you want to delete <strong>"${jobTitle}"</strong>? All candidates will be deleted as well. <strong>This cannot be undone.</strong>`;
       modal.classList.add('active');
     }
 
@@ -853,11 +853,11 @@
         })
         .then(data => {
           closeDeleteConfirm();
-          alert(`✓ Đã xóa job "${jobTitle}" thành công`);
+          alert(`✓ Successfully deleted job "${jobTitle}"`);
           loadJobs();
         })
         .catch(err => {
-          alert('Lỗi khi xóa job: ' + err.message);
+          alert('Error deleting job: ' + err.message);
         });
     }
 
@@ -891,13 +891,13 @@
           <textarea
             id="skill-eval-${idx}"
             data-skill="${skill}"
-            placeholder="Nhập đánh giá cho kỹ năng này"
+            placeholder="Enter evaluation for this skill"
             style="width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; resize: vertical; min-height: 100px;"
           >${evalMap[skill] || ''}</textarea>
         </div>
       `).join('');
 
-      document.getElementById('editEvaluationContent').innerHTML = formHtml || '<p style="color: #999; padding: 1rem;">Không có kỹ năng để đánh giá</p>';
+      document.getElementById('editEvaluationContent').innerHTML = formHtml || '<p style="color: #999; padding: 1rem;">No skills to evaluate</p>';
       document.getElementById('editEvaluationModal').classList.add('active');
     }
 
@@ -927,7 +927,7 @@
         if (!response.ok) {
           const errorText = await response.text();
           console.error('API Error:', errorText);
-          throw new Error('Lỗi khi lưu đánh giá');
+          throw new Error('Error saving evaluation');
         }
 
         const data = await response.json();
@@ -935,7 +935,7 @@
 
         // Close modal and reload results
         closeEditEvaluationModal();
-        alert('✓ Đã lưu đánh giá thành công');
+        alert('✓ Evaluation saved successfully');
         closeReviewModal();
 
         // Reload candidates list to reflect changes
