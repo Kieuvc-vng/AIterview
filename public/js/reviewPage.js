@@ -8,8 +8,6 @@ const ReviewPage = {
   interviewId: null,
   sessionData: null,
   messages: [],
-  rubric: [],
-  rubricSummary: null,
 
   /**
    * Initialize review page with session ID or interview ID
@@ -28,8 +26,6 @@ const ReviewPage = {
     this.sessionId = data.sessionId || this.sessionId;
     this.sessionData = data.sessionData || this.sessionData;
     this.messages = data.messages || [];
-    this.rubric = data.rubric || [];
-    this.rubricSummary = data.rubricSummary || {};
 
     const html = this.getPageHTML();
     container.innerHTML = html;
@@ -74,13 +70,6 @@ const ReviewPage = {
                 <span class="info-label">Company:</span>
                 <span class="info-value" id="review-company"></span>
               </div>
-            </div>
-          </div>
-
-          <div class="review-section">
-            <h2>Evaluation Rubric</h2>
-            <div id="rubric-container" class="rubric-container">
-              <!-- Rubric table will be inserted here -->
             </div>
           </div>
 
@@ -170,44 +159,8 @@ const ReviewPage = {
       this.sessionData?.company || 'N/A'
     );
 
-    // Display rubric
-    this.displayRubric();
-
     // Display transcript
     this.displayTranscript();
-  },
-
-  /**
-   * Display rubric table
-   */
-  displayRubric() {
-    const rubricContainer = document.getElementById('rubric-container');
-
-    if (!this.rubric || this.rubric.length === 0) {
-      rubricContainer.innerHTML = '<p>No rubric data available.</p>';
-      return;
-    }
-
-    const tableHTML = `
-      <table class="rubric-table">
-        <thead>
-          <tr>
-            <th>Skill</th>
-            <th>Evidence</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${this.rubric.map(item => `
-            <tr>
-              <td><strong>${this.escapeHtml(item.skill_name || item.skill || 'N/A')}</strong></td>
-              <td class="evidence-cell">${Array.isArray(item.evidence) ? item.evidence.join('; ') : this.escapeHtml(item.evidence || '—')}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
-
-    rubricContainer.innerHTML = tableHTML;
   },
 
   /**
