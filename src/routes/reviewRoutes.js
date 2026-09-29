@@ -8,34 +8,40 @@ const { generateRubric, getRubricSummary } = require('../services/rubricGenerato
 const { generatePDF, generateCSV, cleanupOldExports } = require('../services/exportService');
 
 /**
- * GET /api/review/:sessionId
- * Get session messages and rubric from database
+ * GET /api/review/:interviewId
+ * Get interview messages and rubric from database
  */
-router.get('/:sessionId', async (req, res, next) => {
+router.get('/:interviewId', async (req, res, next) => {
   try {
-    const { sessionId } = req.params;
-    const data = await sessionManager.getSession(sessionId);
+    const { interviewId } = req.params;
+    const db = require('../db/init').db;
 
-    if (!data) {
-      return res.status(404).json({ error: 'Session not found' });
+    if (!db) {
+      return res.status(500).json({ error: 'Database not available' });
     }
 
-    // Parse session data
-    const session = data.session;
-    const messages = data.messages || [];
-    const skills = typeof session.skills === 'string' ? JSON.parse(session.skills) : session.skills;
+    // Get interview info
+    const interview = await db.get('SELECT * FROM interviews WHERE id = ?', [interviewId]);
+    if (!interview) {
+      return res.status(404).json({ error: 'Interview not found' });
+    }
 
-    // Fetch rubric from database
-    const db = require('../db/init').db;
+    // Get messages for this interview
+    const messages = await db.all('SELECT * FROM messages WHERE interview_id = ? ORDER BY created_at ASC', [interviewId]);
+
+    // Get job for skills info
+    const jobLibraryService = require('../services/jobLibraryService');
+    const job = await jobLibraryService.getJobById(interview.job_id);
+    const skills = job ? (typeof job.skills === 'string' ? JSON.parse(job.skills) : job.skills) : [];
+
     let rubric = [];
 
-    if (db) {
-      try {
-        // Get all summaries with rubric data for this interview
-        const summaries = await db.all(
-          'SELECT skill_name, rubric_score, rubric_evidence, rubric_strengths, rubric_weaknesses FROM summaries WHERE interview_id = ? AND rubric_score IS NOT NULL',
-          [sessionId]
-        );
+    try {
+      // Get all summaries with rubric data for this interview
+      const summaries = await db.all(
+        'SELECT skill_name, rubric_score, rubric_evidence, rubric_strengths, rubric_weaknesses FROM summaries WHERE interview_id = ? AND rubric_score IS NOT NULL',
+        [interviewId]
+      );
 
         if (summaries && summaries.length > 0) {
           rubric = summaries.map(s => ({
@@ -66,15 +72,18 @@ router.get('/:sessionId', async (req, res, next) => {
       }
     }
 
+    // Get candidate info for response
+    const candidate = await db.get('SELECT * FROM candidates WHERE id = ?', [interview.candidate_id]);
+
     res.json({
       session: {
-        session_id: session.session_id,
-        candidate_name: session.candidate_name,
-        job_title: session.job_title,
-        level: session.level,
-        company: session.company,
-        status: session.status,
-        created_at: session.created_at
+        session_id: interviewId,
+        candidate_name: candidate?.name || 'Unknown',
+        job_title: job?.job_title || 'Unknown',
+        level: job?.level || 'Unknown',
+        company: job?.company || 'Unknown',
+        status: interview.status,
+        created_at: interview.created_at
       },
       messages,
       rubric

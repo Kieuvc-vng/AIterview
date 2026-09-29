@@ -140,6 +140,13 @@ const ReviewPage = {
    * Display review data in the page
    */
   displayReviewData() {
+    // Debug: log messages to see skill_name data
+    console.log('[Review] Messages received:', this.messages.map(m => ({
+      sender: m.sender,
+      skill_name: m.skill_name,
+      content: m.content?.substring(0, 30)
+    })));
+
     // Hide loading, show content
     document.getElementById('review-loading').style.display = 'none';
     document.getElementById('review-content').style.display = 'block';
