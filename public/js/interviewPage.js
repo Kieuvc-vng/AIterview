@@ -136,7 +136,7 @@ const InterviewPage = {
     return `
       <div class="page interview-page">
         <div class="interview-header">
-          <h1>Interview in Progress</h1>
+          <h1>AIterview</h1>
           <p>Candidate: ${this.escapeHtml(this.candidateName)}</p>
         </div>
 
