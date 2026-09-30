@@ -35,12 +35,13 @@ async function startServer() {
 
   // Redirect root to library
   app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/library.html'));
+    res.redirect('/library.html');
   });
 
-  // Serve interview.html for /interview route
+  // Redirect /interview to interview.html
   app.get('/interview', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/interview.html'));
+    const queryStr = req.url.substring(req.url.indexOf('?'));
+    res.redirect(`/interview.html${queryStr}`);
   });
 
   // Import route modules
