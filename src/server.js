@@ -25,6 +25,11 @@ async function startServer() {
   // Middleware
   app.use(express.json());
 
+  // Health check endpoint for Dokploy
+  app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', db: dbInitialized });
+  });
+
   // Redirect root to library BEFORE static middleware
   app.get('/', (req, res) => {
     res.redirect('/library.html');
