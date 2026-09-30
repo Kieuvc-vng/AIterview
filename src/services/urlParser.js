@@ -1,5 +1,5 @@
 const axios = require('axios');
-const cheerio = require('cheerio');
+// const cheerio = require('cheerio'); // Removed due to compatibility issues
 
 /**
  * Parse VNG Careers job URL and extract job title, department, and description
@@ -20,35 +20,32 @@ async function parseJobURL(jobUrl) {
     });
 
     const html = response.data;
-    const $ = cheerio.load(html);
+    const pageText = html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
-    // Extract job title - typically in h1 or main heading
-    let jobTitle = '';
-    const h1 = $('h1').first().text().trim();
-    if (h1) {
-      jobTitle = h1;
-    } else {
-      // Fallback: try meta title
-      jobTitle = $('meta[property="og:title"]').attr('content') || 'Unknown Job Title';
+    // Extract job title from HTML title tag or og:title meta tag
+    let jobTitle = 'Unknown Job Title';
+    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+    if (titleMatch) {
+      jobTitle = titleMatch[1].trim();
+    }
+    const ogTitleMatch = html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/i);
+    if (ogTitleMatch) {
+      jobTitle = ogTitleMatch[1].trim();
     }
 
-    // Extract department - look for department info in the page
-    // Common patterns: "Department:", "Phòng ban:", "Department: GDS" etc.
+    // Extract department - look for department info in the page text
     let department = '';
-    const pageText = $.text();
-
-    // Check for Vietnamese department names first
     const deptPatterns = [
       /Phòng ban:\s*([A-Z0-9]+)/i,
       /Department:\s*([A-Z0-9]+)/i,
-      /department[:\s]*([A-Z0-9]+)/gi,
+      /department[:\s]*([A-Z0-9]+)/i,
       /\b(GDS|PEN|PRO|GS3|GIO)\b/i
     ];
 
     for (const pattern of deptPatterns) {
       const match = pageText.match(pattern);
       if (match) {
-        department = match[1].toUpperCase();
+        department = match[1] ? match[1].toUpperCase() : match[0].toUpperCase();
         break;
       }
     }
@@ -56,7 +53,7 @@ async function parseJobURL(jobUrl) {
     // Extract job code - pattern: XX-XXX-XXXX or similar
     let jobCode = '';
     const codePatterns = [
-      /\b([A-Z0-9]{2,3}-[A-Z0-9]{3,4}-[0-9]{3,4})\b/i,  // XX-XXX-XXXX pattern
+      /\b([A-Z0-9]{2,3}-[A-Z0-9]{3,4}-[0-9]{3,4})\b/i,
       /Code:\s*([A-Z0-9\-]+)/i,
       /Mã vị trí:\s*([A-Z0-9\-]+)/i,
       /Job Code:\s*([A-Z0-9\-]+)/i
@@ -71,32 +68,16 @@ async function parseJobURL(jobUrl) {
     }
 
     // Extract department from job code - middle part between hyphens
-    // E.g., 26-HRA-4039 → department = HRA, 26-ENG-4040 → department = ENG
     let departmentFromCode = '';
     if (jobCode) {
       const codeParts = jobCode.split('-');
       if (codeParts.length >= 2) {
-        departmentFromCode = codeParts[1];  // Get middle part (e.g., HRA from 26-HRA-4039)
+        departmentFromCode = codeParts[1];
       }
     }
 
-    // Extract job description
-    let jobDescription = '';
-
-    // Try to find main content area
-    const mainContent = $('.job-detail-content, [class*="detail"], [class*="description"], article, main');
-
-    if (mainContent.length > 0) {
-      jobDescription = mainContent.text().trim().substring(0, 2000);
-    } else {
-      // Fallback: get body text
-      jobDescription = $('body').text().trim().substring(0, 2000);
-    }
-
-    // Clean up description (remove extra whitespace)
-    jobDescription = jobDescription.replace(/\s+/g, ' ').trim();
-
-    // Use department extracted from job code if available, otherwise use page-extracted department
+    // Extract job description - first 2000 chars of page text
+    const jobDescription = pageText.substring(0, 2000);
     const finalDepartment = departmentFromCode || department || 'Unknown';
 
     return {
