@@ -44,12 +44,19 @@ async function startServer() {
   app.use(express.static('public', { index: false }));
 
   // Import route modules
-  const setupRoutes = require('./routes/setupRoutes');
-  const interviewRoutes = require('./routes/interviewRoutes');
-  const reviewRoutes = require('./routes/reviewRoutes');
-  const jobRoutes = require('./routes/jobRoutes');
-  const candidateRoutes = require('./routes/candidateRoutes');
-  const jobLibraryRoutes = require('./routes/jobLibraryRoutes');
+  let setupRoutes, interviewRoutes, reviewRoutes, jobRoutes, candidateRoutes, jobLibraryRoutes;
+  try {
+    setupRoutes = require('./routes/setupRoutes');
+    interviewRoutes = require('./routes/interviewRoutes');
+    reviewRoutes = require('./routes/reviewRoutes');
+    jobRoutes = require('./routes/jobRoutes');
+    candidateRoutes = require('./routes/candidateRoutes');
+    jobLibraryRoutes = require('./routes/jobLibraryRoutes');
+    console.log('[Server] All route modules loaded successfully');
+  } catch (error) {
+    console.error('[Server] Failed to load route modules:', error.message);
+    throw error;
+  }
 
   // Use route modules
   app.use('/api/setup', setupRoutes);
