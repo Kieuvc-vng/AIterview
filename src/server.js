@@ -74,9 +74,15 @@ async function startServer() {
   // app.use('/jobs', jobRoutes);
   // app.use('/candidates', candidateRoutes);
 
+  // 404 handler
+  app.use((req, res) => {
+    res.status(404).json({ error: 'Not found' });
+  });
+
   // Error handler middleware
   app.use((err, req, res, next) => {
     console.error('Error:', err.message);
+    console.error('Error status:', err.status);
     res.status(err.status || 500).json({
       error: err.message || 'Internal server error'
     });
