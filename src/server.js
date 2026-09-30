@@ -54,7 +54,9 @@ async function startServer() {
     jobLibraryRoutes = require('./routes/jobLibraryRoutes');
     console.log('[Server] All route modules loaded successfully');
   } catch (error) {
-    console.error('[Server] Failed to load route modules:', error.message);
+    console.error('[Server] Failed to load route modules');
+    console.error('[Server] Error message:', error.message);
+    console.error('[Server] Error stack:', error.stack);
     throw error;
   }
 
