@@ -157,6 +157,14 @@ async function initializeDatabase() {
           await db.run('ALTER TABLE summaries ADD COLUMN rubric_weaknesses TEXT');
           console.log('Migration: Added rubric_weaknesses column to summaries table');
         }
+
+        // Add job_code column to jobs table if it doesn't exist
+        const jobsInfo = await db.all("PRAGMA table_info(jobs)");
+        const hasJobCode = jobsInfo.some(col => col.name === 'job_code');
+        if (!hasJobCode) {
+          await db.run('ALTER TABLE jobs ADD COLUMN job_code TEXT');
+          console.log('Migration: Added job_code column to jobs table');
+        }
       } catch (migrationError) {
         console.log('Migration check completed:', migrationError.message);
       }

@@ -24,7 +24,7 @@ const jobLibraryService = {
 
       if (db) {
         const jobs = await db.prepare(
-          'SELECT id, job_title, level, company, created_at, (SELECT COUNT(*) FROM candidates WHERE job_id = jobs.id) as candidate_count FROM jobs WHERE hr_email = ? ORDER BY created_at DESC'
+          'SELECT id, job_title, level, company, job_code, created_at, (SELECT COUNT(*) FROM candidates WHERE job_id = jobs.id) as candidate_count FROM jobs WHERE hr_email = ? ORDER BY created_at DESC'
         ).all(hrEmail);
         return jobs || [];
       } else {
@@ -36,6 +36,7 @@ const jobLibraryService = {
             job_title: job.job_title,
             level: job.level,
             company: job.company,
+            job_code: job.job_code,
             created_at: job.created_at,
             candidate_count: Object.values(inMemoryStore.candidates).filter(c => c.job_id === job.id).length
           }))
@@ -99,6 +100,7 @@ const jobLibraryService = {
         job_title: jobData.job_title,
         level: jobData.level,
         company: jobData.company,
+        job_code: jobData.job_code,
         skills: JSON.stringify(jobData.skills),
         questions_by_skill: JSON.stringify(jobData.questions_by_skill),
         jd_text: jobData.jd_text,
@@ -112,13 +114,14 @@ const jobLibraryService = {
 
       if (db) {
         await db.prepare(
-          'INSERT INTO jobs (id, hr_email, job_title, level, company, skills, questions_by_skill, jd_text) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+          'INSERT INTO jobs (id, hr_email, job_title, level, company, job_code, skills, questions_by_skill, jd_text) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
         ).run(
           jobId,
           jobData.hr_email,
           jobData.job_title,
           jobData.level,
           jobData.company,
+          jobData.job_code,
           JSON.stringify(jobData.skills),
           JSON.stringify(jobData.questions_by_skill),
           jobData.jd_text
@@ -144,11 +147,12 @@ const jobLibraryService = {
       if (!db) throw new Error('Database not available');
 
       const result = await db.prepare(
-        'UPDATE jobs SET job_title = ?, level = ?, company = ?, skills = ?, questions_by_skill = ?, jd_text = ? WHERE id = ?'
+        'UPDATE jobs SET job_title = ?, level = ?, company = ?, job_code = ?, skills = ?, questions_by_skill = ?, jd_text = ? WHERE id = ?'
       ).run(
         jobData.job_title,
         jobData.level,
         jobData.company,
+        jobData.job_code,
         JSON.stringify(jobData.skills),
         JSON.stringify(jobData.questions_by_skill),
         jobData.jd_text,

@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS jobs (
   job_title TEXT NOT NULL,
   level TEXT NOT NULL CHECK(level IN ('Fresher', 'Junior', 'Mid', 'Senior', 'Lead', 'Manager')),
   company TEXT NOT NULL,
+  job_code TEXT,
   -- skills: JSON array of skill names, e.g. ["Python", "React", "SQL"]
   skills TEXT NOT NULL,
   -- questions_by_skill: JSON object mapping skill names to arrays of questions, e.g. {"Python": [{"question": "...", "model": "..."}, ...], ...}

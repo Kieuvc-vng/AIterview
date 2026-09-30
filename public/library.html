@@ -338,7 +338,7 @@
 
       tbody.innerHTML = jobs.map((job, idx) => `
         <tr>
-          <td class="code-cell">${job.id ? job.id.substring(0, 8).toUpperCase() : 'N/A'}</td>
+          <td class="code-cell">${job.job_code || 'N/A'}</td>
           <td>
             <div style="font-weight: 600; color: #333;">${job.job_title}</div>
             <div style="font-size: 12px; color: #999;">${job.company}</div>
@@ -351,7 +351,8 @@
           <td class="actions-cell">
             <button class="action-btn" onclick="openCandidatesModal('${job.id}')">View</button>
             <button class="action-btn" onclick="openSendModal('${job.id}')">Add</button>
-            <button class="action-btn" onclick="openJobDetail('${job.id}')">Edit</button>
+            <button class="action-btn" onclick="window.location.href='/index.html?edit=${job.id}'">Edit</button>
+            <button class="action-btn btn-danger" onclick="showDeleteConfirm('${job.id}', '${job.job_title.replace(/'/g, "\\'")}')">Delete</button>
           </td>
         </tr>
       `).join('');

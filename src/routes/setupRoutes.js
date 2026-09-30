@@ -94,7 +94,7 @@ router.post('/suggest-questions', async (req, res, next) => {
  */
 router.post('/create-session', async (req, res, next) => {
   try {
-    const { hr_email, job_title, level, company, skills, questions_by_skill, jd_text } = req.body;
+    const { hr_email, job_title, level, company, job_code, skills, questions_by_skill, jd_text } = req.body;
 
     if (!hr_email || !job_title || !level || !company || !skills) {
       return res.status(400).json({
@@ -108,6 +108,7 @@ router.post('/create-session', async (req, res, next) => {
       job_title,
       level,
       company,
+      job_code,
       skills,
       questions_by_skill,
       jd_text

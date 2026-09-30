@@ -70,7 +70,6 @@ router.get('/:interviewId', async (req, res, next) => {
           weaknesses: ['Error loading rubric']
         }));
       }
-    }
 
     // Get candidate info for response
     const candidate = await db.get('SELECT * FROM candidates WHERE id = ?', [interview.candidate_id]);

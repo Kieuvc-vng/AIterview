@@ -42,8 +42,8 @@ const SetupPage = {
       this.isEditMode = true;
       this.editJobId = editJobId;
       await this.loadJobForEdit();
-      // Start from Step 1 (JD) in edit mode to review entire flow
-      this.currentStep = 1;
+      // Start from Step 2 (Confirm Details) in edit mode to review and edit job details
+      this.currentStep = 2;
     }
 
     this.render(container);
@@ -912,8 +912,10 @@ const SetupPage = {
             job_title: this.formData.job_title,
             level: this.formData.level,
             company: this.formData.company,
+            job_code: this.formData.job_code,
             skills: this.formData.skills,
-            questions_by_skill: this.formData.questions_by_skill
+            questions_by_skill: this.formData.questions_by_skill,
+            jd_text: this.formData.jd_text
           })
         });
 
