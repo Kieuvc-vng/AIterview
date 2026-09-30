@@ -49,30 +49,30 @@ async function startServer() {
     res.redirect(`/interview.html${queryStr}`);
   });
 
-  // Import route modules
-  let setupRoutes, interviewRoutes, reviewRoutes, jobRoutes, candidateRoutes, jobLibraryRoutes;
-  try {
-    setupRoutes = require('./routes/setupRoutes');
-    interviewRoutes = require('./routes/interviewRoutes');
-    reviewRoutes = require('./routes/reviewRoutes');
-    jobRoutes = require('./routes/jobRoutes');
-    candidateRoutes = require('./routes/candidateRoutes');
-    jobLibraryRoutes = require('./routes/jobLibraryRoutes');
-    console.log('[Server] All route modules loaded successfully');
-  } catch (error) {
-    console.error('[Server] Failed to load route modules');
-    console.error('[Server] Error message:', error.message);
-    console.error('[Server] Error stack:', error.stack);
-    throw error;
-  }
+  // Import route modules (commented out for debugging)
+  // let setupRoutes, interviewRoutes, reviewRoutes, jobRoutes, candidateRoutes, jobLibraryRoutes;
+  // try {
+  //   setupRoutes = require('./routes/setupRoutes');
+  //   interviewRoutes = require('./routes/interviewRoutes');
+  //   reviewRoutes = require('./routes/reviewRoutes');
+  //   jobRoutes = require('./routes/jobRoutes');
+  //   candidateRoutes = require('./routes/candidateRoutes');
+  //   jobLibraryRoutes = require('./routes/jobLibraryRoutes');
+  //   console.log('[Server] All route modules loaded successfully');
+  // } catch (error) {
+  //   console.error('[Server] Failed to load route modules');
+  //   console.error('[Server] Error message:', error.message);
+  //   console.error('[Server] Error stack:', error.stack);
+  //   throw error;
+  // }
 
-  // Use route modules
-  app.use('/api/setup', setupRoutes);
-  app.use('/api/interview', interviewRoutes);
-  app.use('/api/review', reviewRoutes);
-  app.use('/api/job-library', jobLibraryRoutes);
-  app.use('/jobs', jobRoutes);
-  app.use('/candidates', candidateRoutes);
+  // // Use route modules
+  // app.use('/api/setup', setupRoutes);
+  // app.use('/api/interview', interviewRoutes);
+  // app.use('/api/review', reviewRoutes);
+  // app.use('/api/job-library', jobLibraryRoutes);
+  // app.use('/jobs', jobRoutes);
+  // app.use('/candidates', candidateRoutes);
 
   // Error handler middleware
   app.use((err, req, res, next) => {
