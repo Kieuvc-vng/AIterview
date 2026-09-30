@@ -30,18 +30,18 @@ async function startServer() {
     res.status(200).json({ status: 'ok', db: dbInitialized });
   });
 
-  // Redirect root to library BEFORE static middleware
+  // Static files BEFORE routes
+  app.use(express.static('public', { index: false }));
+
+  // Redirect root to library
   app.get('/', (req, res) => {
-    res.redirect('/library.html');
+    res.sendFile(path.join(__dirname, '../public/library.html'));
   });
 
   // Serve interview.html for /interview route
   app.get('/interview', (req, res) => {
-    res.redirect(`/interview.html${req.url.substring(req.url.indexOf('?'))}`);
+    res.sendFile(path.join(__dirname, '../public/interview.html'));
   });
-
-  // Static files after redirect (don't serve index.html as default for /)
-  app.use(express.static('public', { index: false }));
 
   // Import route modules
   let setupRoutes, interviewRoutes, reviewRoutes, jobRoutes, candidateRoutes, jobLibraryRoutes;
