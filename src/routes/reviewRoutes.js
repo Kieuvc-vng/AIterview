@@ -136,6 +136,7 @@ router.post('/:sessionId/export', async (req, res, next) => {
 
     // Fetch rubric from database
     let rubric = [];
+    const db = require('../db/init').db;
     if (db) {
       try {
         const summaries = await db.all(
