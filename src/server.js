@@ -30,6 +30,11 @@ async function startServer() {
     res.status(200).json({ status: 'ok', db: dbInitialized });
   });
 
+  // Test endpoint
+  app.get('/test', (req, res) => {
+    res.status(200).send('<h1>App is working!</h1><p>If you see this, the server is running.</p>');
+  });
+
   // Static files BEFORE routes
   app.use(express.static('public', { index: false }));
 
