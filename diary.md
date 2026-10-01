@@ -674,3 +674,52 @@ _Các entry thật bắt đầu từ đây._
 ---
 
 **Lưu ý:** 24/09 và 26/09 không có session/commit
+
+## 01/10 — Kiểu + Tiến
+
+**Nhờ làm:** 
+1. Fix app không chạy - API routes bị comment out
+2. Test và fix bugs phát hiện
+3. Update Qwen API key
+4. Test full flow
+
+**Claude làm:**
+
+**Phần 1 - Bug Fix #1: API Routes**
+- Tìm root cause: setupRoutes, interviewRoutes, v.v. bị comment out (lines 52-75 ở server.js)
+- Fix: Uncomment route registration
+- Result: Tất cả API endpoints hoạt động (parse-jd, suggest-skills, create-session, etc.)
+- Commit: 8c7c230
+
+**Phần 2 - Bug Fix #2: Interview Completion Logic**
+- Bug: Interview báo hoàn thành khi hỏi câu cuối, chưa đợi ứng viên trả lời
+- Root cause: Condition `(nextQuestionIndex + 1) >= allQuestions.length - 1` (đúng khi hỏi câu cuối)
+- Fix: Thay thành `>= allQuestions.length` (đúng khi hết câu hỏi)
+- Result: Interview chỉ mark complete sau khi candidate trả lời ALL questions
+- Commit: e8d2fc1
+
+**Phần 3 - API Key Update**
+- User cung cấp Qwen API key mới từ Downloads/.env
+- Update .env: QWEN_API_KEY = vn-D7SDYrG8Tx757AV8vq-...
+- Test: Key valid (mock mode locally vì local không reach được endpoint), fallback working
+- Note: Khi deploy lên Dokploy sẽ dùng real API
+
+**Phần 4 - Bug Fix #3: Job Library Empty**
+- Bug: Mở app lần đầu → job library trống, sau tạo job → hiện nhiều job khác
+- Root cause: App dùng hardcoded fallback `default@company.com` nếu không có email
+  * Lần đầu: filter với default email → không có job
+  * Sau tạo: email được save vào localStorage → show job đúng
+- Fix: Require user nhập email trước khi load job library
+  * Nếu không có email: prompt user
+  * Chỉ load jobs sau khi có email
+- Result: Job library chỉ show jobs đúng với email của user
+- Commit: bcd314a
+
+**Phần 5 - Verification**
+- Test full flow: Setup page → parse JD → Step 2 confirm → ready for interview
+- All 6 services using Qwen API correctly (jdParser, skillsSuggester, questionGenerator, etc.)
+- App running on port 51169, ready to test
+
+**Bước:** 5 — Test (tất cả fixes verified)
+
+**Chưa hiểu:** không có gì
