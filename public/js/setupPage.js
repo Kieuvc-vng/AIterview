@@ -495,6 +495,23 @@ const SetupPage = {
       return;
     }
 
+    // Task 8: Auto-fill email from localStorage and disable it
+    const savedEmail = localStorage.getItem('hr_email');
+    if (savedEmail && hrEmailInput.value) {
+      // Email was pre-filled from localStorage - disable it and add a note
+      hrEmailInput.disabled = true;
+      hrEmailInput.style.cursor = 'not-allowed';
+
+      // Add a note below the input explaining it came from previous session
+      const note = document.createElement('small');
+      note.textContent = 'Email from previous session (cannot be changed)';
+      note.style.color = '#999';
+      note.style.display = 'block';
+      note.style.marginTop = '4px';
+      note.style.fontSize = '12px';
+      hrEmailInput.parentElement.appendChild(note);
+    }
+
     const updateButton = () => {
       nextBtn.disabled = !jobTitleInput.value.trim() || !levelSelect.value || !companyInput.value.trim() || !departmentInput.value.trim() || !hrEmailInput.value.trim();
     };
