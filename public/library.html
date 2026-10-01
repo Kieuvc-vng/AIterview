@@ -212,11 +212,6 @@
           onchange="filterJobs()"
         >
           <option value="">All Departments</option>
-          <option value="GDS">GDS</option>
-          <option value="PEN">PEN</option>
-          <option value="PRO">PRO</option>
-          <option value="GS3">GS3</option>
-          <option value="GIO">GIO</option>
         </select>
       </div>
 
@@ -357,8 +352,28 @@
             `;
             return;
           }
+          populateDepartmentFilter(jobs);
           displayJobs(jobs);
         });
+    }
+
+    function populateDepartmentFilter(jobs) {
+      // Extract unique departments from jobs
+      const departments = [...new Set(jobs.map(job => job.company).filter(Boolean))].sort();
+
+      // Get the select element
+      const select = document.getElementById('departmentFilter');
+
+      // Keep the "All Departments" option, remove others
+      select.innerHTML = '<option value="">All Departments</option>';
+
+      // Add unique departments as options
+      departments.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept;
+        option.textContent = dept;
+        select.appendChild(option);
+      });
     }
 
     function displayJobs(jobs) {

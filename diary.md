@@ -821,3 +821,27 @@ _Các entry thật bắt đầu từ đây._
 **Bước:** 5 — Test (hoàn thành, all 9 tasks verified)
 
 **Chưa hiểu:** không có gì
+
+## 01/10 — Kiểu + Tiến (Tiếp theo - Dynamic Department Filter)
+
+**Nhờ làm:** Thay thế dropdown department cứng (hardcoded) bằng logic dynamic lấy từ dữ liệu
+
+**Claude làm:**
+- **Problem:** Dropdown department có hardcoded options (GDS, PEN, PRO, GS3, GIO). Nếu thêm phòng ban mới phải sửa code
+- **Solution:** Implement dynamic population từ job data
+  * Xoá hardcoded options (lines 214-219)
+  * Thêm `populateDepartmentFilter()` function:
+    - Extract unique `company` values từ jobs array
+    - Sort alphabetically
+    - Render vào dropdown (keep "All Departments" first)
+  * Call `populateDepartmentFilter(jobs)` trong `loadJobs()` callback
+- **Result:** Dropdown giờ auto-populate từ dữ liệu, không cần hardcode
+- **Testing:** 
+  * Load page → dropdown shows: All Departments, GDS, PEN, PRO, GS3, GIO ✓
+  * Select GDS → filter works correctly ✓
+  * Reset to All Departments → all jobs show ✓
+- **Commit:** feat: implement dynamic department filter population from job data
+
+**Bước:** 3 — Spec → Build (+ Testing)
+
+**Chưa hiểu:** không có gì
