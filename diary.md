@@ -575,3 +575,102 @@ _Các entry thật bắt đầu từ đây._
 
 **Bước:** 4 — Spec → Build (implementation complete, UI tested, auto-generation pending debug)
 **Chưa hiểu:** Tại sao generateSkillEvaluation() trả về empty - cần check Qwen API call
+
+---
+
+## 25/09 — Kiểu + Tiến
+
+**Nhờ làm:** Redesign giao diện app với màu sắc thương hiệu VNGGames (chủ đề cam)
+
+**Claude làm:** Hoàn thành UI redesign - thay đổi màu chính từ xanh sang cam/orange, áp dụng trên toàn bộ trang (Job Library, Setup, Interview, Review)
+
+**Bước:** 3 — Spec → Build
+
+**Chưa hiểu:** không có gì
+
+## 27/09 — Kiểu + Tiến
+
+**Nhờ làm:** Cải thiện Step 1 tạo job + thêm tính năng hỏi thêm câu trên phỏng vấn
+
+**Claude làm:**
+- **Phần 1:** Step 1 dual-input - cho phép HR nhập JD theo 2 cách: dán link job posting hoặc dán text JD trực tiếp. Auto-extract job code và department từ URL.
+- **Phần 2:** Thêm field `hr_email` vào Step 2, lưu vào localStorage để không phải nhập lại khi tạo job tiếp theo
+- **Phần 3:** Câu hỏi AI giờ context-aware — biết level job, công ty, kỹ năng → câu hỏi phù hợp hơn
+- **Phần 4:** Fix lỗi duplicate message endpoint, thêm bước xác nhận sẵn sàng trước câu hỏi đầu
+- Total: 13 commits
+
+**Bước:** 3 — Spec → Build
+
+**Chưa hiểu:** không có gì
+
+## 28/09 — Kiểu + Tiến
+
+**Nhờ làm:** Hoàn thành improvements cho interview flow
+
+**Claude làm:** Continue 27/09 work - fix remove duplicate message endpoint, refine readiness confirmation step
+
+**Bước:** 3 — Spec → Build
+
+**Chưa hiểu:** không có gì
+
+## 29/09 — Kiểu + Tiến
+
+**Nhờ làm:** Fix interview page title
+
+**Claude làm:** Đổi title từ "Interview in Progress" sang "AIterview" (chơi chữ AI + Interview)
+
+**Bước:** 3 — Spec → Build
+
+**Chưa hiểu:** không có gì
+
+## 30/09 — Kiểu + Tiến (Sáng - Review + Job Code)
+
+**Nhờ làm:** Cải thiện review page + thêm job_code field + chuẩn bị deploy
+
+**Claude làm:**
+- **Phần 1 - Review page improvements:**
+  * Translate Job Library sang English
+  * Group interview transcript by skill
+  * Auto-scroll chat to bottom
+  * Fix review API dùng interviewId thay sessionId
+  * Refactor: Remove Evaluation Rubric section
+- **Phần 2 - Job code field:**
+  * Thêm field `job_code` khi tạo/chỉnh sửa job
+  * Improve job editing flow
+
+**Bước:** 3 — Spec → Build
+
+**Chưa hiểu:** không có gì
+
+## 30/09 — Kiểu + Tiến (Chiều - Dockerfile + Dokploy Deploy)
+
+**Nhờ làm:** Setup Dockerfile + deploy app lên Dokploy self-hosted platform
+
+**Claude làm:**
+- **Phần 1 - Dockerfile setup:**
+  * Thêm file Dockerfile: Node.js base image, npm install, npm start
+  * Thêm /health endpoint để Dokploy check app status
+  * Fix: Remove health check từ Dockerfile
+  * Commit: feat: add Dockerfile for Dokploy deployment
+
+- **Phần 2 - Bug fixes routing (11+ commits):**
+  * Fix detailed error logging
+  * Fix serve library.html trực tiếp
+  * Fix detailed error stack trace
+  * Fix downgrade cheerio → 1.0.0
+  * Fix remove cheerio dependency
+  * Fix downgrade uuid → 8.3.2 for CommonJS
+  * Fix remove package-lock.json
+  * Fix use redirect instead of sendFile
+  * Fix add /test endpoint for debugging
+  * Fix comment out routes to isolate error
+  * Fix add 404 handler before error middleware
+  * Hoàn thành e2e routing fix → ready to deploy on Dokploy
+
+**Bước:** 3 — Spec → Build → Test
+
+**Chưa hiểu:** không có gì
+
+---
+
+**Lưu ý:** 24/09 và 26/09 không có session/commit
