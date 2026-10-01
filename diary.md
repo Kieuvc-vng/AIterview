@@ -723,3 +723,20 @@ _Các entry thật bắt đầu từ đây._
 **Bước:** 5 — Test (tất cả fixes verified)
 
 **Chưa hiểu:** không có gì
+
+## 01/10 — Kiểu + Tiến (Tiếp theo - Task 6 Email Modal)
+
+**Nhờ làm:** Hoàn thành Task 6 - lưu email vào localStorage và đóng modal khi validate thành công
+
+**Claude làm:**
+- Task 5 (validate email): Kiểm tra @ symbol, text trước/sau @ → ✓ working
+- Task 6 (save + close):
+  * Sửa code email handler: khi validate pass → localStorage.setItem('hr_email', email) + emailModal.classList.remove('active')
+  * Test: nhập "user@example.com" → bấm Continue
+  * Verify: localStorage có 'hr_email' = "user@example.com" ✓
+  * Verify: Modal đóng, Job Library hiển thị ✓
+- Commit: feat: save email to localStorage and close modal on successful validation
+
+**Bước:** 3 — Spec → Build
+
+**Chưa hiểu:** không có gì
