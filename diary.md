@@ -740,3 +740,28 @@ _Các entry thật bắt đầu từ đây._
 **Bước:** 3 — Spec → Build
 
 **Chưa hiểu:** không có gì
+
+## 01/10 — Kiểu + Tiến (Tiếp theo - Task 7 Loading Animation)
+
+**Nhờ làm:** Hoàn thành Task 7 - thêm loading state animation khi bấm nút Continue
+
+**Claude làm:**
+- Task 7 (Loading state):
+  * Cập nhật email Continue button handler
+  * Khi click Continue + validate pass:
+    - Disable button + input field
+    - Thêm class 'loading' (flex layout)
+    - Hiển thị spinner icon + "Loading..." text
+    - Chờ 0.5 giây (simulate validation delay)
+  * Sau 0.5s:
+    - Reset button state (enabled, no 'loading' class, text = "Continue")
+    - Reset input field (enabled)
+    - Save email to localStorage
+    - Close modal
+  * Test: Click Continue → spinner appears, button/input disabled → 0.5s delay → modal closes ✓
+  * Spinner CSS (lines 154-175) đã có sẵn từ Task 3
+  * Commit: feat: add loading state animation to continue button
+
+**Bước:** 3 — Spec → Build
+
+**Chưa hiểu:** không có gì
