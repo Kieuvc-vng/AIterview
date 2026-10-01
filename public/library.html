@@ -951,22 +951,23 @@
   </script>
 
   <!-- Email Modal -->
-  <div id="emailModal" class="email-modal-overlay">
-    <div class="email-modal-container">
-      <h2 class="email-modal-title">Welcome to AIterview</h2>
-      <p class="email-modal-subtitle">Please enter your email to access your job library</p>
+  <div id="emailModal" class="modal">
+    <div class="modal-content" style="max-width: 400px;">
+      <h2 style="text-align: center; margin-bottom: 0.5rem;">Welcome to AIterview</h2>
+      <p style="text-align: center; color: #666; margin-bottom: 1.5rem; font-size: 14px;">Please enter your email to access your job library</p>
 
-      <div class="email-input-wrapper">
+      <div style="margin-bottom: 1.5rem;">
         <input
           type="email"
           id="emailInput"
-          class="email-input"
+          aria-label="Email address"
           placeholder="your.email@company.com"
+          style="width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 14px;"
         />
-        <div id="emailError" class="email-error-message"></div>
+        <div id="emailError" style="color: #d32f2f; font-size: 12px; margin-top: 6px; min-height: 18px;"></div>
       </div>
 
-      <button id="emailContinueBtn" class="email-continue-btn">Continue</button>
+      <button id="emailContinueBtn" class="btn-primary" style="width: 100%;">Continue</button>
     </div>
   </div>
 </body>
