@@ -1423,3 +1423,32 @@ select:disabled {
   cursor: not-allowed;
   opacity: 0.7;
 }
+
+/* Email Modal - Error State */
+#emailInput.error {
+  border-color: #d32f2f !important;
+}
+
+/* Email Modal - Loading State */
+#emailContinueBtn.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
