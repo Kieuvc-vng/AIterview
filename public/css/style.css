@@ -1327,7 +1327,16 @@ select:disabled {
 
 /* Email Modal - Normal State */
 #emailModal {
-  display: none; /* Hidden by default, shown by JS */
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
 #emailModal.show {
@@ -1336,6 +1345,12 @@ select:disabled {
 
 #emailModal.active {
   display: flex;
+}
+
+#emailModal .modal-content {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 #emailModal h2 {
