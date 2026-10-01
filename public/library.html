@@ -1052,9 +1052,26 @@
       return;
     }
 
-    // Validation passed - save to localStorage and close modal (Task 6)
-    localStorage.setItem('hr_email', email);
-    emailModal.classList.remove('active');
+    // Show loading state
+    emailContinueBtn.disabled = true;
+    emailContinueBtn.classList.add('loading');
+    emailInput.disabled = true;
+    emailContinueBtn.innerHTML = '<span class="spinner"></span> Loading...';
+
+    // Simulate validation delay (0.5 seconds)
+    setTimeout(function() {
+      // Save email to localStorage
+      localStorage.setItem('hr_email', email);
+
+      // Reset button
+      emailContinueBtn.disabled = false;
+      emailContinueBtn.classList.remove('loading');
+      emailContinueBtn.innerHTML = 'Continue';
+      emailInput.disabled = false;
+
+      // Close modal
+      emailModal.classList.remove('active');
+    }, 500);
   });
 
   // Handle Enter key
