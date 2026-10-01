@@ -765,3 +765,30 @@ _Các entry thật bắt đầu từ đây._
 **Bước:** 3 — Spec → Build
 
 **Chưa hiểu:** không có gì
+
+## 01/10 — Kiểu + Tiến (Tiếp theo - Task 8 Auto-Fill Email)
+
+**Nhờ làm:** Hoàn thành Task 8 - auto-fill email field ở Step 2 từ localStorage
+
+**Claude làm:**
+- Task 8 (Auto-fill email):
+  * Tìm vị trí email input ở Step 2 (hr_email field, line 236)
+  * Thêm logic trong attachStep2Listeners():
+    - Kiểm tra localStorage có 'hr_email' không
+    - Nếu có + email field có value: disable input + set cursor='not-allowed'
+    - Thêm note dưới input: "Email from previous session (cannot be changed)"
+  * Test: 
+    - Nhập email "test@example.com" ở modal → bấm Continue
+    - Modal đóng, click "Create New Job" → Step 1
+    - Parse JD → Step 2
+    - Email field pre-filled ✓ + disabled ✓ + note displays ✓
+  * Verify JavaScript:
+    - emailInput.value = "test@example.com" ✓
+    - emailInput.disabled = true ✓
+    - cursor = "not-allowed" ✓
+    - hasNote = true ✓
+  * Commit: feat: auto-fill email field in Step 2 from localStorage
+
+**Bước:** 3 — Spec → Build
+
+**Chưa hiểu:** không có gì
