@@ -1002,5 +1002,52 @@
       <button id="emailContinueBtn" class="btn-primary" style="width: 100%;">Continue</button>
     </div>
   </div>
+
+  <script>
+(function() {
+  // Get DOM elements
+  const emailModal = document.getElementById('emailModal');
+  const emailInput = document.getElementById('emailInput');
+  const emailContinueBtn = document.getElementById('emailContinueBtn');
+  const emailError = document.getElementById('emailError');
+
+  // Initialize modal on page load
+  function initEmailModal() {
+    const savedEmail = localStorage.getItem('hr_email');
+
+    if (savedEmail) {
+      // Pre-fill with saved email
+      emailInput.value = savedEmail;
+    }
+    // Always show modal (even with pre-filled email)
+    emailModal.classList.add('show');
+  }
+
+  // Run on DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEmailModal);
+  } else {
+    initEmailModal();
+  }
+
+  // Expose functions for testing and Task 5+
+  window.EmailModal = {
+    showModal: () => emailModal.classList.add('show'),
+    hideModal: () => emailModal.classList.remove('show'),
+    getEmail: () => emailInput.value,
+    setEmail: (email) => emailInput.value = email,
+    showError: (message) => {
+      emailError.textContent = message;
+      emailError.classList.add('show');
+      emailInput.classList.add('error');
+    },
+    clearError: () => {
+      emailError.textContent = '';
+      emailError.classList.remove('show');
+      emailInput.classList.remove('error');
+    },
+  };
+})();
+  </script>
 </body>
 </html>
