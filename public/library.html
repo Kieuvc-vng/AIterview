@@ -1020,8 +1020,49 @@
       emailInput.value = savedEmail;
     }
     // Always show modal (even with pre-filled email)
-    emailModal.classList.add('show');
+    emailModal.classList.add('active');
   }
+
+  // Validate email format
+  function validateEmail(email) {
+    // Check if email contains @ symbol
+    if (!email || !email.includes('@')) {
+      return false;
+    }
+    // Check if there's text before and after @
+    const parts = email.split('@');
+    if (parts.length !== 2 || !parts[0].trim() || !parts[1].trim()) {
+      return false;
+    }
+    return true;
+  }
+
+  // Handle Continue button click
+  emailContinueBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+
+    const email = emailInput.value.trim();
+
+    // Clear previous errors
+    window.EmailModal.clearError();
+
+    // Validate
+    if (!validateEmail(email)) {
+      window.EmailModal.showError('Please enter a valid email');
+      return;
+    }
+
+    // Validation passed - Task 6 will handle saving to localStorage
+    // For now, just clear error state
+    emailInput.classList.remove('error');
+  });
+
+  // Handle Enter key
+  emailInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      emailContinueBtn.click();
+    }
+  });
 
   // Run on DOM ready
   if (document.readyState === 'loading') {
@@ -1032,18 +1073,16 @@
 
   // Expose functions for testing and Task 5+
   window.EmailModal = {
-    showModal: () => emailModal.classList.add('show'),
-    hideModal: () => emailModal.classList.remove('show'),
+    showModal: () => emailModal.classList.add('active'),
+    hideModal: () => emailModal.classList.remove('active'),
     getEmail: () => emailInput.value,
     setEmail: (email) => emailInput.value = email,
     showError: (message) => {
       emailError.textContent = message;
-      emailError.classList.add('show');
       emailInput.classList.add('error');
     },
     clearError: () => {
       emailError.textContent = '';
-      emailError.classList.remove('show');
       emailInput.classList.remove('error');
     },
   };
