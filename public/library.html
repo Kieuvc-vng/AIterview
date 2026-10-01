@@ -949,5 +949,25 @@
       }
     }
   </script>
+
+  <!-- Email Modal -->
+  <div id="emailModal" class="email-modal-overlay">
+    <div class="email-modal-container">
+      <h2 class="email-modal-title">Welcome to AIterview</h2>
+      <p class="email-modal-subtitle">Please enter your email to access your job library</p>
+
+      <div class="email-input-wrapper">
+        <input
+          type="email"
+          id="emailInput"
+          class="email-input"
+          placeholder="your.email@company.com"
+        />
+        <div id="emailError" class="email-error-message"></div>
+      </div>
+
+      <button id="emailContinueBtn" class="email-continue-btn">Continue</button>
+    </div>
+  </div>
 </body>
 </html>
