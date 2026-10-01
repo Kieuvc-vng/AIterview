@@ -1052,9 +1052,9 @@
       return;
     }
 
-    // Validation passed - Task 6 will handle saving to localStorage
-    // For now, just clear error state
-    emailInput.classList.remove('error');
+    // Validation passed - save to localStorage and close modal (Task 6)
+    localStorage.setItem('hr_email', email);
+    emailModal.classList.remove('active');
   });
 
   // Handle Enter key
