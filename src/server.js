@@ -30,26 +30,41 @@ async function startServer() {
     res.status(200).json({ status: 'ok', db: dbInitialized });
   });
 
-  // Redirect root to library BEFORE static middleware
+  // Test endpoint
+  app.get('/test', (req, res) => {
+    res.status(200).send('<h1>App is working!</h1><p>If you see this, the server is running.</p>');
+  });
+
+  // Static files BEFORE routes
+  app.use(express.static('public', { index: false }));
+
+  // Redirect root to library
   app.get('/', (req, res) => {
     res.redirect('/library.html');
   });
 
-  // Serve interview.html for /interview route
+  // Redirect /interview to interview.html
   app.get('/interview', (req, res) => {
-    res.redirect(`/interview.html${req.url.substring(req.url.indexOf('?'))}`);
+    const queryStr = req.url.substring(req.url.indexOf('?'));
+    res.redirect(`/interview.html${queryStr}`);
   });
 
-  // Static files after redirect (don't serve index.html as default for /)
-  app.use(express.static('public', { index: false }));
-
   // Import route modules
-  const setupRoutes = require('./routes/setupRoutes');
-  const interviewRoutes = require('./routes/interviewRoutes');
-  const reviewRoutes = require('./routes/reviewRoutes');
-  const jobRoutes = require('./routes/jobRoutes');
-  const candidateRoutes = require('./routes/candidateRoutes');
-  const jobLibraryRoutes = require('./routes/jobLibraryRoutes');
+  let setupRoutes, interviewRoutes, reviewRoutes, jobRoutes, candidateRoutes, jobLibraryRoutes;
+  try {
+    setupRoutes = require('./routes/setupRoutes');
+    interviewRoutes = require('./routes/interviewRoutes');
+    reviewRoutes = require('./routes/reviewRoutes');
+    jobRoutes = require('./routes/jobRoutes');
+    candidateRoutes = require('./routes/candidateRoutes');
+    jobLibraryRoutes = require('./routes/jobLibraryRoutes');
+    console.log('[Server] All route modules loaded successfully');
+  } catch (error) {
+    console.error('[Server] Failed to load route modules');
+    console.error('[Server] Error message:', error.message);
+    console.error('[Server] Error stack:', error.stack);
+    throw error;
+  }
 
   // Use route modules
   app.use('/api/setup', setupRoutes);
@@ -59,9 +74,15 @@ async function startServer() {
   app.use('/jobs', jobRoutes);
   app.use('/candidates', candidateRoutes);
 
+  // 404 handler
+  app.use((req, res) => {
+    res.status(404).json({ error: 'Not found' });
+  });
+
   // Error handler middleware
   app.use((err, req, res, next) => {
     console.error('Error:', err.message);
+    console.error('Error status:', err.status);
     res.status(err.status || 500).json({
       error: err.message || 'Internal server error'
     });

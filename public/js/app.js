@@ -41,8 +41,21 @@ const App = {
         }
         break;
       case 'job-library':
-        const hrEmail = data.hrEmail || localStorage.getItem('hr_email') || 'default@company.com';
-        JobLibraryPage.init(hrEmail);
+        const savedEmail = localStorage.getItem('hr_email');
+        if (!savedEmail && !data.hrEmail) {
+          // No email found - prompt user to enter email
+          const email = prompt('Vui lòng nhập email của bạn:', '');
+          if (email && email.trim()) {
+            localStorage.setItem('hr_email', email.trim());
+            JobLibraryPage.init(email.trim());
+          } else {
+            this.showError('Email là bắt buộc để tiếp tục');
+            this.goToPage('job-library'); // Retry
+          }
+        } else {
+          const hrEmail = data.hrEmail || savedEmail;
+          JobLibraryPage.init(hrEmail);
+        }
         break;
       case 'job-detail':
         if (data.jobId) {

@@ -253,7 +253,7 @@ router.post('/:interviewId/message', async (req, res, next) => {
       attempt_number: 1
     });
 
-    const isComplete = !nextQuestion || (nextQuestionIndex + 1) >= allQuestions.length - 1;
+    const isComplete = !nextQuestion || (nextQuestionIndex + 1) >= allQuestions.length;
 
     res.json({
       ai_response,

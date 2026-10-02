@@ -1324,3 +1324,131 @@ select:disabled {
     justify-content: center;
   }
 }
+
+/* Email Modal - Normal State */
+#emailModal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+#emailModal.show,
+#emailModal.active {
+  display: flex;
+}
+
+#emailModal .modal-content {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+#emailModal h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+  text-align: center;
+}
+
+#emailModal p {
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  margin: 0 0 24px 0;
+}
+
+#emailInput {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+#emailInput:focus {
+  outline: none;
+  border-color: #FF7F3F;
+  box-shadow: 0 0 0 3px rgba(255, 127, 63, 0.1);
+}
+
+#emailInput:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+#emailError {
+  color: #d32f2f;
+  font-size: 12px;
+  margin-top: 6px;
+  min-height: 18px;
+  display: none; /* Hidden by default, shown by JS on error */
+}
+
+#emailError.show {
+  display: block;
+}
+
+#emailContinueBtn {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  background-color: #FF7F3F;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 8px;
+}
+
+#emailContinueBtn:hover:not(:disabled) {
+  background-color: #E67030;
+}
+
+#emailContinueBtn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Email Modal - Error State */
+#emailInput.error {
+  border-color: #d32f2f !important;
+}
+
+/* Email Modal - Loading State */
+#emailContinueBtn.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
